@@ -27,7 +27,7 @@ export const PageWorkflowReceiptSchema: z.ZodType<PageWorkflowReceipt> = z
     runId: z.string().uuid(),
     planKey: z.string().max(100),
     emptyDetectionKey: z.string().max(100).optional(),
-    steps: z.record(
+    steps: z.partialRecord(
       StageSchema,
       z
         .object({

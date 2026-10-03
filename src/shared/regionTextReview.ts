@@ -3,7 +3,7 @@ import type { RegionEditProtection } from "./regionEditProtectionTypes";
 import { BBoxSchema } from "./ipcSchemaPrimitives";
 import { letteringMaskStrokesSchema } from "./generatedLetteringMaskSchemas";
 
-const editBbox = BBoxSchema.innerType().refine(
+const editBbox = BBoxSchema.in.refine(
   (box) =>
     box.w > 0 && box.h > 0 && box.x + box.w <= 1000 && box.y + box.h <= 1000,
   "편집 영역이 선택 이미지 밖으로 벗어났습니다.",

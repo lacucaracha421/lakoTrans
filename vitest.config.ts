@@ -11,6 +11,8 @@ const enforceWindowsCoverageThresholds = process.platform === "win32";
 
 export default defineConfig({
   test: {
+    // Preserve explicit mock lifecycle management from the Vitest 4 suite.
+    clearMocks: false,
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "json-summary"],

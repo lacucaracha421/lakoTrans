@@ -55,7 +55,7 @@ export const redactionViewSchema = z
     mode: z.enum(["edit", "grid"]),
     thumbnailSize: z.number().int().min(100).max(260),
     gridOffset: z.number().finite().min(0).max(10000000),
-    pageViews: z.record(pageView),
+    pageViews: z.record(z.string(), pageView),
   })
   .strict();
 export type RedactionView = z.infer<typeof redactionViewSchema>;

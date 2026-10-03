@@ -235,6 +235,10 @@ async function loadModules(root: string) {
   vi.doMock("../src/main/appPaths", () => ({
     getAppPaths: () => makeAppPaths(root),
   }));
+  // Resolve the queued mock before concurrent imports traverse its dependents.
+  expect((await import("../src/main/appPaths")).getAppPaths().libraryDir).toBe(
+    root,
+  );
   const [library, transaction, recovery] = await Promise.all([
     import("../src/main/library"),
     import("../src/main/libraryStore/libraryTransaction"),

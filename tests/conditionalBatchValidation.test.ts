@@ -29,7 +29,6 @@ describe("conditional batch validation presentation", () => {
       path: ["actions", 0, "target"],
       message: "Invalid input: expected string",
       expected: "string",
-      received: "number",
     });
 
     expect(custom).toBe("대상 조건을 확인하세요.");

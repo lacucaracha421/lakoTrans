@@ -32,6 +32,7 @@ const DEFERRED_CHAPTER_ID = "33333333-3333-4333-8333-333333333333";
 const TS = "2026-01-01T00:00:00.000Z";
 
 class MockIntersectionObserver implements IntersectionObserver {
+  readonly scrollMargin = "0px";
   readonly root: Element | Document | null;
   readonly rootMargin: string;
   readonly thresholds: readonly number[];

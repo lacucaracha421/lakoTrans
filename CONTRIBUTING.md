@@ -39,6 +39,19 @@ Read [docs/architecture.md](docs/architecture.md) before changing process
 boundaries, shared contracts, IPC, runtime adapters, error handling, or test
 structure.
 
+The compiler and type checks use TypeScript 7 through the `@typescript/native`
+npm alias. The `typescript` dependency aliases `@typescript/typescript6` so
+ESLint and repository AST tools retain the supported TypeScript API. Use the
+npm scripts for builds and checks; importing `typescript` is for AST tooling.
+See the [TypeScript 7 migration guidance](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/).
+
+Vitest 5 requires Node.js 22.12 or newer. Coverage manifest schema 3 retains
+the historical Vitest 4 baseline hashes under `provenance` and keeps the exact
+coverage floors unchanged. `toolchain` pins the current measurement versions
+and validated Node/V8 families. A tool upgrade must pass those existing floors.
+Zod 4 schemas use `partialRecord` where stored settings and receipts intentionally
+contain only some enum keys; keep those sparse persisted contracts compatible.
+
 ## Making a change
 
 1. Keep the change focused and avoid unrelated formatting or generated-file

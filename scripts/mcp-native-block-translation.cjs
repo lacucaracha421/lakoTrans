@@ -66,7 +66,7 @@ function createProposalFixture(root, app) {
     "main/mcp/mcpBlockTranslationContext.js",
   );
   const state = { calls: 0, releases: 0, starts: 0, source: "" };
-  /** @type {NonNullable<Parameters<import("../src/main/mcp/mcpBlockTranslationAdapter").translateMcpBlock>[3]>} */
+  /** @type {NonNullable<Parameters<typeof import("../src/main/mcp/mcpBlockTranslationAdapter").translateMcpBlock>[3]>} */
   const runtime = {
     start: async () => {
       state.starts++;

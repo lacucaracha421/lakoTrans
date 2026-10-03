@@ -1,8 +1,10 @@
 // @ts-check
 
+/** @type {(suffix: string, message: string) => never} */
+const fail = require("./group-only-review-values.cjs").fail;
+
 const {
   GROUP_ONLY_REVIEW_VERSION,
-  fail,
   integerArray,
   positive,
   record,

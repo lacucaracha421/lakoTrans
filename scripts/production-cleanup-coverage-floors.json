@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "provenance": {
     "baseCommit": "01768a05a2e74666c1fd38f2b22e4efb1cf9822b",
     "baselinePlatform": "win32",
@@ -11,6 +11,11 @@
     "validatedNodeV8": ["22/12.4", "24/13.6", "26/14.6"],
     "vitestVersion": "4.1.11",
     "coverageV8Version": "4.1.11"
+  },
+  "toolchain": {
+    "validatedNodeV8": ["22/12.4", "24/13.6", "26/14.6"],
+    "vitestVersion": "5.0.3",
+    "coverageV8Version": "5.0.3"
   },
   "floors": {
     "src/main/amdRocmTargets.ts": {
@@ -6589,6 +6594,28 @@
         "covered": 55,
         "total": 65,
         "pct": 84.61
+      }
+    },
+    "src/main/runtime/semantic-ocr/group-only-review-application.cjs": {
+      "lines": {
+        "covered": 50,
+        "total": 56,
+        "pct": 89.28
+      },
+      "statements": {
+        "covered": 50,
+        "total": 58,
+        "pct": 86.2
+      },
+      "functions": {
+        "covered": 9,
+        "total": 9,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 25,
+        "total": 34,
+        "pct": 73.52
       }
     },
     "src/main/runtime/semantic-ocr/group-only-review-deferred-ruby-geometry.cjs": {
@@ -16731,6 +16758,28 @@
         "covered": 39,
         "total": 53,
         "pct": 73.58
+      }
+    },
+    "src/shared/fontMatchingProfileSchemas.ts": {
+      "lines": {
+        "covered": 53,
+        "total": 60,
+        "pct": 88.33
+      },
+      "statements": {
+        "covered": 55,
+        "total": 62,
+        "pct": 88.7
+      },
+      "functions": {
+        "covered": 17,
+        "total": 20,
+        "pct": 85
+      },
+      "branches": {
+        "covered": 26,
+        "total": 30,
+        "pct": 86.66
       }
     },
     "src/shared/gemmaMemoryPolicy.ts": {

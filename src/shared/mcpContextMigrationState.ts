@@ -9,7 +9,7 @@ import {
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
 const fingerprint = z.string().regex(/^[a-f0-9]{16}$/);
 const count = z.number().int().nonnegative();
-const references = TranslationBlockSchema.innerType()
+const references = TranslationBlockSchema.in
   .pick({
     speakerId: true,
     glossaryEntryIds: true,

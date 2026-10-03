@@ -74,7 +74,7 @@ function createPreflightStages(privateWorkspaceId, cold) {
   return [
     stage(
       "typecheck",
-      nodeBin("typescript", "bin", "tsc"),
+      nodeBin("@typescript/native", "bin", "tsc"),
       "-p",
       "tsconfig.typecheck.json",
       ...(cold ? ["--incremental", "false"] : []),
@@ -82,14 +82,14 @@ function createPreflightStages(privateWorkspaceId, cold) {
     // The Node/CommonJS Electron project must pass before --noCheck emit.
     stage(
       "typecheck-electron",
-      nodeBin("typescript", "bin", "tsc"),
+      nodeBin("@typescript/native", "bin", "tsc"),
       "-p",
       "tsconfig.electron-typecheck.json",
       ...(cold ? ["--incremental", "false"] : []),
     ),
     stage(
       "typecheck-js",
-      nodeBin("typescript", "bin", "tsc"),
+      nodeBin("@typescript/native", "bin", "tsc"),
       "-p",
       "tsconfig.checkjs.json",
       ...(cold ? ["--incremental", "false"] : []),

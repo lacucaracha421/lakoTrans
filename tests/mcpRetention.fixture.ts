@@ -1,3 +1,4 @@
+import "./mcpPageOperationSession.fixture";
 import { vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { imageEditingFixture } from "./mcpImageEditing.fixture";

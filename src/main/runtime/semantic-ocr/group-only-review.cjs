@@ -34,12 +34,13 @@ const {
   assertNoDuplicateKeys,
   describeError,
   exactKeys,
-  fail,
   isPlan,
   normalizeEnvelope,
   record,
   validateLabels,
 } = require("./group-only-review-values.cjs");
+/** @type {(suffix: string, message: string) => never} */
+const fail = require("./group-only-review-values.cjs").fail;
 const { isExpectedGroupOnlyReviewFailure } = require("./review-errors.cjs");
 
 /** @typedef {import("./group-only-review-types").ReviewRole} ReviewRole */

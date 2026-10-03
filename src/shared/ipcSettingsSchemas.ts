@@ -70,7 +70,7 @@ const LanguageCodeSchema = z
   .max(MAX_LANGUAGE_CODE_LENGTH)
   .regex(/^[a-z]{2,3}(-[a-zA-Z0-9]{1,16})*$/);
 
-const KeybindingOverridesSchema = z.record(
+const KeybindingOverridesSchema = z.partialRecord(
   z.enum(SHORTCUT_ACTION_IDS),
   z
     .string()

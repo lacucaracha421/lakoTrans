@@ -246,7 +246,7 @@ async function main(args = process.argv.slice(2)) {
   const options = parseArguments(args);
   cleanElectronTypeScriptOutDirs();
   run(process.execPath, [
-    nodeBin("typescript", "bin", "tsc"),
+    nodeBin("@typescript/native", "bin", "tsc"),
     ...electronTypeScriptArguments(options),
   ]);
   copyElectronRuntimeSupportFiles();

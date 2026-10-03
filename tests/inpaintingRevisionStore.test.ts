@@ -797,6 +797,10 @@ async function mockAppPaths(rootDir: string): Promise<void> {
       llamaServerPath: join(rootDir, "tools", "llama", "llama-server.exe"),
     }),
   }));
+  // Resolve the queued mock before concurrent imports traverse its dependents.
+  expect((await import("../src/main/appPaths")).getAppPaths().libraryDir).toBe(
+    rootDir,
+  );
 }
 
 async function seedLibrary(rootDir: string) {

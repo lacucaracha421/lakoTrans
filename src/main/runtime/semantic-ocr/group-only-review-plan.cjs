@@ -12,7 +12,6 @@ const {
 } = require("./paddle-classifier-recovery.cjs");
 const {
   GROUP_ONLY_REVIEW_VERSION,
-  fail,
   normalizeFragments,
   optionalBox,
   optionalString,
@@ -22,6 +21,8 @@ const {
   toCrop1000,
   tupleBox,
 } = require("./group-only-review-values.cjs");
+/** @type {(suffix: string, message: string) => never} */
+const fail = require("./group-only-review-values.cjs").fail;
 
 /** @typedef {import("./group-only-review-types").ReviewPlan} ReviewPlan */
 

@@ -11,6 +11,7 @@ import {
 const schema = z.object({
   enabled: z.boolean(),
   pages: z.record(
+    z.string(),
     z.object({
       fingerprint: z.string(),
       strokes: z.array(imageRedactionStrokeSchema),

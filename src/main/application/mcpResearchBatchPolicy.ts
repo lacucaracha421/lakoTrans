@@ -62,7 +62,7 @@ export const McpResearchBatchRecordSchema = record.superRefine((value, ctx) => {
 });
 
 function validRow(work: McpResearchBatchRow, original: McpResearchWork) {
-  if (!original) return false;
+  // The record schema checks equal array lengths before validating each row.
   const fixed = [
     "workId",
     "chapterId",

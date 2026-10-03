@@ -16,7 +16,9 @@ const RunSchema = z
   .object({
     id: z.string().uuid(),
     request: PageWorkflowRequestSchema,
-    instructions: z.record(WorkInstructionSnapshotSchema).optional(),
+    instructions: z
+      .record(z.string(), WorkInstructionSnapshotSchema)
+      .optional(),
     rules: z
       .object({
         "source-rules": z.array(ConditionalBatchSchemeDraftV2Schema).optional(),

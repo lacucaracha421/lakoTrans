@@ -7,8 +7,9 @@ export const redactionWorkspaceIndexSchema = z
   .object({
     version: z.literal(2),
     revision: z.number().int().nonnegative(),
-    pages: z.record(hash),
+    pages: z.record(z.string(), hash),
     views: z.record(
+      z.string(),
       z
         .object({ object: hash, touched: z.number().finite().nonnegative() })
         .strict(),

@@ -166,7 +166,7 @@ const genrePriorSchema = z
           .strict(),
       )
       .max(30),
-    styleBias: z.record(FontMatchingSourceStyleAxisSchema, boundedScore),
+    styleBias: z.partialRecord(FontMatchingSourceStyleAxisSchema, boundedScore),
     maxScoreContribution: finiteNumber.min(0).max(0.1),
   })
   .strict();

@@ -35,16 +35,20 @@ afterAll(async () => {
     );
 });
 
-describe.sequential("exact-capacity native work restoration", () => {
-  it("revalidates the full staged work and its ownership marker before native publication", () => {
-    restoration = revalidateStagedWork();
-    return restoration;
-  });
-  it("preserves the published full tree and rejects the 2001st ordinary entry", () => {
-    publishedCheck = verifyPublishedWork();
-    return publishedCheck;
-  });
-});
+describe(
+  "exact-capacity native work restoration",
+  { concurrent: false },
+  () => {
+    it("revalidates the full staged work and its ownership marker before native publication", () => {
+      restoration = revalidateStagedWork();
+      return restoration;
+    });
+    it("preserves the published full tree and rejects the 2001st ordinary entry", () => {
+      publishedCheck = verifyPublishedWork();
+      return publishedCheck;
+    });
+  },
+);
 
 async function prepareWork() {
   fixture = await mcpAppEnvironment();

@@ -108,6 +108,32 @@ it("rejects inconsistent stored target lists and attempt counters", async () => 
       McpWorkflowRecordSchema.safeParse({ ...record, status: "completed" })
         .success,
     ).toBe(false);
+    const request = {
+      requestId: randomUUID(),
+      fingerprint: record.inputFingerprint,
+    };
+    const duplicate = McpWorkflowRecordSchema.safeParse({
+      ...record,
+      requests: [request, request],
+    });
+    expect(duplicate.error?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Duplicate workflow action receipts.",
+        }),
+      ]),
+    );
+    const wrongOrder = McpWorkflowRecordSchema.safeParse({
+      ...record,
+      steps: record.steps.map((step) => ({ ...step, index: step.index + 1 })),
+    });
+    expect(wrongOrder.error?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Inconsistent fixed workflow plan.",
+        }),
+      ]),
+    );
     const altered = structuredClone(record);
     altered.pages[0].pageId = "unrequested";
     altered.steps[0].pageId = "unrequested";

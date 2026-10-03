@@ -13,7 +13,7 @@ export const BACKUP_UI_KEYS = [
   "carrot-manga-translator.completion-sound.v1",
   "conditionalBatch.favoriteSchemeIds.v1",
 ] as const;
-export const backupUiSchema = z.record(
+export const backupUiSchema = z.partialRecord(
   z.enum(BACKUP_UI_KEYS),
   z.string().max(100_000),
 );

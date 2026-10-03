@@ -1,3 +1,4 @@
+import "./mcpPageOperationSession.fixture";
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { vi } from "vitest";

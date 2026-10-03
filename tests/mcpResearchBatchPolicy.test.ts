@@ -147,3 +147,30 @@ it("retains exact historical actions but rejects request reuse and unbounded act
     rememberResearchAction(value, randomUUID(), "d".repeat(16)),
   ).toThrow("full");
 });
+
+it("rejects missing or extra fixed work rows before comparing individual identities", () => {
+  const value = record();
+  for (const patch of [
+    { works: [...value.works, ...value.works] },
+    {
+      input: {
+        ...value.input,
+        works: [
+          ...value.input.works,
+          { ...value.input.works[0], workId: "second" },
+        ],
+      },
+    },
+  ]) {
+    const input = { ...value, ...patch };
+    input.inputFingerprint = hashStableValue(input.input);
+    const parsed = McpResearchBatchRecordSchema.safeParse(input);
+    expect(parsed.error?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Inconsistent multi-work research checkpoint.",
+        }),
+      ]),
+    );
+  }
+});

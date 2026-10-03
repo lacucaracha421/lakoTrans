@@ -122,6 +122,10 @@ async function loadModules(root: string) {
       logFile: join(root, "app.log"),
     }),
   }));
+  // Resolve the queued mock before concurrent imports traverse its dependents.
+  expect((await import("../src/main/appPaths")).getAppPaths().libraryDir).toBe(
+    root,
+  );
   const [transaction, recovery, coordinator] = await Promise.all([
     import("../src/main/libraryStore/libraryTransaction"),
     import("../src/main/libraryStore/libraryTransactionRecovery"),

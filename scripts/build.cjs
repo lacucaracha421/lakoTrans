@@ -123,7 +123,7 @@ if (skipTypecheck) {
   console.log("> reusing the successful general and Electron check typechecks");
 } else {
   run(process.execPath, [
-    nodeBin("typescript", "bin", "tsc"),
+    nodeBin("@typescript/native", "bin", "tsc"),
     "-p",
     "tsconfig.typecheck.json",
   ]);

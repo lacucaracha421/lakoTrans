@@ -19,7 +19,7 @@ const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
 const count = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 const revision = z.string().regex(/^page-v1:[a-f0-9]{16}$/);
-// Native retained records use Zod 3; the shared work-file boundary uses Zod 4.
+// Keep the retained-record diagnostic stable at the shared work-file boundary.
 const retainedWorkFileBinding = z.unknown().transform((value, context) => {
   const parsed = McpWorkFileExportBindingSchema.safeParse(value);
   if (parsed.success) return parsed.data;
@@ -29,7 +29,7 @@ const retainedWorkFileBinding = z.unknown().transform((value, context) => {
   });
   return z.NEVER;
 });
-const page = LibraryChapterFileSchema.shape.pages.element.innerType().pick({
+const page = LibraryChapterFileSchema.shape.pages.element.in.pick({
   id: true,
   imagePath: true,
   width: true,

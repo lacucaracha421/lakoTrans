@@ -15,7 +15,7 @@ const DEFAULT_MANIFEST_PATH = join(
 );
 const DEFAULT_COVERAGE_PATH = join(ROOT, "coverage", "coverage-summary.json");
 const CLEANUP_BASE_COMMIT = "01768a05a2e74666c1fd38f2b22e4efb1cf9822b";
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const COVERAGE_PROVIDER = "vitest-v8-json-summary";
 const COVERAGE_METRICS = /** @type {const} */ ([
   "lines",
@@ -41,9 +41,11 @@ const COVERAGE_METRICS = /** @type {const} */ ([
  *   vitestVersion:string;
  *   coverageV8Version:string;
  * }} CoverageProvenance
+ * @typedef {{validatedNodeV8:string[]; vitestVersion:string; coverageV8Version:string}} CoverageToolchain
  * @typedef {{
  *   schemaVersion:number;
  *   provenance:CoverageProvenance;
+ *   toolchain:CoverageToolchain;
  *   floors:Record<string,CoverageFloor>;
  *   introducedFloors:Record<string,CoverageFloor>;
  *   deletedFiles:string[];
@@ -116,13 +118,12 @@ function checkProductionCleanupCoverage(options = {}) {
       }
     }
   }
-  if (violations.length > 0) {
+  if (violations.length > 0)
     throw new Error(
       `Production cleanup coverage floors regressed:\n${violations
         .map((violation) => `- ${violation}`)
         .join("\n")}`,
     );
-  }
   return {
     baselinePlatform: manifest.provenance.baselinePlatform,
     comparedFloors: compareFloors,
@@ -136,25 +137,25 @@ function checkProductionCleanupCoverage(options = {}) {
 /** @param {string} root @param {string} manifestPath */
 function loadCoverageManifest(root, manifestPath) {
   const value = readJsonFile(manifestPath, "coverage floor manifest");
-  if (!isRecord(value)) {
+  if (!isRecord(value))
     throw new Error("Coverage floor manifest must contain a JSON object.");
-  }
   assertExactKeys(
     value,
     [
       "schemaVersion",
       "provenance",
+      "toolchain",
       "floors",
       "introducedFloors",
       "deletedFiles",
     ],
     "coverage floor manifest",
   );
-  if (value.schemaVersion !== SCHEMA_VERSION) {
+  if (value.schemaVersion !== SCHEMA_VERSION)
     throw new Error("Coverage floor manifest schemaVersion is unsupported.");
-  }
   const provenance = parseProvenance(value.provenance);
-  assertCoverageToolchain(ROOT, provenance);
+  const toolchain = parseToolchain(value.toolchain);
+  assertCoverageToolchain(ROOT, toolchain);
   const floors = parseCoverageFloorMap(root, value.floors, "floors");
   const introducedFloors = parseCoverageFloorMap(
     root,
@@ -163,19 +164,18 @@ function loadCoverageManifest(root, manifestPath) {
     true,
   );
   for (const file of Object.keys(introducedFloors)) {
-    if (Object.hasOwn(floors, file)) {
+    if (Object.hasOwn(floors, file))
       throw new Error(`Coverage file is listed twice: ${file}`);
-    }
   }
   const deletedFiles = parseDeletedFiles(value.deletedFiles);
   for (const file of deletedFiles) {
-    if (Object.hasOwn(floors, file) || Object.hasOwn(introducedFloors, file)) {
+    if (Object.hasOwn(floors, file) || Object.hasOwn(introducedFloors, file))
       throw new Error(`Coverage file is listed both live and deleted: ${file}`);
-    }
   }
   return {
     schemaVersion: SCHEMA_VERSION,
     provenance,
+    toolchain,
     floors,
     introducedFloors,
     deletedFiles,
@@ -190,13 +190,11 @@ function loadCoverageManifest(root, manifestPath) {
  * @returns {Record<string,CoverageFloor>}
  */
 function parseCoverageFloorMap(root, value, field, allowEmpty = false) {
-  if (!isRecord(value) || (!allowEmpty && Object.keys(value).length === 0)) {
+  if (!isRecord(value) || (!allowEmpty && Object.keys(value).length === 0))
     throw new Error(`Coverage floor manifest ${field} must be non-empty.`);
-  }
   const files = Object.keys(value);
-  if (!sameStringArray(files, [...files].sort())) {
+  if (!sameStringArray(files, [...files].sort()))
     throw new Error(`Coverage floor manifest ${field} must be sorted.`);
-  }
   /** @type {Record<string,CoverageFloor>} */
   const result = {};
   for (const [file, rawFloor] of Object.entries(value)) {
@@ -209,34 +207,30 @@ function parseCoverageFloorMap(root, value, field, allowEmpty = false) {
 
 /** @param {unknown} value */
 function parseDeletedFiles(value) {
-  if (!Array.isArray(value)) {
+  if (!Array.isArray(value))
     throw new Error("Coverage floor manifest deletedFiles must be an array.");
-  }
   const files = value.map((file, index) => {
-    if (typeof file !== "string") {
+    if (typeof file !== "string")
       throw new Error(
         `Coverage floor manifest deletedFiles[${index}] must be a string.`,
       );
-    }
     assertProductionCoveragePath(file);
     return file;
   });
   if (
     new Set(files).size !== files.length ||
     !sameStringArray(files, [...files].sort())
-  ) {
+  )
     throw new Error(
       "Coverage floor manifest deletedFiles must be unique and sorted.",
     );
-  }
   return files;
 }
 
 /** @param {unknown} value @returns {CoverageProvenance} */
 function parseProvenance(value) {
-  if (!isRecord(value)) {
+  if (!isRecord(value))
     throw new Error("Coverage floor manifest provenance must be an object.");
-  }
   assertExactKeys(
     value,
     [
@@ -253,15 +247,12 @@ function parseProvenance(value) {
     ],
     "coverage floor manifest provenance",
   );
-  if (value.baseCommit !== CLEANUP_BASE_COMMIT) {
+  if (value.baseCommit !== CLEANUP_BASE_COMMIT)
     throw new Error("Coverage floor manifest baseCommit is invalid.");
-  }
-  if (value.baselinePlatform !== "win32") {
+  if (value.baselinePlatform !== "win32")
     throw new Error("Coverage floor manifest baselinePlatform is invalid.");
-  }
-  if (value.coverageProvider !== COVERAGE_PROVIDER) {
+  if (value.coverageProvider !== COVERAGE_PROVIDER)
     throw new Error("Coverage floor manifest coverageProvider is invalid.");
-  }
   assertCoverageArtifact(
     "sourceArtifact",
     value.sourceArtifact,
@@ -291,12 +282,10 @@ function assertCoverageArtifact(field, artifact, sha256, allowedPath) {
     typeof artifact !== "string" ||
     normalizeRepoPath(artifact) !== artifact ||
     !allowedPath.test(artifact)
-  ) {
+  )
     throw new Error(`Coverage floor manifest ${field} is invalid.`);
-  }
-  if (typeof sha256 !== "string" || !/^[a-f0-9]{64}$/.test(sha256)) {
+  if (typeof sha256 !== "string" || !/^[a-f0-9]{64}$/.test(sha256))
     throw new Error(`Coverage floor manifest ${field}Sha256 is invalid.`);
-  }
 }
 
 /** @param {unknown} value */
@@ -309,9 +298,8 @@ function assertValidatedNodeV8(value) {
         typeof runtime !== "string" || !/^\d+\/\d+\.\d+$/.test(runtime),
     ) ||
     new Set(value).size !== value.length
-  ) {
+  )
     throw new Error("Coverage floor manifest validatedNodeV8 is invalid.");
-  }
 }
 
 /** @param {"vitestVersion"|"coverageV8Version"} field @param {unknown} value */
@@ -321,12 +309,28 @@ function assertCoverageToolVersion(field, value) {
   }
 }
 
-/** @param {string} root @param {CoverageProvenance} provenance */
-function assertCoverageToolchain(root, provenance) {
+/** @param {unknown} value @returns {CoverageToolchain} */
+function parseToolchain(value) {
+  if (!isRecord(value)) {
+    throw new Error("Coverage floor manifest toolchain must be an object.");
+  }
+  assertExactKeys(
+    value,
+    ["validatedNodeV8", "vitestVersion", "coverageV8Version"],
+    "coverage measurement toolchain",
+  );
+  assertValidatedNodeV8(value.validatedNodeV8);
+  assertCoverageToolVersion("vitestVersion", value.vitestVersion);
+  assertCoverageToolVersion("coverageV8Version", value.coverageV8Version);
+  return /** @type {CoverageToolchain} */ (value);
+}
+
+/** @param {string} root @param {CoverageToolchain} toolchain */
+function assertCoverageToolchain(root, toolchain) {
   const nodeMajor = process.versions.node.split(".")[0];
   const v8Family = process.versions.v8.split(".").slice(0, 2).join(".");
   const runtimeFamily = `${nodeMajor}/${v8Family}`;
-  if (!provenance.validatedNodeV8.includes(runtimeFamily)) {
+  if (!toolchain.validatedNodeV8.includes(runtimeFamily)) {
     throw new Error(
       `Coverage floor manifest has not been validated with Node/V8 ${runtimeFamily}.`,
     );
@@ -341,9 +345,9 @@ function assertCoverageToolchain(root, provenance) {
   );
   if (
     !isRecord(vitestPackage) ||
-    vitestPackage.version !== provenance.vitestVersion ||
+    vitestPackage.version !== toolchain.vitestVersion ||
     !isRecord(coveragePackage) ||
-    coveragePackage.version !== provenance.coverageV8Version
+    coveragePackage.version !== toolchain.coverageV8Version
   ) {
     throw new Error("Coverage floor manifest tool versions do not match.");
   }

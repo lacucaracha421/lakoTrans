@@ -28,7 +28,7 @@ const FROZEN_MANIFEST_PATH = path.join(
 const FROZEN_MANIFEST_SHA256 =
   "a88811b86bf0a271fa30c4ecd90e1e373dfb5da11d276b3a3c58e378ba2fe990";
 
-/** @typedef {import("./gemma-cleanup-audit-contract.cjs")} ContractModule */
+/** @typedef {typeof import("./gemma-cleanup-audit-contract.cjs")} ContractModule */
 /** @typedef {{selectionIndex:number;expectedClass:"clean"|"residual";pageId:string;workId:string;chapterId:string;originalRelativePath:string;originalSha256:string;cleanedRelativePath:string;cleanedSha256:string;fontInputRelativePath:string;fontInputSha256:string;blockCount:number;orderedBlockIdsSha256:string;v4ContractPins:Record<string,unknown>}} FrozenPage */
 /** @typedef {{schemaVersion:number;contractVersion:string;shadowOnly:boolean;promotionEligible:boolean;productionMutationAllowed:boolean;evaluationRole:string;holdoutEligible:boolean;consumedDevelopmentEvidence:string[];integrityScope:Record<string,unknown>;exactImageOrder:string[];outputContract:Record<string,unknown>;promptGeometryContract:Record<string,unknown>;source:{runRoot:string;runReport:string;runReportSha256:string;runConfig:string;runConfigSha256:string;manualLedger:string;manualLedgerSha256:string;legacyRunStatusMeaning:string};model:Record<string,any>;positiveSelectionIndices:number[];negativeSelectionIndices:number[];pages:FrozenPage[]}} FrozenManifest */
 

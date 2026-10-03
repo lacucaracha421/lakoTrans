@@ -1,3 +1,7 @@
+import {
+  validMcpExchangeResultMetadata,
+  validMcpExchangeJobReferences,
+} from "../src/main/application/mcpExchangeJobPolicy";
 import { randomUUID } from "node:crypto";
 import { expect, it, vi } from "vitest";
 import { hashStableValue } from "../src/shared/blockFingerprint";
@@ -328,3 +332,16 @@ it.each(["export", "import"] as const)(
     }
   },
 );
+
+it("rejects non-object exchange results and import references for another request", () => {
+  for (const value of [null, undefined, [], "not metadata"])
+    expect(validMcpExchangeResultMetadata(value)).toBe(false);
+  const f = textImportJobData();
+  expect(validMcpExchangeJobReferences(f.record)).toBe(true);
+  expect(
+    validMcpExchangeJobReferences({ ...f.record, requestId: randomUUID() }),
+  ).toBe(false);
+  expect(validMcpExchangeJobReferences({ ...f.record, parameters: {} })).toBe(
+    false,
+  );
+});

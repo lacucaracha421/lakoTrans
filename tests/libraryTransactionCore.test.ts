@@ -166,6 +166,9 @@ async function loadTransactionModules(root: string) {
       logFile: join(root, "app.log"),
     }),
   }));
+  expect((await import("../src/main/appPaths")).getAppPaths().libraryDir).toBe(
+    root,
+  );
   const [transaction, recovery, coordinator] = await Promise.all([
     import("../src/main/libraryStore/libraryTransaction"),
     import("../src/main/libraryStore/libraryTransactionRecovery"),

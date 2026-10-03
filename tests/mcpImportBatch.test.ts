@@ -182,3 +182,30 @@ it("rejects duplicate URLs, credential URLs, foreign plans, stale versions and c
     await f.close();
   }
 });
+
+it("rejects duplicate retry selections and overlapping retry/rescan selections", () => {
+  const item = randomUUID();
+  const base = {
+    id: randomUUID(),
+    version: 0,
+    requestId: randomUUID(),
+    allowNetwork: true,
+    acknowledgeDiscardedReceiptRisk: true,
+  };
+  for (const selections of [
+    { retryItemIds: [item, item] },
+    { retryItemIds: [item], rescanExpiredItemIds: [item] },
+  ]) {
+    const parsed = McpImportBatchRunSchema.safeParse({
+      ...base,
+      ...selections,
+    });
+    expect(parsed.error?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Retry and rescan selections must be distinct.",
+        }),
+      ]),
+    );
+  }
+});

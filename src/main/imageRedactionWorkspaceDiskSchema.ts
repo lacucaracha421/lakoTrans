@@ -12,6 +12,7 @@ export const redactionWorkspaceDiskSchema = z
     version: z.literal(1),
     revision: z.number().int().nonnegative(),
     pages: z.record(
+      z.string(),
       redactionDocumentSchema
         .omit({ id: true })
         .extend({
@@ -26,6 +27,7 @@ export const redactionWorkspaceDiskSchema = z
         .strict(),
     ),
     views: z.record(
+      z.string(),
       redactionViewSchema.extend({
         filter: z.preprocess(
           (value) => (value === "deferred" ? "unreviewed" : value),

@@ -1795,6 +1795,28 @@
         "pct": 100
       }
     },
+    "src/main/ipc/errorReportIpc.ts": {
+      "lines": {
+        "covered": 28,
+        "total": 33,
+        "pct": 84.84
+      },
+      "statements": {
+        "covered": 29,
+        "total": 34,
+        "pct": 85.29
+      },
+      "functions": {
+        "covered": 8,
+        "total": 13,
+        "pct": 61.53
+      },
+      "branches": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      }
+    },
     "src/main/ipc/externalLinksIpc.ts": {
       "lines": {
         "covered": 7,

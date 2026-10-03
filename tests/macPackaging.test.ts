@@ -254,7 +254,7 @@ describe("Apple Silicon Alpha packaging", () => {
       scripts: Record<string, string>;
     };
 
-    expect(packageJson.devDependencies.electron).toBe("43.3.0");
+    expect(packageJson.devDependencies.electron).toBe("44.5.1");
     expect(packageJson.devDependencies["ffmpeg-static"]).toBe("5.3.0");
     expect(packageJson.dependencies.tar).toBe("^7.5.22");
     expect(packageJson.scripts["dist:mac:alpha"]).toBe(
@@ -991,12 +991,8 @@ describe("Apple Silicon Alpha packaging", () => {
     expect(workflow).toContain("APPLE_API_KEY_P8_B64");
     expect(workflow).toContain("MGT_MAC_SIGNING_MODE=adhoc");
     expect(workflow).toContain("MGT_MAC_SIGNING_MODE=developer-id");
-    expect(workflow).toContain(
-      "MGT_MAC_ALPHA_ALLOW_HOSTED_APP_SMOKE_TRAP: macos15-electron43-crbrowsermain-v1",
-    );
-    expect(workflow).toContain(
-      "MGT_MAC_ALPHA_RUNNER_ENVIRONMENT: ${{ runner.environment }}",
-    );
+    expect(workflow).not.toContain("MGT_MAC_ALPHA_ALLOW_HOSTED_APP_SMOKE_TRAP");
+    expect(workflow).not.toContain("MGT_MAC_ALPHA_RUNNER_ENVIRONMENT");
     expect(workflow).toContain("--prerelease");
     expect(workflow).toContain("SHA256SUMS-mac-alpha.txt");
     expect(workflow).toContain("Confirm release artifacts");

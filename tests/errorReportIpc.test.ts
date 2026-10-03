@@ -62,6 +62,55 @@ beforeEach(() => {
 });
 
 describe("error report IPC", () => {
+  it.each(["copy", "issue"] as const)(
+    "waits for clipboard completion before completing %s",
+    async (action) => {
+      let finishWrite!: () => void;
+      const writing = new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      });
+      const runtime = makeErrorReportRuntime({
+        writeClipboard: vi.fn(() => writing),
+      });
+      registerErrorReportIpc(makeContext(), runtime);
+      const body = "diagnostic ".repeat(1000);
+      const pending =
+        action === "copy"
+          ? requiredHandler("error-report:copy")(
+              eventFor(1, "http://127.0.0.1:5173/"),
+              body,
+            )
+          : openErrorReportIssue({ title: "Long report", body }, runtime);
+      let completed = false;
+      void pending.then(() => {
+        completed = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(runtime.writeClipboard).toHaveBeenCalledWith(body);
+      expect(completed).toBe(false);
+      expect(runtime.openExternal).not.toHaveBeenCalled();
+      finishWrite();
+      await expect(pending).resolves.toEqual(
+        action === "copy"
+          ? { copied: true }
+          : { opened: true, mode: "clipboard" },
+      );
+    },
+  );
+
+  it("propagates asynchronous clipboard rejection through the copy handler", async () => {
+    const runtime = makeErrorReportRuntime({
+      writeClipboard: vi.fn().mockRejectedValue(new Error("clipboard denied")),
+    });
+    registerErrorReportIpc(makeContext(), runtime);
+    await expect(
+      requiredHandler("error-report:copy")(
+        eventFor(1, "http://127.0.0.1:5173/"),
+        "diagnostic",
+      ),
+    ).rejects.toThrow("clipboard denied");
+  });
+
   it("prefills a short GitHub issue without touching the clipboard", async () => {
     const runtime = makeErrorReportRuntime();
 
@@ -119,7 +168,7 @@ describe("error report IPC", () => {
 
   it("does not open the browser when clipboard fallback fails", async () => {
     const runtime = makeErrorReportRuntime({
-      writeClipboard: vi.fn(() => {
+      writeClipboard: vi.fn(async () => {
         throw new Error("clipboard unavailable");
       }),
     });
@@ -344,7 +393,7 @@ function makeErrorReportRuntime(
     relaunch: vi.fn(),
     schedule: vi.fn(),
     translate: (key) => `translated:${key}`,
-    writeClipboard: vi.fn(),
+    writeClipboard: vi.fn(async () => undefined),
     ...overrides,
   };
 }

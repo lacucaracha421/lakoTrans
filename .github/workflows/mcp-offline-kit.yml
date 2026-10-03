@@ -31,7 +31,7 @@ jobs:
           git log -1 --format='%H%n%T%n%P%n%s' > "$RUNNER_TEMP/mcp-remote-head.txt"
           git bundle create "$RUNNER_TEMP/mcp-remote-incremental.bundle" "$base"..HEAD
           sha256sum "$RUNNER_TEMP"/mcp-remote-* > "$RUNNER_TEMP/mcp-remote-sha256.txt"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mcp-publication-review
           path: ${{ runner.temp }}/mcp-remote-*

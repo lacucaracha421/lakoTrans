@@ -1,4 +1,9 @@
-import { BrowserWindow, shell, type IpcMainInvokeEvent } from "electron";
+import {
+  BrowserWindow,
+  clipboard,
+  shell,
+  type IpcMainInvokeEvent,
+} from "electron";
 import { z } from "zod";
 import { beforeEach, expect, it, vi } from "vitest";
 import { AppActivityGate } from "../src/main/appActivityGate";
@@ -91,6 +96,7 @@ beforeEach(() => {
   electronBoundary.handle.mockClear();
   electronBoundary.handlers.clear();
   vi.mocked(shell.openExternal).mockClear();
+  vi.mocked(clipboard.writeText).mockReset();
 });
 
 it("requires an explicit invalidation state for history transaction results", () => {
@@ -964,7 +970,39 @@ it("keeps MCP controls trusted and validated without an enrollment-opening IPC",
   }
 });
 
-async function createMcpControlBoundary() {
+it("completes MCP URL copy only after the clipboard resolves and propagates rejection", async () => {
+  const url = "https://manga.example.ts.net/mcp";
+  const { service, local, call } = await createMcpControlBoundary(url);
+  let finishWrite!: () => void;
+  const writing = new Promise<void>((resolve) => {
+    finishWrite = resolve;
+  });
+  vi.mocked(clipboard.writeText).mockReturnValueOnce(writing);
+  try {
+    await service.setEnabled(true);
+    const pending = Promise.resolve(call("mcp:copy-url", local));
+    let completed = false;
+    void pending.then(() => {
+      completed = true;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(clipboard.writeText).toHaveBeenCalledWith(url);
+    expect(completed).toBe(false);
+    finishWrite();
+    await expect(pending).resolves.toEqual({ completed: true });
+    vi.mocked(clipboard.writeText).mockRejectedValueOnce(
+      new Error("clipboard denied"),
+    );
+    await expect(call("mcp:copy-url", local)).rejects.toThrow(
+      "clipboard denied",
+    );
+  } finally {
+    finishWrite();
+    await service.dispose();
+  }
+});
+
+async function createMcpControlBoundary(url: string | null = null) {
   const [
     { registerMcpDesktopIpc },
     { McpDesktopService },
@@ -989,7 +1027,16 @@ async function createMcpControlBoundary() {
     savedStatus: async () => ({ url: null, connections: [] }),
     revokeSaved: async () => {},
     open: async () => {
-      throw new Error("No tunnel in this IPC test");
+      if (!url) throw new Error("No tunnel in this IPC test");
+      return {
+        url,
+        stopAccepting: () => {},
+        close: async () => {},
+        connections: () => [],
+        pairingStatus: () => ({ pending: [] }),
+        resolvePairing: () => {},
+        revoke: async () => {},
+      };
     },
     diagnose: async () => ({ ok: true, checks: [] }),
     reportError: () => {},

@@ -64,7 +64,7 @@ export function registerMcpDesktopIpc(context: IpcContext): void {
   trustedHandleContract(context, mcpIpcContracts.copyMcpUrl, async () => {
     const status = await requireService(context).getStatus();
     if (!status.url) throw new Error("먼저 MCP 서버를 켜세요.");
-    clipboard.writeText(status.url);
+    await clipboard.writeText(status.url);
     return { completed: true };
   });
 }

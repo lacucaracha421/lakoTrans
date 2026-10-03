@@ -34,7 +34,7 @@ export type ErrorReportIpcRuntime = TrustedIpcRuntime & {
     context: ErrorReportContext,
     appPaths: AppPaths,
   ) => Promise<ErrorReportDraft>;
-  writeClipboard: (text: string) => void;
+  writeClipboard: (text: string) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
   relaunch: () => void;
   quit: () => void;
@@ -70,8 +70,8 @@ export function registerErrorReportIpc(
   registeredRendererHandleContract(
     context,
     errorReportIpcContracts.copyErrorReport,
-    (_event, body) => {
-      runtime.writeClipboard(body);
+    async (_event, body) => {
+      await runtime.writeClipboard(body);
       return { copied: true };
     },
     runtime,
@@ -112,7 +112,7 @@ export async function openErrorReportIssue(
     return { opened: true, mode: "prefilled" };
   }
 
-  runtime.writeClipboard(request.body);
+  await runtime.writeClipboard(request.body);
   const fallbackUrl = buildGitHubIssueUrl(
     request.title,
     CLIPBOARD_FALLBACK_BODY,

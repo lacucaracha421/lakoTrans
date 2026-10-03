@@ -52,7 +52,7 @@ jobs:
         run: npm run check
       - name: Preserve check diagnostics
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-uac-full-check-${{ github.sha }}
           path: |
@@ -110,7 +110,7 @@ jobs:
             interactiveUacTested = $false
           } | ConvertTo-Json | Set-Content -Encoding utf8 dist/uac-acceptance.json
       - name: Preserve test installer and evidence
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-uac-test-package-${{ github.sha }}
           path: |
@@ -132,7 +132,7 @@ jobs:
           }
       - name: Preserve failed package diagnostics
         if: ${{ failure() && !cancelled() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-uac-package-failure-${{ github.sha }}
           path: .tmp/uac-package-inventory.json

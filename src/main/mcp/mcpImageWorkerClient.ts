@@ -170,8 +170,7 @@ export class McpImageWorkerClient implements McpImageProcessingPort {
       async () => new ImageWorkerResource(this.createWorker()),
     );
     let outcome:
-      | { result: McpImageOperations[K]["output"] }
-      | { error: unknown };
+      { result: McpImageOperations[K]["output"] } | { error: unknown };
     try {
       this.lifetime.signal.throwIfAborted();
       guard();

@@ -67,8 +67,7 @@ export async function chapterDeletionFilesFixture(
     );
   const retain = async (remove = false) => {
     let copied:
-      | Awaited<ReturnType<typeof files.retainChapterDeletionFiles>>
-      | undefined;
+      Awaited<ReturnType<typeof files.retainChapterDeletionFiles>> | undefined;
     await transaction(async (tx) => {
       const staged = await tx.createPublishedDirectory(backup);
       copied = await files.retainChapterDeletionFiles(

@@ -2,12 +2,7 @@ import React from "react";
 import type { Point } from "../../../shared/textTypes";
 import type { LetteringMaskStroke } from "../../../shared/generatedLetteringMaskTypes";
 export type RegionReviewTool =
-  | "bounds"
-  | "add"
-  | "paint"
-  | "hide"
-  | "restore"
-  | "pan";
+  "bounds" | "add" | "paint" | "hide" | "restore" | "pan";
 import type { useRegionReviewForm } from "./useRegionReviewForm";
 type Options = {
   form: ReturnType<typeof useRegionReviewForm>;

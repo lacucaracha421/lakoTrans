@@ -35,8 +35,7 @@ export type DroppedImportSource =
     };
 
 export type DroppedImportClassification =
-  | DroppedImportSource
-  | DroppedImportRejection;
+  DroppedImportSource | DroppedImportRejection;
 
 type InspectedDropPath = {
   path: string;

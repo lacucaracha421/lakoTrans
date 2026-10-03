@@ -180,14 +180,7 @@ function resolveMovedValue(
 }
 
 type SelectKeyboardAction =
-  | "close"
-  | "commit"
-  | "first"
-  | "last"
-  | "next"
-  | "open"
-  | "previous"
-  | "tab";
+  "close" | "commit" | "first" | "last" | "next" | "open" | "previous" | "tab";
 
 function useSelectKeyboard({
   activeValue,

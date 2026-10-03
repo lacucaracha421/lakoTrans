@@ -5,8 +5,7 @@ export const FATAL_MAIN_PROCESS_CLEANUP_HARD_DEADLINE_MS =
 export const FATAL_MAIN_PROCESS_EXIT_CODE = 1;
 
 export type FatalMainProcessIncidentSource =
-  | "uncaught-exception"
-  | "unhandled-rejection";
+  "uncaught-exception" | "unhandled-rejection";
 
 type FatalForcedExitReason =
   | "cleanup-complete"

@@ -125,9 +125,7 @@ function VertexGuideSteps({
 }
 
 type GuideDescriptionName =
-  | (typeof LINKED_GUIDE_STEPS)[number][1]
-  | "key"
-  | "app";
+  (typeof LINKED_GUIDE_STEPS)[number][1] | "key" | "app";
 
 function GuideDescription({
   name,

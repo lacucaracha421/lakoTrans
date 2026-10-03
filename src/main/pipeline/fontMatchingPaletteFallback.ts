@@ -85,8 +85,7 @@ function createFontPaletteFallback(options: {
 async function loadResources(directory: string) {
   const model = await loadCrossScriptProxyRuntimeModel(directory);
   let expressionModel:
-    | Awaited<ReturnType<typeof loadFontExpressionModel>>
-    | undefined;
+    Awaited<ReturnType<typeof loadFontExpressionModel>> | undefined;
   try {
     expressionModel = await loadFontExpressionModel();
     return {

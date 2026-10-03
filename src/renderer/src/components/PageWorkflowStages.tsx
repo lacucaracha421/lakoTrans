@@ -250,11 +250,7 @@ function StageOptions({
 }: Props & { stage: PageWorkflowStage }) {
   const toggle = (
     key:
-      | "autoFont"
-      | "autoSize"
-      | "bubbleLayout"
-      | "naturalLayout"
-      | "cumulative",
+      "autoFont" | "autoSize" | "bubbleLayout" | "naturalLayout" | "cumulative",
     label: string,
   ) => (
     <FloatingControlTooltip key={key} content={OPTION_DESCRIPTIONS[key]}>

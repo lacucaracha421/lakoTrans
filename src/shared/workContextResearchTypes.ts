@@ -53,8 +53,7 @@ type CharacterResearchOperation = ResearchOperationBase & {
 };
 
 export type WorkContextResearchOperation =
-  | GlossaryResearchOperation
-  | CharacterResearchOperation;
+  GlossaryResearchOperation | CharacterResearchOperation;
 
 export type WorkContextResearchProposal = {
   engine: ResearchEngine;

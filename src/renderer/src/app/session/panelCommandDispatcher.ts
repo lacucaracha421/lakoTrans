@@ -47,8 +47,7 @@ type AlwaysAvailablePanelCommand = Extract<
   | { type: "suggestConsistentEdit" }
 >;
 type SelectionEditCommand =
-  | AdjustSelectionFontSizeCommand
-  | UpdateSelectionFormatCommand;
+  AdjustSelectionFontSizeCommand | UpdateSelectionFormatCommand;
 
 export type PanelCommandTarget = {
   updateBlock: (blockId: string, patch: UpdateBlockCommand["patch"]) => void;

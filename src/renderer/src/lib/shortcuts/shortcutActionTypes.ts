@@ -2,12 +2,7 @@ import type { TFunction } from "i18next";
 import type { ShortcutActionId } from "../../../../shared/shortcutSettings";
 
 export type ShortcutCategory =
-  | "view"
-  | "tool"
-  | "translate"
-  | "inpaint"
-  | "edit"
-  | "global";
+  "view" | "tool" | "translate" | "inpaint" | "edit" | "global";
 
 export function getShortcutCategoryLabels(
   t: TFunction<"renderer">,

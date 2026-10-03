@@ -24,13 +24,9 @@ type DevToolsScreenshotResponse = {
   data?: string;
 };
 type StalledExportPhase =
-  | "page-load"
-  | "render-readiness"
-  | "debugger-setup"
-  | "screenshot-capture";
+  "page-load" | "render-readiness" | "debugger-setup" | "screenshot-capture";
 type ExportOutcome =
-  | { status: "fulfilled" }
-  | { status: "rejected"; message: string };
+  { status: "fulfilled" } | { status: "rejected"; message: string };
 
 const tempDirs: string[] = [];
 const realSetTimeout = globalThis.setTimeout.bind(globalThis);

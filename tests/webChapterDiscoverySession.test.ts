@@ -23,9 +23,8 @@ async function fixture() {
       },
     ],
   };
-  const executeJavaScript = vi.fn(
-    async (script: string): Promise<unknown> =>
-      script === WEB_CHAPTER_LINKS_SCRIPT ? data : true,
+  const executeJavaScript = vi.fn(async (script: string): Promise<unknown> =>
+    script === WEB_CHAPTER_LINKS_SCRIPT ? data : true,
   );
   const webRequest: Pick<Session["webRequest"], "onBeforeRequest"> = {
     onBeforeRequest: vi.fn(),

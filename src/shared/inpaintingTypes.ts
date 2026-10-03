@@ -134,8 +134,7 @@ export type InpaintingRetouchShapeGeometry = {
 };
 
 export type InpaintingRetouchGeometry =
-  | InpaintingRetouchStrokeGeometry
-  | InpaintingRetouchShapeGeometry;
+  InpaintingRetouchStrokeGeometry | InpaintingRetouchShapeGeometry;
 
 export type InpaintingRetouchRequest = {
   chapterId: string;

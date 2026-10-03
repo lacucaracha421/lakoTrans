@@ -81,11 +81,7 @@ export type ModelTestResult = {
   ok: boolean;
   message: string;
   launchMode:
-    | "huggingface"
-    | "cached-hf"
-    | "local"
-    | "openai-codex"
-    | "openai-api";
+    "huggingface" | "cached-hf" | "local" | "openai-codex" | "openai-api";
   resolvedModelPath?: string | null;
   resolvedMmprojPath?: string | null;
   resolvedEndpoint?: string | null;

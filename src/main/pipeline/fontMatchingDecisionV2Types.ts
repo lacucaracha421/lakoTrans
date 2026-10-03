@@ -49,9 +49,7 @@ export type FontMatchingWorkStateV2 = Readonly<{
   bodyConsistencyScoreBoost?: number;
   /** Pixel-only page policy for speech-balloon typography. */
   pageBalloonConsistencyMode?:
-    | "stable_body"
-    | "page_anchor"
-    | "local_visual_variant";
+    "stable_body" | "page_anchor" | "local_visual_variant";
   /** Shared font for visually ordinary balloons on the same page. */
   pageBalloonAnchorFontId?: string | null;
   /** Number of independent page rows supporting the selected anchor. */
@@ -133,8 +131,7 @@ export type FontCandidatePolicyRejectReasonV2 =
   | "user_default_unavailable";
 
 export type FontCandidateRejectReasonV2 =
-  | FontCandidateHardRejectReasonV2
-  | FontCandidatePolicyRejectReasonV2;
+  FontCandidateHardRejectReasonV2 | FontCandidatePolicyRejectReasonV2;
 
 export type FontCandidateDecisionAuditV2 = Readonly<{
   fontId: string;

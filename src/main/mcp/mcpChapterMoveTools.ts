@@ -99,20 +99,18 @@ function movementDefinitions(
       execute: (args, owner, guard) =>
         service.apply(owner, McpChapterMoveApplySchema.parse(args), guard),
     },
-    ...(["undo", "redo"] as const).map(
-      (direction): Definition => ({
-        name: `carrot_${direction}_chapter_move`,
-        schema: McpChapterDeletionRecoverySchema,
-        write: true,
-        description: `${direction.toUpperCase()} a reviewed movement using current inspection snapshot, new requestId and confirm=true. Target must be closed/unlinked. Restores exact recorded directory content and both works, without overwriting later edits or recreating missing works. Same profile/owner, seven days, at most 32 recovery actions. No network/model execution.`,
-        execute: (args, owner, guard) =>
-          service.recover(
-            owner,
-            McpChapterDeletionRecoverySchema.parse(args),
-            direction,
-            guard,
-          ),
-      }),
-    ),
+    ...(["undo", "redo"] as const).map((direction): Definition => ({
+      name: `carrot_${direction}_chapter_move`,
+      schema: McpChapterDeletionRecoverySchema,
+      write: true,
+      description: `${direction.toUpperCase()} a reviewed movement using current inspection snapshot, new requestId and confirm=true. Target must be closed/unlinked. Restores exact recorded directory content and both works, without overwriting later edits or recreating missing works. Same profile/owner, seven days, at most 32 recovery actions. No network/model execution.`,
+      execute: (args, owner, guard) =>
+        service.recover(
+          owner,
+          McpChapterDeletionRecoverySchema.parse(args),
+          direction,
+          guard,
+        ),
+    })),
   ];
 }

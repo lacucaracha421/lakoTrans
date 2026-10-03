@@ -2,7 +2,7 @@
 // Decoupled from the status log: use for single-shot feedback
 // (save/delete/export/job complete or fail), not progress spam.
 
-export type ToastVariant = "success" | "error" | "warn" | "info";
+type ToastVariant = "success" | "error" | "warn" | "info";
 
 type ToastAction = {
   label: string;

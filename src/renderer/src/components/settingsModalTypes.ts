@@ -1,11 +1,5 @@
 export type SettingsTabId =
-  | "mcp"
-  | "general"
-  | "engine"
-  | "format"
-  | "results"
-  | "shortcuts"
-  | "test";
+  "mcp" | "general" | "engine" | "format" | "results" | "shortcuts" | "test";
 
 export type TestState =
   | {

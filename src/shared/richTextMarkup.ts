@@ -819,10 +819,7 @@ function copyColor<
 
 function copyNumber<
   Key extends
-    | "outlineWidthPx"
-    | "outerOutlineWidthPx"
-    | "glowBlurPx"
-    | "glowOpacity",
+    "outlineWidthPx" | "outerOutlineWidthPx" | "glowBlurPx" | "glowOpacity",
 >(
   source: TextStyleRun,
   target: TextStyleRun,

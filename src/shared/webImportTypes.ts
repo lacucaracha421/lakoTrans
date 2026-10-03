@@ -52,11 +52,7 @@ export type WebImportScanResponse =
   | { status: "rejected"; reason: WebImportScanRejectionReason };
 
 type WebImportProgressStage =
-  | "validating"
-  | "loading"
-  | "scrolling"
-  | "discovering"
-  | "downloading";
+  "validating" | "loading" | "scrolling" | "discovering" | "downloading";
 
 export type WebImportProgressEvent = {
   requestId: string;

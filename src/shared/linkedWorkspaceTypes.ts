@@ -106,12 +106,7 @@ export type LinkedSyncQueueFileV1 = {
 };
 
 type LinkedWorkspaceSyncState =
-  | "unlinked"
-  | "disabled"
-  | "idle"
-  | "pending"
-  | "syncing"
-  | "failed";
+  "unlinked" | "disabled" | "idle" | "pending" | "syncing" | "failed";
 
 export type LinkedWorkspaceStatus = {
   chapterId: string;

@@ -53,10 +53,7 @@ const CODEX_APP_SERVER_RESEARCH_ENABLED_FEATURES = [
 ] as const;
 
 export type CodexAppServerCapability =
-  | "isolated"
-  | "research"
-  | "typesetting-preview"
-  | "image-generation";
+  "isolated" | "research" | "typesetting-preview" | "image-generation";
 
 export function buildCodexAppServerTurnConfig(
   capability: CodexAppServerCapability,

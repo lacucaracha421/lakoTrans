@@ -158,15 +158,13 @@ export function restorePreparedTranslationCheckpoint(
     pageOptions: {
       ...pageOptions,
       previousBlocksForPrompt: prepared.previousBlocks as
-        | PreviousOverlayBlockForPrompt[]
-        | undefined,
+        PreviousOverlayBlockForPrompt[] | undefined,
       keepBlocksMode: checkpoint.blockMode === "keep" || undefined,
     },
     items: prepared.items as OverlayItem[],
     fontInferenceItems: prepared.fontInferenceItems as OverlayItem[],
     keepBlocksInferenceBlocks: prepared.keepBlocksInferenceBlocks as
-      | { blockId: string; item: OverlayItem }[]
-      | undefined,
+      { blockId: string; item: OverlayItem }[] | undefined,
     pageContext: prepared.pageContext as PageContextPayload | undefined,
   };
 }

@@ -4,12 +4,7 @@ import type { ChapterSnapshot } from "../../../shared/libraryTypes";
 export type SaveReason = "autosave" | "manual";
 
 export type ChapterSaveStatus =
-  | "idle"
-  | "dirty"
-  | "saving"
-  | "saved"
-  | "error"
-  | "conflict";
+  "idle" | "dirty" | "saving" | "saved" | "error" | "conflict";
 
 export type UseChapterPersistenceOptions = {
   currentChapter: ChapterSnapshot | null;

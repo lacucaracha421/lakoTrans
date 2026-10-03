@@ -74,8 +74,7 @@ describe("Gemma fixed-block page-layout shadow contract", () => {
     expect(prompt).toContain("Return no coordinates, boxes, regions");
 
     const supplied = JSON.parse(prompt.split("fixedBlocks=")[1] ?? "[]") as
-      | Array<Record<string, unknown>>
-      | undefined;
+      Array<Record<string, unknown>> | undefined;
     expect(supplied).toEqual([
       { blockId: "B001", sourceText: "ひとつ", translatedText: "하나" },
       { blockId: "B002", sourceText: "ふたつ", translatedText: "둘" },

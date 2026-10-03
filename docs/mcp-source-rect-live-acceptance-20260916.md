@@ -26,9 +26,10 @@ The fixture chapter and all 10 associated files were backed up and hash-verified
 Each page was exported before editing, after editing and after restoration.
 All six jobs were polled to `completed`. Within each page, all three completed
 responses had identical PNG dimensions, byte count and full SHA-256:
-| Page | Size | Bytes | SHA-256 |
-| --- | --- | ---: | --- |
-| render.png | 480x640 | 12297 | 00334b6123c8b6451ec87fc3cf15ad6629508375eafc17eccfc1d470ba978e35 |
+
+| Page         | Size    | Bytes | SHA-256                                                          |
+| ------------ | ------- | ----: | ---------------------------------------------------------------- |
+| render.png   | 480x640 | 12297 | 00334b6123c8b6451ec87fc3cf15ad6629508375eafc17eccfc1d470ba978e35 |
 | external.png | 480x640 | 14908 | 89fb027ab3520f857ef73a2c3f4c83b90ba17d2a726bb43c5e52d904a2a84c3c |
 
 Digests above are from completed app export responses, not a separate ChatGPT

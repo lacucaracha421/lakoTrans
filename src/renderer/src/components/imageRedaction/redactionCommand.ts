@@ -2,8 +2,7 @@ import type { RedactionSession } from "./redactionSession";
 
 export type RedactionCommand = (current: RedactionSession) => RedactionSession;
 export type RedactionCommandResult =
-  | { ok: true; state: RedactionSession }
-  | { ok: false; error: unknown };
+  { ok: true; state: RedactionSession } | { ok: false; error: unknown };
 
 /** A rejected command never commits a partial state or acknowledges UI success. */
 export function runRedactionCommand(

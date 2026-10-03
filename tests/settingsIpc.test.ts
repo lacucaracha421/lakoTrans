@@ -992,8 +992,7 @@ function createRuntime({
       if (startProgress) {
         (
           options.onProgress as
-            | ((progress: Omit<ModelTestProgressEvent, "id">) => void)
-            | undefined
+            ((progress: Omit<ModelTestProgressEvent, "id">) => void) | undefined
         )?.(startProgress);
       }
       return {

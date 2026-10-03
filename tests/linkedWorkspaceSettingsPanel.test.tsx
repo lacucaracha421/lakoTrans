@@ -177,7 +177,9 @@ describe("LinkedWorkspaceSettingsPanel", () => {
       target: { value: "" },
     });
     await screen.findByText("테스트 작품");
-    fireEvent.click(screen.getByRole("button", { name: /정렬:/ }));
+    fireEvent.keyDown(screen.getByRole("button", { name: /정렬:/ }), {
+      key: "ArrowDown",
+    });
     fireEvent.click(screen.getByRole("menuitemradio", { name: "이름" }));
     fireEvent.click(screen.getByRole("button", { name: "오름차순" }));
 

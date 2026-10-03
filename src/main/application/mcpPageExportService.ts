@@ -14,10 +14,7 @@ type Target = {
   sourceNameFingerprint?: string;
 };
 type ImageMime =
-  | "image/png"
-  | "image/jpeg"
-  | "image/webp"
-  | "image/vnd.adobe.photoshop";
+  "image/png" | "image/jpeg" | "image/webp" | "image/vnd.adobe.photoshop";
 type Artifact<M extends ImageMime = ImageMime> = {
   retainedOutputId?: string;
   url: string;

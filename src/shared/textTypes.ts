@@ -9,11 +9,7 @@ export type RenderTextDirection = "horizontal" | "vertical";
 export type TextLayoutIntent = "auto" | "horizontal" | "vertical";
 export type ReviewStatus = "draft" | "needs_review" | "reviewed";
 export type TextWordBreak =
-  | "normal"
-  | "break-word"
-  | "break-all"
-  | "keep-all"
-  | "keep-all-overflow";
+  "normal" | "break-word" | "break-all" | "keep-all" | "keep-all-overflow";
 
 export type TextEffect = {
   enabled: boolean;

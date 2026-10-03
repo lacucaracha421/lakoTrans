@@ -11,10 +11,7 @@ export type CompletionSoundPreferences = {
 };
 
 export type CompletionSoundCategory =
-  | "translation"
-  | "sound-effect"
-  | "source-erasing"
-  | "research";
+  "translation" | "sound-effect" | "source-erasing" | "research";
 
 export type ResolvedCompletionSoundPreferences =
   Required<CompletionSoundPreferences>;

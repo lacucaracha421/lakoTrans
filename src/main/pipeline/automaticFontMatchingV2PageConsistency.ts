@@ -21,9 +21,7 @@ const DEFAULT_LOCAL_OVERRIDE_MINIMUM_SCORE_MARGIN = 0.12;
  */
 export function buildAutomaticFontPageConsistencyPlan(
   inferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | null
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | null | undefined
   )[],
   items: readonly PageGeometryItem[] = [],
 ): ReadonlyMap<string, AutomaticFontPageConsistencyState> {

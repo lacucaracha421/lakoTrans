@@ -110,8 +110,7 @@ export class McpTextImportApplication {
     const plan = this.batches.readOwnedPlan(owner, input.batchId, guard);
     job.assertAuthorized();
     let outcome:
-      | Awaited<ReturnType<typeof this.batches.waitForAction>>
-      | undefined;
+      Awaited<ReturnType<typeof this.batches.waitForAction>> | undefined;
     try {
       return await this.consumeImport(
         owner,

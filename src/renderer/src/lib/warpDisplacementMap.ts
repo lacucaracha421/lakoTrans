@@ -277,8 +277,7 @@ function createCacheKey(
 function trimCache(): void {
   while (displacementMapCache.size > MAX_CACHE_ENTRIES) {
     const oldest = displacementMapCache.keys().next().value as
-      | string
-      | undefined;
+      string | undefined;
     if (!oldest) break;
     displacementMapCache.delete(oldest);
   }

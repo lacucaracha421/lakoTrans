@@ -68,10 +68,7 @@ type JsonLinesRequestHandle<TResponse extends JsonLinesWorkerResponse> = {
 };
 
 type WorkerClientState =
-  | "running"
-  | "closing"
-  | "closed"
-  | "termination-failed";
+  "running" | "closing" | "closed" | "termination-failed";
 
 type PermanentFailurePlan = {
   primaryRequestId: string | null;

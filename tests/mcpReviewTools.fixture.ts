@@ -7,31 +7,29 @@ import { editingChapter } from "./mcpEditing.fixture";
 export function reviewToolsFixture() {
   const chapter = editingChapter();
   const openChapter = vi.fn(async () => structuredClone(chapter));
-  const listLibrary = vi.fn(
-    async (): Promise<LibraryIndex> => ({
-      workOrder: [chapter.workId],
-      works: [
-        {
-          id: chapter.workId,
-          title: "PRIVATE-TITLE",
-          chapterOrder: [chapter.id],
-          createdAt: "now",
-          updatedAt: "now",
-          chapters: [
-            {
-              id: chapter.id,
-              workId: chapter.workId,
-              title: chapter.title,
-              status: chapter.status,
-              pageCount: chapter.pages.length,
-              createdAt: "now",
-              updatedAt: "now",
-            },
-          ],
-        },
-      ],
-    }),
-  );
+  const listLibrary = vi.fn(async (): Promise<LibraryIndex> => ({
+    workOrder: [chapter.workId],
+    works: [
+      {
+        id: chapter.workId,
+        title: "PRIVATE-TITLE",
+        chapterOrder: [chapter.id],
+        createdAt: "now",
+        updatedAt: "now",
+        chapters: [
+          {
+            id: chapter.id,
+            workId: chapter.workId,
+            title: chapter.title,
+            status: chapter.status,
+            pageCount: chapter.pages.length,
+            createdAt: "now",
+            updatedAt: "now",
+          },
+        ],
+      },
+    ],
+  }));
   const repository = { openChapter, listLibrary };
   const tools = createMcpReviewTools(repository);
   const call = async (

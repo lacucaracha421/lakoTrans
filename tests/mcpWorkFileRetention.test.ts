@@ -70,8 +70,7 @@ async function workFileRetentionFixture() {
     const wrap = f.operations().wrapTool;
     if (!wrap) throw new Error("Native retention must be connected");
     let output:
-      | Awaited<ReturnType<McpArtifactStore["putWorkFile"]>>
-      | undefined;
+      Awaited<ReturnType<McpArtifactStore["putWorkFile"]>> | undefined;
     const tool = wrap({
       name: "carrot_export_work_file",
       description: "Native workfile and retention integration fixture",

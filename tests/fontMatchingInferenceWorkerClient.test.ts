@@ -703,15 +703,13 @@ describe("font matching worker client protocol", () => {
 
   it("falls back to the in-process port when worker spawn fails", async () => {
     FakeWorker.failSpawn = true;
-    const fallback = vi.fn(
-      (): FontMatchingPageInferencePort => ({
-        inferPage: async (request) => ({
-          pixelInferenceByBlockId: new Map([
-            [request.blocks[0]?.blockId ?? "x", {} as never],
-          ]),
-        }),
+    const fallback = vi.fn((): FontMatchingPageInferencePort => ({
+      inferPage: async (request) => ({
+        pixelInferenceByBlockId: new Map([
+          [request.blocks[0]?.blockId ?? "x", {} as never],
+        ]),
       }),
-    );
+    }));
     const reportWarning = vi.fn();
     const port = makePort({ createFallbackPort: fallback, reportWarning });
 
@@ -747,11 +745,9 @@ describe("font matching worker client protocol", () => {
         ]),
       }),
     );
-    const fallback = vi.fn(
-      (): FontMatchingPageInferencePort => ({
-        inferPage: fallbackInfer,
-      }),
-    );
+    const fallback = vi.fn((): FontMatchingPageInferencePort => ({
+      inferPage: fallbackInfer,
+    }));
     const reportWarning = vi.fn();
     const port = makePort({ createFallbackPort: fallback, reportWarning });
 
@@ -778,11 +774,9 @@ describe("font matching worker client protocol", () => {
           ]),
         }),
       );
-      const fallback = vi.fn(
-        (): FontMatchingPageInferencePort => ({
-          inferPage: fallbackInfer,
-        }),
-      );
+      const fallback = vi.fn((): FontMatchingPageInferencePort => ({
+        inferPage: fallbackInfer,
+      }));
       const reportWarning = vi.fn();
       const port = makePort({ createFallbackPort: fallback, reportWarning });
 

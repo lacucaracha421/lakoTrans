@@ -256,7 +256,7 @@ describe("Apple Silicon Alpha packaging", () => {
 
     expect(packageJson.devDependencies.electron).toBe("43.3.0");
     expect(packageJson.devDependencies["ffmpeg-static"]).toBe("5.3.0");
-    expect(packageJson.dependencies.tar).toBe("^7.5.7");
+    expect(packageJson.dependencies.tar).toBe("^7.5.22");
     expect(packageJson.scripts["dist:mac:alpha"]).toBe(
       "node scripts/dist-mac-alpha.cjs",
     );

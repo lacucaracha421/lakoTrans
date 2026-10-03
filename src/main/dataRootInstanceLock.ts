@@ -78,9 +78,7 @@ export type DataRootInstanceLockLease = {
 };
 
 export type DataRootInstanceLockHeldReason =
-  | "live-process"
-  | "foreign-host"
-  | "reclaim-in-progress";
+  "live-process" | "foreign-host" | "reclaim-in-progress";
 
 export type DataRootInstanceLockInvalidReason =
   | "lock-path-not-directory"

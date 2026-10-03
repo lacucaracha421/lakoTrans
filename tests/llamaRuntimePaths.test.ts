@@ -1060,7 +1060,7 @@ describe("llama runtime path selection", () => {
     const logicalBytes = chunkBytes * 2 + 37;
     const requestedReads: number[] = [];
     const expected = createHash("sha256");
-    for (let position = 0; position < logicalBytes; ) {
+    for (let position = 0; position < logicalBytes;) {
       const length = Math.min(chunkBytes, logicalBytes - position);
       const byte = Math.floor(position / chunkBytes) + 1;
       expected.update(Buffer.alloc(length, byte));

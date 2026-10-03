@@ -71,9 +71,7 @@ export type LegacySoundEffectReviewV2 = Omit<
 
 export function normalizeSoundEffectReview(
   review:
-    | SoundEffectReview
-    | LegacySoundEffectReview
-    | LegacySoundEffectReviewV2,
+    SoundEffectReview | LegacySoundEffectReview | LegacySoundEffectReviewV2,
 ): SoundEffectReview {
   if (review.contractVersion === SOUND_EFFECT_REVIEW_CONTRACT_VERSION) {
     return review;
@@ -127,9 +125,7 @@ export function resolvePendingSoundEffectReviewRegions(
 /** Resolve user-reviewed geometry without mutating immutable detector records. */
 export function resolveEffectiveSoundEffectReviewRegions(
   review:
-    | SoundEffectReview
-    | LegacySoundEffectReview
-    | LegacySoundEffectReviewV2,
+    SoundEffectReview | LegacySoundEffectReview | LegacySoundEffectReviewV2,
 ): SoundEffectReviewRegion[] {
   const normalized = normalizeSoundEffectReview(review);
   const overrides = new Map(

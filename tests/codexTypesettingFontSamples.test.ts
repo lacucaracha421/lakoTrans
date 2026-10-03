@@ -27,19 +27,18 @@ function renderer(limit: number) {
       page = next;
       return Buffer.from("renderer-bytes");
     }),
-    inspectLastLayout: vi.fn(
-      async (): Promise<PageExportLayoutEvidence> =>
-        page.blocks.map((block) => ({
-          blockId: block.id,
-          lines: [parseRichText(block.translatedText).plainText],
-          fontSizePx: block.fontSizePx,
-          innerWidth: 564,
-          innerHeight: 180,
-          overflow:
-            segmentNaturalTextGraphemes(
-              parseRichText(block.translatedText).plainText,
-            ).length > limit,
-        })),
+    inspectLastLayout: vi.fn(async (): Promise<PageExportLayoutEvidence> =>
+      page.blocks.map((block) => ({
+        blockId: block.id,
+        lines: [parseRichText(block.translatedText).plainText],
+        fontSizePx: block.fontSizePx,
+        innerWidth: 564,
+        innerHeight: 180,
+        overflow:
+          segmentNaturalTextGraphemes(
+            parseRichText(block.translatedText).plainText,
+          ).length > limit,
+      })),
     ),
   };
 }

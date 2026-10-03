@@ -28,7 +28,9 @@ type MutableSettingsFormField = Exclude<
 >;
 
 export type SettingsFormSetters = {
-  [K in MutableSettingsFormField as `set${Capitalize<string & K>}`]: FieldSetter<K>;
+  [
+    K in MutableSettingsFormField as `set${Capitalize<string & K>}`
+  ]: FieldSetter<K>;
 } & {
   setApiProvider: FieldSetter<"apiProvider">;
   setModelProvider: FieldSetter<"modelProvider">;

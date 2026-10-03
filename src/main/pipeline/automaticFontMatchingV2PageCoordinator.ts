@@ -190,9 +190,7 @@ type AutomaticFontPageCoordinatorOptions = Readonly<{
   chapterCoordinator?: AutomaticFontPageCoordinatorV2;
   items?: readonly OverlayItem[];
   pixelInferences?: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | null
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | null | undefined
   )[];
 }>;
 
@@ -289,8 +287,7 @@ function createAccentObservation({
   runtimePolicy,
   selectedFontId,
 }: Omit<Parameters<typeof recordAccentObservation>[0], "accentObservations">):
-  | FontContinuityObservation
-  | undefined {
+  FontContinuityObservation | undefined {
   if (!inference || inference.localEvidence.noneAcceptable) return undefined;
   const localTop = [...inference.localEvidence.rankedCandidates]
     .filter((candidate) => candidate.renderStatus === "rendered")
@@ -374,9 +371,7 @@ function prepareAccentWorkState({
 export function orderAutomaticFontMatchingPageItemIndexes(
   items: readonly OverlayItem[],
   pixelInferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | null
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | null | undefined
   )[] = [],
 ): number[] {
   const pagePlan = buildAutomaticFontPageConsistencyPlan(

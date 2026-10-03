@@ -42,8 +42,7 @@ export type PageProcessingTimingV2 = {
 };
 
 export type PageProcessingTiming =
-  | LegacyPageProcessingTiming
-  | PageProcessingTimingV2;
+  LegacyPageProcessingTiming | PageProcessingTimingV2;
 
 export type PageTimingSessionRef = {
   id: string;

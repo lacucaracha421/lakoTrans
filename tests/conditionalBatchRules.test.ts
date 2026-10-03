@@ -1230,8 +1230,7 @@ describe("conditional batch v2 schema and storage", () => {
     ).toBe(true);
     const emptyMatcher = (
       createConditionalBatchRecipeDraft("findReplace").actions[0] as
-        | ConditionalBatchReplaceTextActionV2
-        | undefined
+        ConditionalBatchReplaceTextActionV2 | undefined
     )?.matcher;
     expect(emptyMatcher).toBeDefined();
     if (!emptyMatcher) throw new Error("Expected an empty visual matcher");

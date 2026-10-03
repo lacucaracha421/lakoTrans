@@ -20,9 +20,7 @@ export type AppQuitCleanupProgress = {
 };
 
 type AppQuitForcedExitReason =
-  | "hard-deadline"
-  | "graceful-quit-failed"
-  | "watchdog-scheduling-failed";
+  "hard-deadline" | "graceful-quit-failed" | "watchdog-scheduling-failed";
 
 type AppQuitForcedExitDetail = {
   reason: AppQuitForcedExitReason;

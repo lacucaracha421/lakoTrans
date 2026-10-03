@@ -366,13 +366,11 @@ function buildNewWorkPayload(
     target: { mode: "new", title: newWorkTitle },
     entries: newSelections
       .filter((item) => item.enabled)
-      .map(
-        (item): WorkShareImportEntry => ({
-          source: "package",
-          packageChapterId: item.packageChapterId,
-          title: item.title,
-        }),
-      ),
+      .map((item): WorkShareImportEntry => ({
+        source: "package",
+        packageChapterId: item.packageChapterId,
+        title: item.title,
+      })),
     remainingPackageChapters: [],
     deletedExistingChapters: [],
   };

@@ -4,18 +4,10 @@ import { isPageFullyCompleted } from "../../../../shared/pageCompletion";
 
 export type PageStatusMode = "translation" | "inpainting";
 export type PageListFilter =
-  | "all"
-  | "running"
-  | "failed"
-  | "pending"
-  | "completed";
+  "all" | "running" | "failed" | "pending" | "completed";
 
 export type PageDisplayStatus =
-  | "completed"
-  | "translation-complete"
-  | "running"
-  | "failed"
-  | "pending";
+  "completed" | "translation-complete" | "running" | "failed" | "pending";
 
 export function resolvePageDisplayStatus(
   page: MangaPage,

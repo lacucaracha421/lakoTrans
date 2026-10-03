@@ -156,8 +156,7 @@ function buildTranslatedBlocks({
   pageCoordinator?: AutomaticFontPageCoordinatorV2;
   pageOptions: TranslationOptions;
   pixelInferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | undefined
   )[];
   processingOrder: readonly number[];
   sourceFontSizeEstimates?: readonly (SourceFontSizeEstimate | undefined)[];
@@ -231,8 +230,7 @@ function resolvePageFontCoordinator(
   chapterCoordinator: AutomaticFontPageCoordinatorV2 | undefined,
   items: readonly OverlayItem[],
   pixelInferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | undefined
   )[],
 ): AutomaticFontPageCoordinatorV2 | undefined {
   if (!enabled) return undefined;

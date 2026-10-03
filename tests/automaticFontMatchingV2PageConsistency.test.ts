@@ -1961,8 +1961,7 @@ function inference({
   width?: number;
   distortion?: "none" | "warped";
   glyphMorphology?:
-    | VerifiedAutomaticFontPixelInferenceV2["glyphMorphology"]
-    | null;
+    VerifiedAutomaticFontPixelInferenceV2["glyphMorphology"] | null;
 }): VerifiedAutomaticFontPixelInferenceV2 {
   return {
     kind: "verified_pixel_inference",

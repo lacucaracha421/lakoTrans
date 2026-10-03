@@ -13,11 +13,7 @@ export const REVIEWED_OUTPUT_LIMITS = {
 } as const;
 
 type ReviewedOutputRole =
-  | "result"
-  | "inpainted"
-  | "mask"
-  | "mirror"
-  | "registry";
+  "result" | "inpainted" | "mask" | "mirror" | "registry";
 export type ReviewedOutputDigest = { bytes: number; sha256: string };
 export type ReviewedOutputSelection = {
   chapterId: string;
@@ -111,11 +107,7 @@ export type ReviewedOutputEffect = {
 };
 export type ReviewedOutputFileOutcome = ReviewedOutputFile & {
   state:
-    | "planned"
-    | "publication_unconfirmed"
-    | "published"
-    | "removed"
-    | "failed";
+    "planned" | "publication_unconfirmed" | "published" | "removed" | "failed";
   bytes: number | null;
   sha256: string | null;
   completedAt: number | null;

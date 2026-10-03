@@ -86,8 +86,7 @@ function LinkedWorkspaceWorkList({
 }: {
   busyChapterIds: ReadonlySet<string>;
   emptyMessageKey:
-    | "settings.results.empty"
-    | "settings.results.noSearchResults";
+    "settings.results.empty" | "settings.results.noSearchResults";
   errors: ReadonlyMap<string, string>;
   library: LibraryIndex;
   onRun: (

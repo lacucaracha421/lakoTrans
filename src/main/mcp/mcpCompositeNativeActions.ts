@@ -27,10 +27,7 @@ import {
 import { failAfterCompositeNativeCleanup } from "./mcpCompositeNativeCleanup";
 
 type BatchFamily =
-  | "selection-apply"
-  | "typography-apply"
-  | "lettering-apply"
-  | "sfx-apply";
+  "selection-apply" | "typography-apply" | "lettering-apply" | "sfx-apply";
 type BatchWait = (
   owner: string,
   id: string,
@@ -199,9 +196,9 @@ export class McpCompositeNativeActions {
             AbortSignal.abort(error),
           );
         } catch (cleanup) {
-          if (
-            !(cleanup instanceof McpEditError && cleanup.code === "not_found")
-          )
+          if (!(
+            cleanup instanceof McpEditError && cleanup.code === "not_found"
+          ))
             throw cleanup;
         }
       });

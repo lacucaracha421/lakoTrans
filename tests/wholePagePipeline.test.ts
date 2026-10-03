@@ -789,8 +789,7 @@ describe("whole page pipeline", () => {
     });
 
     const options = requestTranslation.mock.calls[0]?.[1] as
-      | TranslationOptions
-      | undefined;
+      TranslationOptions | undefined;
     expect(options).toBeTruthy();
     expect(options?.regionCropMode).toBe(true);
     expect(options?.regionContextImagePath).toBe(sourcePage.imagePath);

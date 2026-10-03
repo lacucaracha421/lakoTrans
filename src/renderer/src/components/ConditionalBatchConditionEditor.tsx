@@ -230,8 +230,7 @@ function ConditionSummary({
   expanded: boolean;
   onExpand: () => void;
   evaluation:
-    | ConditionalBatchPreviewResult["conditionEvaluations"][number]
-    | undefined;
+    ConditionalBatchPreviewResult["conditionEvaluations"][number] | undefined;
 }) {
   const { options: fontOptions } = useFonts();
   const { options: speakerOptions } = React.useContext(

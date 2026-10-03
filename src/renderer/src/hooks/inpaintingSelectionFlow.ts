@@ -12,11 +12,7 @@ import {
 } from "../lib/pageTimingSession";
 
 type InpaintingSelectionOutcome =
-  | "completed"
-  | "partial"
-  | "cancelled"
-  | "failed"
-  | "no-op";
+  "completed" | "partial" | "cancelled" | "failed" | "no-op";
 
 type StartInpainting = (
   request: StartInpaintingRequest,

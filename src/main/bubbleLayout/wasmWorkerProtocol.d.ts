@@ -22,8 +22,7 @@ export type KoharuWasmWorkerCancelMessage = Readonly<{
 }>;
 
 export type KoharuWasmWorkerInboundMessage =
-  | KoharuWasmWorkerInferMessage
-  | KoharuWasmWorkerCancelMessage;
+  KoharuWasmWorkerInferMessage | KoharuWasmWorkerCancelMessage;
 
 export type SerializedKoharuWasmWorkerError = Readonly<{
   name: string;
@@ -46,5 +45,4 @@ export type KoharuWasmWorkerFailureMessage = Readonly<{
 }>;
 
 export type KoharuWasmWorkerOutboundMessage =
-  | KoharuWasmWorkerSuccessMessage
-  | KoharuWasmWorkerFailureMessage;
+  KoharuWasmWorkerSuccessMessage | KoharuWasmWorkerFailureMessage;

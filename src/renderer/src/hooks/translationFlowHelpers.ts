@@ -8,12 +8,7 @@ import type { CumulativeContextDetail } from "../../../shared/settingsTypes";
 import type { PageTimingSessionRef } from "../../../shared/pageProcessingTiming";
 
 export type RunAnalysisOutcome =
-  | "completed"
-  | "partial"
-  | "page-failed"
-  | "cancelled"
-  | "failed"
-  | "no-op";
+  "completed" | "partial" | "page-failed" | "cancelled" | "failed" | "no-op";
 
 type ExecuteAnalysisArgs = {
   codexTypesetting?: import("../../../shared/codexTypesettingTypes").CodexTypesettingOptions;

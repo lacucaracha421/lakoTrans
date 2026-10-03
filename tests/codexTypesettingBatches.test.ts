@@ -33,21 +33,18 @@ const page: MangaPage = {
   createdAt: "",
   updatedAt: "",
 };
-const active = Array.from(
-  { length: 33 },
-  (_, index): CodexPageRegion => ({
-    id: `r${index}`,
-    action: "text",
-    sourceText: "待って",
-    translatedText: "잠깐",
-    sourceBbox: { x: 100, y: 10 + index * 28, w: 80, h: 8 },
-    renderBbox: { x: 100, y: 10 + index * 28, w: 150, h: 8 },
-    role: "ordinary",
-    direction: "vertical",
-    background: "white",
-    reason: "dialogue",
-  }),
-);
+const active = Array.from({ length: 33 }, (_, index): CodexPageRegion => ({
+  id: `r${index}`,
+  action: "text",
+  sourceText: "待って",
+  translatedText: "잠깐",
+  sourceBbox: { x: 100, y: 10 + index * 28, w: 80, h: 8 },
+  renderBbox: { x: 100, y: 10 + index * 28, w: 150, h: 8 },
+  role: "ordinary",
+  direction: "vertical",
+  background: "white",
+  reason: "dialogue",
+}));
 const keep: CodexPageRegion = {
   ...active[0],
   id: "keep",

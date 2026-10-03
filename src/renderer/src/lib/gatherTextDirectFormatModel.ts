@@ -52,8 +52,7 @@ export type GatherTextDirectFormatPatch = Partial<
 >;
 
 export type GatherTextDirectFormatValueState<T> =
-  | { kind: "common"; value: T }
-  | { kind: "mixed" };
+  { kind: "common"; value: T } | { kind: "mixed" };
 
 export type GatherTextDirectFormatValueStates = {
   [Field in GatherTextDirectFormatField]: GatherTextDirectFormatValueState<

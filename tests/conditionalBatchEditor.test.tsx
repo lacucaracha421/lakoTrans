@@ -248,6 +248,13 @@ describe("beginner conditional batch editor", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "미리보기" }));
     fireEvent.click(screen.getByRole("button", { name: "연속 규칙 편집" }));
+    fireEvent.change(screen.getByLabelText("연속 실행 이름"), {
+      target: { value: "수정한 연속 실행" },
+    });
+    expect(screen.getByLabelText("연속 실행 이름")).toHaveProperty(
+      "value",
+      "수정한 연속 실행",
+    );
     fireEvent.click(
       screen.getAllByRole("button", { name: "연속 실행 단계 복제" })[0],
     );

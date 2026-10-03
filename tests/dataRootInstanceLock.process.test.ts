@@ -162,9 +162,7 @@ type WorkerErrorResult = {
 };
 
 type WorkerResult =
-  | WorkerAcquiredResult
-  | WorkerLockedResult
-  | WorkerErrorResult;
+  WorkerAcquiredResult | WorkerLockedResult | WorkerErrorResult;
 
 type WorkerHandle = {
   child: ChildProcess;

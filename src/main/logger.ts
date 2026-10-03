@@ -16,8 +16,7 @@ const SENSITIVE_LOG_KEY_SUFFIX =
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 type NormalizedLogValueResult =
-  | { handled: true; value: unknown }
-  | { handled: false };
+  { handled: true; value: unknown } | { handled: false };
 
 const UNHANDLED_LOG_VALUE: NormalizedLogValueResult = { handled: false };
 

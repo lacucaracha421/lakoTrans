@@ -30,10 +30,7 @@ export type BubbleLayoutSculptInput = {
   mode: BubbleLayoutSculptMode;
 };
 export type BubbleLayoutSculptRejectReason =
-  | "detached"
-  | "disconnect"
-  | "empty"
-  | "invalid";
+  "detached" | "disconnect" | "empty" | "invalid";
 export type BubbleLayoutSculptResult =
   | { status: "applied"; patch: ManualBubbleLayoutPatch }
   | { status: "rejected"; reason: BubbleLayoutSculptRejectReason };

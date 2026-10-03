@@ -29,8 +29,7 @@ it.each(["native", "review"] as const)(
       f.service.run(owner, mutation(ready), guard),
     ]);
     let cancellation:
-      | Promise<PromiseSettledResult<McpCompositeRecord>>
-      | undefined;
+      Promise<PromiseSettledResult<McpCompositeRecord>> | undefined;
     try {
       await f.reserved.promise;
       const committed = await f.repository.load(owner, ready.id);

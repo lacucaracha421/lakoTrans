@@ -299,12 +299,7 @@ UI 문구 예:
 
 ```ts
 type PageWorkflowState =
-  | "queued"
-  | "running"
-  | "needs-review"
-  | "approved"
-  | "failed"
-  | "skipped";
+  "queued" | "running" | "needs-review" | "approved" | "failed" | "skipped";
 
 type PipelineStage = "detect" | "ocr" | "translate" | "inpaint" | "typeset";
 ```

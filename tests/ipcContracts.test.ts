@@ -648,6 +648,9 @@ it("routes concurrent activity snapshots, handoff acknowledgements and cancellat
     await verifyConcurrentOperationHandoff(harness);
     vi.mocked(shell.openPath).mockResolvedValue("");
     expect(await call("openLibraryFolder")).toMatchObject({ opened: true });
+    await expect(
+      call("getPageImageDataUrl", "C:/outside-library.png"),
+    ).rejects.toThrow();
     jobs.clearIfCurrent("local");
     jobs.clearIfCurrent("remote");
     expect(await call("disposeInpaintingEngine")).toMatchObject({

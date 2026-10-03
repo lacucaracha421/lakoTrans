@@ -3,9 +3,7 @@ import type { ActiveJob, ActiveJobStore } from "./activeJob";
 export const BEFORE_QUIT_CLEANUP_TIMEOUT_MS = 5000;
 
 export type ActiveJobCleanupReason =
-  | "before-quit"
-  | "fatal-incident"
-  | "main-window-closed";
+  "before-quit" | "fatal-incident" | "main-window-closed";
 
 type ActiveJobCleanupOptions = {
   job: ActiveJob;

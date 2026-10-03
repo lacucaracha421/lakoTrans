@@ -2,11 +2,7 @@ import React from "react";
 import type { WorkContextUsageMetric } from "../../../../shared/workContextUsageTypes";
 
 export type ContextEntryFilter =
-  | "all"
-  | "ai"
-  | "unused"
-  | "low-use"
-  | "disabled";
+  "all" | "ai" | "unused" | "low-use" | "disabled";
 export type ContextEntrySort = "usage" | "recent" | "name" | "stored";
 export type ContextEntrySortDirection = "asc" | "desc";
 

@@ -15,10 +15,7 @@ const COORDINATE_PRECISION = 1_000_000;
 const VALUE_PRECISION = 10_000;
 
 type QuadraticPathValidationReason =
-  | "non-finite"
-  | "out-of-range"
-  | "chord-too-short"
-  | "path-too-short";
+  "non-finite" | "out-of-range" | "chord-too-short" | "path-too-short";
 
 type QuadraticPathValidationResult = {
   valid: boolean;

@@ -32,9 +32,7 @@ const MINIMUM_EXPLICIT_DIALOGUE_CONFIDENCE = 0.75;
 
 export function buildPageConsistencyPlan(
   inferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | null
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | null | undefined
   )[],
   items: readonly PageGeometryItem[],
 ): ReadonlyMap<string, AutomaticFontPageConsistencyState> {

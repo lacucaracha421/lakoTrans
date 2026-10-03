@@ -49,12 +49,7 @@ type UseInpaintingContextBridgeOptions = {
 };
 
 type RetouchCursorMode =
-  | "brush"
-  | "rectangle"
-  | "ellipse"
-  | "eraser"
-  | "eraser-rectangle"
-  | "mask";
+  "brush" | "rectangle" | "ellipse" | "eraser" | "eraser-rectangle" | "mask";
 
 type RetouchCursor = {
   color: string;

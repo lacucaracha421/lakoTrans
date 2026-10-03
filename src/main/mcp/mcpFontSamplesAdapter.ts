@@ -15,8 +15,7 @@ export async function renderMcpFontSamples(
   guard();
   const directory = await mkdtemp(join(tmpdir(), "carrot-mcp-font-samples-"));
   let renderer:
-    | Awaited<ReturnType<typeof createPageExportRenderSession>>
-    | undefined;
+    Awaited<ReturnType<typeof createPageExportRenderSession>> | undefined;
   try {
     renderer = await createPageExportRenderSession({
       dataRoot: getAppPaths().dataRoot,

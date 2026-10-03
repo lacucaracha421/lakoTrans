@@ -40,14 +40,12 @@ it.each([false, true])(
     const preparePage = vi.fn(async () => {}),
       close = vi.fn(),
       renderPage = vi.fn(async () => Buffer.from("unused"));
-    const createSession = vi.fn(
-      async (): Promise<PageExportRenderSession> => ({
-        preparePage,
-        close,
-        renderPage,
-        applyWorkflowRules: async ({ chapter }) => ({ chapter, findings: [] }),
-      }),
-    );
+    const createSession = vi.fn(async (): Promise<PageExportRenderSession> => ({
+      preparePage,
+      close,
+      renderPage,
+      applyWorkflowRules: async ({ chapter }) => ({ chapter, findings: [] }),
+    }));
     if (fail) preparePage.mockRejectedValueOnce(new Error("renderer failed"));
     const run = runtime.group("review", async () => {
       for (const page of pages) {

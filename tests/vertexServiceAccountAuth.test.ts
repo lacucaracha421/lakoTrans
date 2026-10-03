@@ -18,6 +18,21 @@ afterEach(async () => {
 });
 
 describe("Vertex service-account authentication", () => {
+  it("rejects an empty access token returned by the auth client", async () => {
+    const filePath = await writeCredential();
+    const provider = createVertexServiceAccountAccessTokenProvider(filePath, {
+      readFile,
+      stat,
+      createClient: () => ({
+        credentials: {},
+        getAccessToken: async () => ({ token: "  " }),
+      }),
+    });
+    await expect(provider()).rejects.toThrow(
+      "액세스 토큰을 발급받지 못했습니다",
+    );
+  });
+
   it("validates the Google credential shape without exposing the private key", async () => {
     const filePath = await writeCredential();
 

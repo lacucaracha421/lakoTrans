@@ -266,8 +266,7 @@ function resolveKeepBlocksPageAutomaticFont({
   automaticFont?: KeepBlocksAutomaticFontOptions;
   items: readonly OverlayItem[];
   verifiedPixelInferences: readonly (
-    | VerifiedAutomaticFontPixelInferenceV2
-    | undefined
+    VerifiedAutomaticFontPixelInferenceV2 | undefined
   )[];
 }): KeepBlocksAutomaticFontOptions | undefined {
   if (!automaticFont?.enabled) return automaticFont;

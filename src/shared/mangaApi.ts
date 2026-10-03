@@ -180,12 +180,7 @@ type McpApi = {
   diagnoseMcp: () => Promise<import("./mcpDesktopTypes").McpDiagnostics>;
   openMcpHelp: (
     page:
-      | "tailscale"
-      | "setup"
-      | "chatgpt"
-      | "codex"
-      | "claude"
-      | "claude-code",
+      "tailscale" | "setup" | "chatgpt" | "codex" | "claude" | "claude-code",
   ) => Promise<{ completed: boolean }>;
   copyMcpUrl: () => Promise<{ completed: boolean }>;
 };

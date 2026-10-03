@@ -82,21 +82,18 @@ it("bounds mounted page rows in a long chapter and reveals a distant selection",
 });
 
 it("keeps filtered ordering and mounts drop targets only for the active drag", () => {
-  const pages = Array.from(
-    { length: 120 },
-    (_, i): MangaPage => ({
-      id: String(i),
-      name: String(i),
-      imagePath: "",
-      dataUrl: "",
-      width: 1,
-      height: 1,
-      blocks: [],
-      analysisStatus: i % 2 ? "failed" : "completed",
-      createdAt: "",
-      updatedAt: "",
-    }),
-  );
+  const pages = Array.from({ length: 120 }, (_, i): MangaPage => ({
+    id: String(i),
+    name: String(i),
+    imagePath: "",
+    dataUrl: "",
+    width: 1,
+    height: 1,
+    blocks: [],
+    analysisStatus: i % 2 ? "failed" : "completed",
+    createdAt: "",
+    updatedAt: "",
+  }));
   const viewport = document.createElement("div");
   const ref = { current: viewport };
   const onReorder = vi.fn();

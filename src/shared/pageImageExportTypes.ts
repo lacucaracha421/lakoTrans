@@ -37,8 +37,7 @@ export type PagePsdExportRequest = Omit<
 };
 
 export type PageExportSelectionRequest =
-  | PageImageExportRequest
-  | (PagePsdExportRequest & { outputFormat: "psd" });
+  PageImageExportRequest | (PagePsdExportRequest & { outputFormat: "psd" });
 
 export const PAGE_IMAGE_EXPORT_PREFLIGHT_ISSUE_CODES = [
   "job-running",
@@ -83,6 +82,5 @@ export type PageImageExportCancelledResult = {
 };
 
 export type PageImageExportResult =
-  | PageImageExportCompletedResult
-  | PageImageExportCancelledResult;
+  PageImageExportCompletedResult | PageImageExportCancelledResult;
 import type { PageJobTargetSnapshot } from "./pageRevision";

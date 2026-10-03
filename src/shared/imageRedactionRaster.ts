@@ -75,7 +75,7 @@ function paintSequence(
   end: number,
   depth: number,
 ): void {
-  for (let index = start; index < end; ) {
+  for (let index = start; index < end;) {
     const group = strokes[index].isolation?.[depth];
     if (group === undefined) {
       paintStroke(target, strokes[index++]);

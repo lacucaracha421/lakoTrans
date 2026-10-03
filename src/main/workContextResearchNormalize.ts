@@ -494,7 +494,9 @@ type NormalizeOperationInput = {
 // eslint-disable-next-line complexity -- raw proposal variants are normalized through one fail-closed entity/action boundary
 function makeOperation<
   TEntity extends "glossary" | "character",
-  TEntry extends TEntity extends "glossary" ? GlossaryEntry : CharacterProfile,
+  TEntry extends (TEntity extends "glossary"
+    ? GlossaryEntry
+    : CharacterProfile),
 >(
   input: NormalizeOperationInput,
   entity: TEntity,

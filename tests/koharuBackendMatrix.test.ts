@@ -92,16 +92,14 @@ describe("Koharu backend contracts across GPU vendors and generations", () => {
   it.each(devices)(
     "routes %s without model-name-specific workarounds",
     async (name, vendor, computeCapability, rocmArch, backend) => {
-      const detectGpu = vi.fn(
-        async (): Promise<DetectedGpuInfo> => ({
-          name,
-          vendor,
-          computeCapability,
-          rocmArch,
-          memoryMb: 8192,
-          rtxGeneration: null,
-        }),
-      );
+      const detectGpu = vi.fn(async (): Promise<DetectedGpuInfo> => ({
+        name,
+        vendor,
+        computeCapability,
+        rocmArch,
+        memoryMb: 8192,
+        rtxGeneration: null,
+      }));
       expect(
         await resolveKoharuBackendCandidates("auto", detectGpu, "win32"),
       ).toEqual(backend === "cpu" ? ["cpu"] : [backend, "cpu"]);

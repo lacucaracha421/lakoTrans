@@ -19,9 +19,7 @@ export function makeCoordinatorResult(
   fontId: string,
   reasonCodes: string[] = ["role_palette"],
   resolvedBy:
-    | "work_profile"
-    | "work_role_user_lock"
-    | "v2_automatic" = "work_profile",
+    "work_profile" | "work_role_user_lock" | "v2_automatic" = "work_profile",
 ): FontMatchingDecisionResultV2 {
   return {
     decision: {

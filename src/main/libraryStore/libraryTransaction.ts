@@ -91,13 +91,11 @@ export class SimulatedLibraryTransactionCrash extends Error {
 }
 
 let crashInjector:
-  | ((point: LibraryTransactionCrashPoint) => void | Promise<void>)
-  | null = null;
+  ((point: LibraryTransactionCrashPoint) => void | Promise<void>) | null = null;
 
 export function setLibraryTransactionCrashInjectorForTests(
   injector:
-    | ((point: LibraryTransactionCrashPoint) => void | Promise<void>)
-    | null,
+    ((point: LibraryTransactionCrashPoint) => void | Promise<void>) | null,
 ): () => void {
   const previous = crashInjector;
   crashInjector = injector;

@@ -171,13 +171,11 @@ export async function discardMcpImageProduct(
       try {
         await unlink(path);
       } catch (failure) {
-        if (
-          !(
-            failure instanceof Error &&
-            "code" in failure &&
-            failure.code === "ENOENT"
-          )
-        )
+        if (!(
+          failure instanceof Error &&
+          "code" in failure &&
+          failure.code === "ENOENT"
+        ))
           throw failure;
       }
     }),

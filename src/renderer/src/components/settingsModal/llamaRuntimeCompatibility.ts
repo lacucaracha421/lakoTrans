@@ -1,8 +1,7 @@
 import type { LlamaRuntimeProfile } from "../../../../shared/settingsTypes";
 
 export type LlamaRuntimeCompatibilityWarningId =
-  | "rtx50-using-cuda12"
-  | "non-rtx50-using-rtx50";
+  "rtx50-using-cuda12" | "non-rtx50-using-rtx50";
 
 export function isRtx50Hardware(
   computeCapability: number | null,

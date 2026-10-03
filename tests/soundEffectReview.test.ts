@@ -916,10 +916,7 @@ function detection(
     }
   }
   const labelId = { text: 0, onomatopoeia: 1, bubble: 2, panel: 3 }[label] as
-    | 0
-    | 1
-    | 2
-    | 3;
+    0 | 1 | 2 | 3;
   return {
     label,
     labelId,
@@ -941,10 +938,7 @@ function maskedDetection(
   const xs = points.map(([x]) => x);
   const ys = points.map(([, y]) => y);
   const labelId = { text: 0, onomatopoeia: 1, bubble: 2, panel: 3 }[label] as
-    | 0
-    | 1
-    | 2
-    | 3;
+    0 | 1 | 2 | 3;
   return {
     label,
     labelId,

@@ -83,32 +83,30 @@ export function withCodexReadingReview(
   );
   if (!preserved.length) return result;
   const defaults = DEFAULT_BLOCK_FORMAT_DEFAULTS;
-  const markers = preserved.map(
-    (region): TranslationBlock => ({
-      id: blockId(region.id),
-      type: "nonsolid",
-      bbox: region.sourceBbox,
-      bboxSpace: "normalized_1000",
-      renderBbox: region.sourceBbox,
-      renderBboxSpace: "normalized_1000",
-      sourceText: "",
-      translatedText: "",
-      confidence: 0,
-      sourceDirection: region.direction,
-      renderDirection: "horizontal",
-      fontSizePx: defaults.fontSizePx,
-      lineHeight: defaults.lineHeight,
-      textAlign: defaults.textAlign,
-      textColor: defaults.textColor,
-      backgroundColor: defaults.outlineColor,
-      opacity: 0,
-      textOpacity: 0,
-      inpaintExcluded: true,
-      layoutIntentSuppressed: true,
-      reviewStatus: "needs_review",
-      reviewNote: `원문 판독 보류: ${region.preserveReason}`,
-    }),
-  );
+  const markers = preserved.map((region): TranslationBlock => ({
+    id: blockId(region.id),
+    type: "nonsolid",
+    bbox: region.sourceBbox,
+    bboxSpace: "normalized_1000",
+    renderBbox: region.sourceBbox,
+    renderBboxSpace: "normalized_1000",
+    sourceText: "",
+    translatedText: "",
+    confidence: 0,
+    sourceDirection: region.direction,
+    renderDirection: "horizontal",
+    fontSizePx: defaults.fontSizePx,
+    lineHeight: defaults.lineHeight,
+    textAlign: defaults.textAlign,
+    textColor: defaults.textColor,
+    backgroundColor: defaults.outlineColor,
+    opacity: 0,
+    textOpacity: 0,
+    inpaintExcluded: true,
+    layoutIntentSuppressed: true,
+    reviewStatus: "needs_review",
+    reviewNote: `원문 판독 보류: ${region.preserveReason}`,
+  }));
   const blocks = [...result.page.blocks, ...markers];
   return {
     page: {

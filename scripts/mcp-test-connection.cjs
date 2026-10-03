@@ -49,14 +49,12 @@ function prepareLocalToken(env = process.env) {
     writeFileSync(tokenPath, token, { flag: "wx", mode: 0o600 });
     return token;
   } catch (error) {
-    if (
-      !(
-        error &&
-        typeof error === "object" &&
-        "code" in error &&
-        error.code === "EEXIST"
-      )
-    )
+    if (!(
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "EEXIST"
+    ))
       throw error;
     return readLocalToken();
   }

@@ -10,8 +10,7 @@ class FakeBrowserWindow {
   options: unknown;
   listeners = new Map<string, Listener>();
   windowOpenHandler:
-    | ((details: { url: string }) => { action: "deny" | "allow" })
-    | null = null;
+    ((details: { url: string }) => { action: "deny" | "allow" }) | null = null;
   loadFile = vi.fn(async () => undefined);
   loadURL = vi.fn(async () => undefined);
   setMenuBarVisibility = vi.fn();

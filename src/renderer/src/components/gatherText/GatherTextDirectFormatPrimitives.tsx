@@ -25,10 +25,7 @@ export {
 export type DirectSliderField = "rotationDeg" | "textOpacity";
 
 export type DirectNumberField =
-  | "lineHeight"
-  | "letterSpacing"
-  | "fontWidthScale"
-  | "outlineWidthPx";
+  "lineHeight" | "letterSpacing" | "fontWidthScale" | "outlineWidthPx";
 
 export function DirectNumberControl<Field extends DirectNumberField>({
   field,

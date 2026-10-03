@@ -115,19 +115,10 @@ export type ConditionalBatchField =
   (typeof CONDITIONAL_BATCH_FIELD_IDS)[number];
 
 type ConditionalBatchFieldKind =
-  | "text"
-  | "enum"
-  | "number"
-  | "color"
-  | "boolean";
+  "text" | "enum" | "number" | "color" | "boolean";
 
 type ConditionalBatchFieldCategory =
-  | "text"
-  | "layout"
-  | "typography"
-  | "review"
-  | "derived"
-  | "inspection";
+  "text" | "layout" | "typography" | "review" | "derived" | "inspection";
 
 export const CONDITIONAL_BATCH_OPERATORS = [
   "contains",

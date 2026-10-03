@@ -1,11 +1,7 @@
 import type { SettingsTabId } from "../settingsModalTypes";
 
 export type LlmSettingsTab =
-  | "translation"
-  | "ocr"
-  | "image"
-  | "research"
-  | "hardware";
+  "translation" | "ocr" | "image" | "research" | "hardware";
 
 type SettingsPageId = Exclude<SettingsTabId, "engine"> | LlmSettingsTab;
 

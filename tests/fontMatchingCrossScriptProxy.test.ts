@@ -839,10 +839,7 @@ function makeRanked(fontId: string, index: number): RankedFontCandidateV2 {
 
 function makeDecisionResult(
   resolvedBy:
-    | "v2_automatic"
-    | "block_user_lock"
-    | "work_profile"
-    | "work_role_user_lock",
+    "v2_automatic" | "block_user_lock" | "work_profile" | "work_role_user_lock",
 ): FontMatchingDecisionResultV2 {
   return {
     decision: {

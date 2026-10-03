@@ -221,8 +221,7 @@ export type FontMatchingSelectionCalibrationV2 =
     }>;
 
 export type FontMatchingSelectionCalibration =
-  | FontMatchingSelectionCalibrationV1
-  | FontMatchingSelectionCalibrationV2;
+  FontMatchingSelectionCalibrationV1 | FontMatchingSelectionCalibrationV2;
 
 const V1_TOP_LEVEL_KEYS = [
   "bindings",

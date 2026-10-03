@@ -296,8 +296,8 @@ describe("lettering generation binding and reuse", () => {
       );
       if (firstSafe) {
         const later:
-          | Parameters<CodexAppServerClient["runEphemeralTurn"]>[0]
-          | undefined = client.runEphemeralTurn.mock.calls.at(-1)?.[0];
+          Parameters<CodexAppServerClient["runEphemeralTurn"]>[0] | undefined =
+          client.runEphemeralTurn.mock.calls.at(-1)?.[0];
         expect(
           later?.input.filter((part) => part.type === "image")[1]?.url,
         ).toBe(firstSafe.generatedLettering?.dataUrl);

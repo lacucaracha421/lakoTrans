@@ -623,8 +623,7 @@ describe("whole-page Font Matching pixel inference", () => {
       { id: item.id, x1: 10, y1: 10, x2: 30, y2: 90 },
     ];
     let receivedRequest:
-      | Parameters<FontMatchingPageInferencePort["inferPage"]>[0]
-      | undefined;
+      Parameters<FontMatchingPageInferencePort["inferPage"]>[0] | undefined;
     const port: FontMatchingPageInferencePort = {
       inferPage: async (request) => {
         receivedRequest = request;
@@ -672,8 +671,7 @@ describe("whole-page Font Matching pixel inference", () => {
       { id: item.id, x1: 10, y1: 10, x2: 30, y2: 90 },
     ];
     let receivedRequest:
-      | Parameters<FontMatchingPageInferencePort["inferPage"]>[0]
-      | undefined;
+      Parameters<FontMatchingPageInferencePort["inferPage"]>[0] | undefined;
     const port: FontMatchingPageInferencePort = {
       inferPage: async (request) => {
         receivedRequest = request;
@@ -702,8 +700,7 @@ describe("whole-page Font Matching pixel inference", () => {
     const pageOptions = makeOptions(makeCandidates());
     pageOptions.ocrBboxHints = [];
     let receivedRequest:
-      | Parameters<FontMatchingPageInferencePort["inferPage"]>[0]
-      | undefined;
+      Parameters<FontMatchingPageInferencePort["inferPage"]>[0] | undefined;
     const port: FontMatchingPageInferencePort = {
       inferPage: async (request) => {
         receivedRequest = request;

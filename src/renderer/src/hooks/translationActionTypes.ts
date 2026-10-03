@@ -96,8 +96,7 @@ export type TranslationActions = {
     request: import("../../../shared/pageWorkflowTypes").PageWorkflowRequest,
   ) => string | null;
   regionTranslationDialog?:
-    | import("../lib/regionTranslationOptions").RegionTranslationDialog
-    | null;
+    import("../lib/regionTranslationOptions").RegionTranslationDialog | null;
   runAnalysis: (
     runMode: RunAnalysisMode,
     pageId?: string,

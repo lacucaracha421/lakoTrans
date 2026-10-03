@@ -103,9 +103,7 @@ type ServerHandle = {
 };
 
 export type ModelEndpointHandle =
-  | ServerHandle
-  | CodexAppServerEndpoint
-  | OpenAICompatibleApiEndpoint;
+  ServerHandle | CodexAppServerEndpoint | OpenAICompatibleApiEndpoint;
 
 export type TranslationResult = {
   outputText: string;

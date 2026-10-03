@@ -16,9 +16,7 @@ const PROMPT_GLOSSARY_LIMIT = 80;
 const PROMPT_CHARACTER_LIMIT = 40;
 
 export type WorkContextBudgetOmittedPart =
-  | "storyMemory"
-  | "glossary"
-  | "characters";
+  "storyMemory" | "glossary" | "characters";
 
 type WorkContextTokenBreakdown = {
   glossaryTokens: number;

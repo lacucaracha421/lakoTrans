@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-05",
+  "baseCommit": "71f30e7b95ba85014b94a76f779589b1c7461f9d",
+  "branch": "codex/translation-alignment-20261005",
+  "problem": "Staged translation of committed Hayai OCR blocks took the legacy full-page detection/OCR prompt. The model merged/reordered text and regenerated numeric IDs; the keep-block application bound those IDs to old balloons, then retained old source text while copying mismatched translations.",
+  "fixes": [
+    "Route nonempty committed Hayai keep-mode sources through the existing immutable fixed-block protocol. Preserve each input source, candidate ID, geometry and slot; do not regroup adjacent fragments or ask the model to re-OCR them.",
+    "Retain reviewStatus through keep-block overlay application and staged workflow merge so repaired/fallback results remain reviewable.",
+    "Clarify Japanese-to-Korean colloquial/mimetic translation and incomplete-clause handling. This improves some samples but does not eliminate semantic model errors."
+  ],
+  "historicalAudit": {
+    "pages": 44,
+    "parseErrors": 0,
+    "inputs": 368,
+    "sourceChangedPages": 13,
+    "sourceChangedBlocks": 34,
+    "crossAssignedPages": 3,
+    "crossAssignedBlocks": 16,
+    "missing": 4
+  },
+  "method": {
+    "scope": "24 other works, two pages each, plus one non-explicit introduction page from the reported work; 49 page workflows per model per variant. The reported chapter was audited across all 44 saved page request/response records; only its introduction page was re-inferred.",
+    "workflow": [
+      "createWorkflowSessions",
+      "detectWorkflowBlocks",
+      "readWorkflowSource",
+      "translateWorkflowPage",
+      "runWholePagePipeline"
+    ],
+    "isolation": "Original image copies and separate Electron userData/library/log/settings roots; shared existing native/model caches. Production Hayai OCR generated once and frozen for before/after comparisons. The reported page restores ten input blocks from the original saved request in the isolated copy.",
+    "settings": "Japanese to Korean, Hayai GPU OCR, Gemma local CUDA12 profile, Q4_K_M, empty work context, cumulative context off, font matching off. Detection/OCR/translation only; no erase, typesetting or export stages.",
+    "hardware": "Windows, NVIDIA RTX 4090 24 GB, driver 610.88; llama.cpp mainline b11146 CUDA 12.4 runtime. AMD/macOS/RTX 20 hardware was not exercised in this translation audit.",
+    "modelConfigs": [
+      {
+        "phase": "translate",
+        "variant": "12",
+        "tag": "final",
+        "model": {
+          "modelSource": "huggingface",
+          "modelRepo": "HauhauCS/Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced",
+          "modelFile": "Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+          "mmprojRepo": "HauhauCS/Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced",
+          "mmprojFile": "mmproj-Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-BF16.gguf",
+          "vramMode": "minimum12b",
+          "fitTargetMb": 512,
+          "mmprojOffload": true,
+          "llamaRuntimeProfile": "cuda12"
+        },
+        "ocr": {
+          "pipeline": "hayai",
+          "device": "gpu",
+          "qualityMode": "economy",
+          "gpuBackend": "cuda",
+          "gpuCudaTag": "cu126"
+        },
+        "codeHashes": {
+          "app-runtime/semantic-ocr/fixed-block-translation.cjs": "f3e17332516be53decf4ff0a1e77ddb5acd4a039fc742bf8c265958e6c0e7b59",
+          "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+          "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+        },
+        "git": "71f30e7b95ba85014b94a76f779589b1c7461f9d",
+        "recordCount": 49
+      },
+      {
+        "phase": "translate",
+        "variant": "26",
+        "tag": "final",
+        "model": {
+          "modelSource": "huggingface",
+          "modelRepo": "HauhauCS/Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-MTP",
+          "modelFile": "Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+          "mmprojRepo": "HauhauCS/Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-MTP",
+          "mmprojFile": "mmproj-Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-BF16.gguf",
+          "vramMode": "economy26b",
+          "fitTargetMb": 512,
+          "mmprojOffload": true,
+          "llamaRuntimeProfile": "cuda12"
+        },
+        "ocr": {
+          "pipeline": "hayai",
+          "device": "gpu",
+          "qualityMode": "economy",
+          "gpuBackend": "cuda",
+          "gpuCudaTag": "cu126"
+        },
+        "codeHashes": {
+          "app-runtime/semantic-ocr/fixed-block-translation.cjs": "f3e17332516be53decf4ff0a1e77ddb5acd4a039fc742bf8c265958e6c0e7b59",
+          "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+          "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+        },
+        "git": "71f30e7b95ba85014b94a76f779589b1c7461f9d",
+        "recordCount": 49
+      }
+    ],
+    "requestsPerModelPerVariant": 45,
+    "sourceSlotsPerModelPerVariant": 283,
+    "emptyPagesPerModelPerVariant": 4,
+    "corpusManifestSha256": "b65bfd2b991fbb034887b01d7f872e6a3e3aacecbd5a41bc7a25b1627ae8bf30",
+    "originalSourceFilesRehashed": 48,
+    "originalSourcesUnchanged": true
+  },
+  "results": {
+    "baseline": {
+      "12": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 3,
+        "changedBlocks": 3,
+        "missingBlocks": 0,
+        "crossAssignedPages": 0,
+        "crossAssignedBlocks": 0,
+        "fixedPages": 0,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W21-P2",
+          "W22-P2",
+          "W24-P2"
+        ]
+      },
+      "26": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 14,
+        "changedBlocks": 37,
+        "missingBlocks": 4,
+        "crossAssignedPages": 4,
+        "crossAssignedBlocks": 17,
+        "fixedPages": 0,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W20-P1",
+          "W21-P1",
+          "W22-P2",
+          "W24-P2"
+        ]
+      }
+    },
+    "fixed": {
+      "12": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 0,
+        "changedBlocks": 0,
+        "missingBlocks": 0,
+        "crossAssignedPages": 0,
+        "crossAssignedBlocks": 0,
+        "fixedPages": 45,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W21-P2",
+          "W22-P2",
+          "W24-P2"
+        ]
+      },
+      "26": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 0,
+        "changedBlocks": 0,
+        "missingBlocks": 0,
+        "crossAssignedPages": 0,
+        "crossAssignedBlocks": 0,
+        "fixedPages": 45,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W21-P2",
+          "W22-P2",
+          "W24-P2"
+        ]
+      }
+    },
+    "final": {
+      "12": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 0,
+        "changedBlocks": 0,
+        "missingBlocks": 0,
+        "crossAssignedPages": 0,
+        "crossAssignedBlocks": 0,
+        "fixedPages": 45,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W21-P2",
+          "W22-P2",
+          "W24-P2"
+        ]
+      },
+      "26": {
+        "pages": 49,
+        "sourceBlocks": 283,
+        "changedPages": 0,
+        "changedBlocks": 0,
+        "missingBlocks": 0,
+        "crossAssignedPages": 0,
+        "crossAssignedBlocks": 0,
+        "fixedPages": 45,
+        "reviewBlocks": 0,
+        "countMismatchPages": [
+          "W03-P2",
+          "W10-P2",
+          "W13-P2",
+          "W21-P2",
+          "W22-P2",
+          "W24-P2"
+        ]
+      }
+    }
+  },
+  "metricMeaning": "Source changes and exact cross-assignment compare parsed output jp to normalized input jp at the same ID. Fixed protocol reconstructs jp from immutable inputs, so zero source changes is a structural invariant, not proof that every Korean sentence is semantically correct. The separate visual review checked the actual ko against source balloons.",
+  "downstreamExclusions": {
+    "count": 8,
+    "finalRetainedBlocksPerModel": 275,
+    "explanation": "Existing downstream filtering removes seven punctuation-only blocks and one page-number block. All 283 requested slots were returned by the fixed model protocol. These eight exclusions also occur with baseline 12B and were not introduced or changed by this patch."
+  },
+  "manualReview": {
+    "pages": 25,
+    "worksIncludingReported": 25,
+    "observations": [
+      {
+        "id": "reported-02",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/reported-02.png",
+        "observation": "All ten original source slots correspond to the correct balloons in both models, including the previously shifted new-worker announcement and acknowledgement. Short startled reaction remains stylistically awkward."
+      },
+      {
+        "id": "W01-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W01-P2.png",
+        "observation": "Ten slots aligned. OCR misreads a kana in the pouring line; both translations remain understandable."
+      },
+      {
+        "id": "W02-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W02-P2.png",
+        "observation": "Two battle commands correspond to their source containers."
+      },
+      {
+        "id": "W03-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W03-P2.png",
+        "observation": "Six textual slots aligned; two punctuation-only slots removed by the existing downstream filter."
+      },
+      {
+        "id": "W04-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W04-P2.png",
+        "observation": "Nine narration and dialogue slots aligned."
+      },
+      {
+        "id": "W05-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W05-P2.png",
+        "observation": "Three dialogue slots aligned; both models have stiff phrasing for the apology."
+      },
+      {
+        "id": "W06-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W06-P2.png",
+        "observation": "Former 26B swaps 3/4 and 5/6 resolved. 12B still mistranslates the subject-marking final particle as a contrastive ending; 26B preserves the meaning."
+      },
+      {
+        "id": "W07-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W07-P2.png",
+        "observation": "Six slots aligned. Both now use a Korean mimetic for trembling; short cries remain transliterated."
+      },
+      {
+        "id": "W08-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W08-P2.png",
+        "observation": "Fifteen slots aligned. 12B mistranslates the uncle relationship and clipped joking expression; 26B correctly translates the clipped joke in the final run."
+      },
+      {
+        "id": "W09-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W09-P2.png",
+        "observation": "Thirteen slots aligned, including a sentence split across multiple balloons."
+      },
+      {
+        "id": "W10-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W10-P2.png",
+        "observation": "Former 26B swaps 1/2 and 6/7 resolved. Existing filter removes one exclamation-only slot."
+      },
+      {
+        "id": "W11-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W11-P2.png",
+        "observation": "Single narration slot aligned and meaning retained."
+      },
+      {
+        "id": "W12-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W12-P2.png",
+        "observation": "Ten slots aligned. OCR omits the rank letter; 12B follows the incomplete source while 26B supplies S from context/image."
+      },
+      {
+        "id": "W13-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W13-P2.png",
+        "observation": "Repeated title slots remain separate. One OCR word is wrong; 12B translates that wrong reading literally, while 26B recovers the title from context. One ellipsis-only slot filtered."
+      },
+      {
+        "id": "W14-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W14-P2.png",
+        "observation": "Nine slots aligned. Kinship wording remains context-sensitive."
+      },
+      {
+        "id": "W15-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W15-P2.png",
+        "observation": "Eight slots aligned. 12B gets the apologetic meaning wrong in slot 3; 26B conveys an apology."
+      },
+      {
+        "id": "W16-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W16-P2.png",
+        "observation": "Two slots aligned and meaning retained."
+      },
+      {
+        "id": "W17-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W17-P2.png",
+        "observation": "Two short name/kinship calls aligned."
+      },
+      {
+        "id": "W18-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W18-P2.png",
+        "observation": "Six slots aligned. OCR omits SE from narration; 26B recovers it from context/image. 12B transliterates a sound instead of using a Korean equivalent."
+      },
+      {
+        "id": "W19-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W19-P2.png",
+        "observation": "Nine slots aligned. Hiragana rendering of a technical term remains poorly understood by both models."
+      },
+      {
+        "id": "W20-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W20-P2.png",
+        "observation": "Six name and family-description slots aligned. 12B uses the wrong gendered sibling term."
+      },
+      {
+        "id": "W21-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W21-P2.png",
+        "observation": "Seven textual slots aligned; one ellipsis-only slot filtered."
+      },
+      {
+        "id": "W22-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W22-P2.png",
+        "observation": "Four textual slots aligned; one ellipsis-only slot filtered."
+      },
+      {
+        "id": "W23-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W23-P2.png",
+        "observation": "Ten slots aligned; 26B leaves an awkward possessive ending in the final fragment."
+      },
+      {
+        "id": "W24-P2",
+        "reviewedModels": ["12B", "26B"],
+        "image": "visual-review-final/W24-P2.png",
+        "observation": "Eleven slots aligned; one exclamation and one page number filtered. Both use a loanword for sunset."
+      }
+    ]
+  },
+  "limits": [
+    "This is a targeted regression investigation and a 24-work sample, not an exhaustive read of every manga in the download directory.",
+    "12B still exhibits semantic mistranslations in short expressions, particles, apologies and kinship terms. 26B still has some awkward fragments and context-dependent terminology. Correct block ownership is not a guarantee of perfect translation.",
+    "Existing OCR misrecognition is preserved by committed-source translation. Re-reading/correcting OCR remains a separate operation. The model can still infer context in ko despite instructions.",
+    "Existing saved chapter translations were not overwritten. Restart the development app and rerun translation to apply the fix; fix visibly wrong OCR first where needed.",
+    "PaddleOCR, global development tools, model assets and native CUDA/AMD/Metal runtimes were not modified."
+  ],
+  "verification": {
+    "focusedTests": {
+      "files": 11,
+      "passed": 120
+    },
+    "typecheck": "passed (renderer, Electron, checkJs)",
+    "lint": "passed",
+    "maintainabilityPolicy": "passed",
+    "fullCheck": {
+      "status": "passed",
+      "gates": 27,
+      "durationSeconds": 347.101,
+      "testsPassed": 10163,
+      "testsSkipped": 9,
+      "testsFailed": 0,
+      "log": ".tmp/translation-alignment-20261005/check.log",
+      "logSha256": "02491011bea6bc9ad425b9972ce252a19e7c43195f6921e48e3e5c9f39dcec39",
+      "node": "26.10.0"
+    },
+    "finalBuildMatchesGpuTestedCode": true,
+    "baselineFocused": {
+      "passed": 87,
+      "failed": 0,
+      "repetitions": 2,
+      "note": "Baseline used four focused files; expanded final focused suite used eleven files. Counts are not a same-scope test-growth metric."
+    }
+  },
+  "privateEvidenceRoot": ".tmp/translation-alignment-20261005",
+  "reproduction": [
+    "Use corpus-selection.json for image inventory and SHA-256; inputs/*.ocr.json contains the frozen production OCR.",
+    "Build Electron and run scripts/prepare-runtime.cjs, then launch app-audit.cjs with Electron, arguments: translate 12 <unique-tag>, then translate 26 <unique-tag>. Do not overwrite baseline/fixed/final runs.",
+    "Run analyze.cjs and visual-review.py; inspect every comparison image. The local harness and original manga are intentionally excluded from Git."
+  ],
+  "rollback": "Revert the translation-alignment fix commit and restart the app. No user-library migration or native runtime rollback is needed."
+}

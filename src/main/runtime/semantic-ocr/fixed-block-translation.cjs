@@ -58,9 +58,24 @@ const FIXED_BLOCK_TRANSLATION_VERSION = 6;
 /** @param {FixedBlockOptions} options */
 function shouldUseFixedBlockTranslation(options = {}) {
   return (
+    isKeepBlocksSourceMode(options) ||
     isHayaiLockedRegionMode(options) ||
     (isGroupOnlyReviewEligible(options) &&
       options.validatedGroupOnlyReview === true)
+  );
+}
+
+/** Existing Hayai blocks already own their source text and translation slots.
+ * @param {FixedBlockOptions} options
+ */
+function isKeepBlocksSourceMode(options) {
+  const hints = Array.isArray(options.ocrBboxHints) ? options.ocrBboxHints : [];
+  return (
+    isHayaiOcrPipeline(options) &&
+    options.keepBlocksMode === true &&
+    !options.regionCropMode &&
+    hints.length > 0 &&
+    hints.every((hint) => isRecord(hint) && readOcrCandidateText(hint))
   );
 }
 
@@ -128,9 +143,8 @@ function buildFixedBlockPlan(options, imageVariants = []) {
   const hints = Array.isArray(options.ocrBboxHints)
     ? /** @type {Record<string,unknown>[]} */ (options.ocrBboxHints)
     : [];
-  const candidates = /** @type {FixedCandidate[]} */ (
-    buildSemanticCandidates(options, imageVariants)
-  );
+  const keepSource = isKeepBlocksSourceMode(options);
+  const candidates = buildFixedBlockCandidates(options, imageVariants);
   const hintById = new Map(
     hints.flatMap((hint) => {
       const id = positiveInteger(hint?.id);
@@ -140,7 +154,7 @@ function buildFixedBlockPlan(options, imageVariants = []) {
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
   );
-  if (isHayaiLockedRegionMode(options)) {
+  if (keepSource || isHayaiLockedRegionMode(options)) {
     return buildHayaiLockedBlockPlan(candidates, hintById);
   }
   const projected = projectSemanticGroupOutputSlots(
@@ -204,6 +218,23 @@ function buildFixedBlockPlan(options, imageVariants = []) {
       buildFixedBlock(members, index, sourceTextById, reviewRoleById),
     ),
   };
+}
+
+/** @param {FixedBlockOptions} options @param {ImageVariant[]} imageVariants */
+function buildFixedBlockCandidates(options, imageVariants) {
+  const hints = Array.isArray(options.ocrBboxHints) ? options.ocrBboxHints : [];
+  return buildSemanticCandidates(
+    isKeepBlocksSourceMode(options)
+      ? {
+          ...options,
+          ocrBboxHints: hints.map((hint) => ({
+            ...hint,
+            geometryLocked: true,
+          })),
+        }
+      : options,
+    imageVariants,
+  );
 }
 
 /**
@@ -311,20 +342,11 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
   );
   const contextText = context.length > 1 ? context.slice(1).join("\n") : "";
   const attempt = Number(options.translationAttempt);
-  const hayaiLocked = isHayaiLockedRegionMode(options);
+  const hayaiLocked =
+    isKeepBlocksSourceMode(options) || isHayaiLockedRegionMode(options);
   return [
     `Translate every supplied immutable ${profile.sourceName} manga string into natural ${profile.targetName}.`,
-    hayaiLocked
-      ? "Image 1 is the authority for correcting the Hayai reading hint inside each already-finalized ordinary-text bbox."
-      : "Image 1 is visual evidence. Use each bbox and the visible lettering/container to classify the text role as well as understand speakers, tone, and the scene.",
-    "Every blockId, jp, direction, bbox, block count, and block order was already fixed before translation.",
-    "You may not merge, split, add, remove, reorder, or relocate blocks. Return exactly one item for every supplied blockId and no other blockId.",
-    hayaiLocked
-      ? "Correct Hayai OCR mistakes by re-reading only the visible main text inside that block's bbox; never borrow text from a neighboring block."
-      : "Never transcribe, correct, normalize, merge, split, add, remove, reorder, or replace any jp text.",
-    hayaiLocked
-      ? "The supplied jp may be incomplete or empty. Translate every visible main line inside its immutable bbox and use furigana only as pronunciation help."
-      : "Translate the exact supplied jp string even when it is short, stylized, noisy, or contains an OCR error.",
+    ...buildFixedBlockSourceLines(options),
     options.autoFontMatching
       ? "Each item requires blockId, textRole, layoutIntent, fontRole, fontRoleConfidence, and ko, and may additionally include visualClusterId. Never output jp, candidateIds, coordinates, bbox, type, confidence, action, or commentary."
       : 'Each item has exactly four keys: blockId, textRole, layoutIntent, and ko. textRole must be exactly "ordinary" or "sound". Never output jp, candidateIds, coordinates, bbox, type, confidence, action, or commentary.',
@@ -355,6 +377,7 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
     ...(profile.isDefaultJapaneseToKorean
       ? [
           "Use normal Korean notation, including Latin letters and Arabic numerals where conventional (Aランク → A랭크, 1856年 → 1856년). Translate Japanese words, but do not phonetically spell out such labels or numbers in Hangul.",
+          "Translate colloquial expressions, reactions, and mimetic words by their meaning or a natural Korean equivalent, not by transliterating kana into Hangul (ひそひそ → 소곤소곤, ぷるぷる → 부들부들, なんちゃって → 농담이야). An elongated or clipped spelling still carries that expression's meaning.",
         ]
       : []),
     "Do not append the original sentence, coordinates, explanations, markdown, or uncertainty notes in ko.",
@@ -383,6 +406,32 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
     .join("\n");
 }
 
+/** @param {FixedBlockOptions} options */
+function buildFixedBlockSourceLines(options) {
+  const keepSource = isKeepBlocksSourceMode(options);
+  const readFromImage = isHayaiLockedRegionMode(options) && !keepSource;
+  return [
+    readFromImage
+      ? "Image 1 is the authority for correcting the Hayai reading hint inside each already-finalized ordinary-text bbox."
+      : "Image 1 is visual evidence. Use each bbox and the visible lettering/container to classify the text role as well as understand speakers, tone, and the scene.",
+    "Every blockId, jp, direction, bbox, block count, and block order was already fixed before translation.",
+    "You may not merge, split, add, remove, reorder, or relocate blocks. Return exactly one item for every supplied blockId and no other blockId.",
+    readFromImage
+      ? "Correct Hayai OCR mistakes by re-reading only the visible main text inside that block's bbox; never borrow text from a neighboring block."
+      : "Never transcribe, correct, normalize, merge, split, add, remove, reorder, or replace any jp text.",
+    readFromImage
+      ? "The supplied jp may be incomplete or empty. Translate every visible main line inside its immutable bbox and use furigana only as pronunciation help."
+      : "Translate the exact supplied jp string even when it is short, stylized, noisy, or contains an OCR error.",
+    ...(keepSource
+      ? [
+          "OCR is complete. The image is context only: it cannot replace the supplied jp or change which block owns a phrase.",
+          "Adjacent blocks may form one sentence or share a balloon. Translate each supplied fragment separately; never combine their translations or renumber their blockIds by visual reading order.",
+          "Keep unfinished clauses as fragments. Do not add contrast, an explanation, or an invented sentence ending merely to make a fragment stand alone. A final が may be a subject marker continuing into another block, not a contrastive conjunction.",
+        ]
+      : []),
+  ];
+}
+
 /** @param {unknown} detail @returns {string[]} */
 function describeCumulativeContextDetail(detail) {
   if (detail === "essential") {
@@ -409,7 +458,7 @@ function buildFixedBlockTranslationSystemPrompt(options = {}) {
   const envelope = options.collectPageContext
     ? 'Return one JSON object whose translation array is named exactly "items" and whose only other permitted top-level key is "pageContext"; never return a top-level "blocks" key.'
     : 'Return exactly one JSON object shaped {"items":[...]}; never return a top-level "blocks", "translations", or "results" key.';
-  return isHayaiLockedRegionMode(options)
+  return isHayaiLockedRegionMode(options) && !isKeepBlocksSourceMode(options)
     ? `You are a faithful ${profile.sourceName}-to-${profile.targetName} manga translator. Every supplied block is an immutable ordinary-text slot; correct its Hayai reading from the visible bbox, never merge or move slots, return textRole ordinary, write ko in natural ${profile.targetName}, and output only ${outputKeys} as valid JSON. ${envelope}`
     : `You are a faithful ${profile.sourceName}-to-${profile.targetName} manga translator and visual text-role classifier. Source strings, geometry, and grouping are immutable; classify each visible fixed block, write ko in natural ${profile.targetName}, and output only ${outputKeys} as valid JSON. ${envelope}`;
 }
@@ -417,7 +466,7 @@ function buildFixedBlockTranslationSystemPrompt(options = {}) {
 /** @param {FixedBlockOptions} options */
 function buildFixedBlockFontRoleLines(options) {
   if (!options.autoFontMatching) return [];
-  if (isHayaiLockedRegionMode(options)) {
+  if (isKeepBlocksSourceMode(options) || isHayaiLockedRegionMode(options)) {
     return [
       "fontRole must be exactly one of dialogue, narration, thought, whisper, aside_balloon_edge, emphasis_dialogue, shout, sign_ui_title, other, unknown_needs_review. Never return an sfx_ fontRole for these ordinary-text slots.",
       "Classify fontRole from visible lettering and container only, never from the work title, genre stereotype, translated wording, or string length.",

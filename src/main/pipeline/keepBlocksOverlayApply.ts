@@ -36,6 +36,7 @@ export function applyOverlayItemToExistingBlock({
       ...block,
       sourceText: item.jp.trim(),
       translatedText: item.ko.trim(),
+      ...(item.reviewStatus ? { reviewStatus: item.reviewStatus } : {}),
       ...(effectiveTextRole ? { textRole: effectiveTextRole } : {}),
       ...(item.fontRole
         ? {
@@ -58,14 +59,7 @@ export function applyOverlayItemToExistingBlock({
     textUpdated,
     sourceFontSize,
   );
-  const itemWithPersistedIntent =
-    item.fontRole || !block.fontRole
-      ? item
-      : {
-          ...item,
-          fontRole: block.fontRole,
-          fontRoleConfidence: block.fontRoleConfidence,
-        };
+  const itemWithPersistedIntent = preserveKeepBlocksFontIntent(item, block);
   const fontDecision = resolveKeepBlocksFontDecision({
     automaticFont,
     block: sourceSized,
@@ -88,6 +82,19 @@ export function applyOverlayItemToExistingBlock({
         : undefined,
   });
   return { ...updated, translatedText: layout.translatedText };
+}
+
+function preserveKeepBlocksFontIntent(
+  item: OverlayItem,
+  block: TranslationBlock,
+): OverlayItem {
+  return item.fontRole || !block.fontRole
+    ? item
+    : {
+        ...item,
+        fontRole: block.fontRole,
+        fontRoleConfidence: block.fontRoleConfidence,
+      };
 }
 
 function applyKeepBlocksSourceFontSize(

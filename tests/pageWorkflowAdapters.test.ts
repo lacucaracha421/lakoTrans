@@ -518,6 +518,36 @@ describe("independent Hayai workflow adapters", () => {
     ).toHaveLength(2);
   });
 
+  it("preserves fixed-block review provenance through keep-mode and workflow merging", async () => {
+    const f = await fixture();
+    f.context.plan = {
+      ...createPageWorkflowPlan(["translate"]),
+      cumulative: false,
+    };
+    f.page.blocks[0].sourceText = "原文";
+    const response = successTranslationResult();
+    const payload = JSON.parse(response.outputText);
+    payload.items[0].candidateIds = [1];
+    response.outputText = JSON.stringify(payload);
+    response.requestBody = {
+      fixedBlockIds: ["B001"],
+      fixedBlockCandidateIds: [[1]],
+      fixedBlockNeedsReviewIds: ["B001"],
+    };
+    vi.mocked(f.dependencies.runtime.requestTranslation).mockResolvedValue(
+      response,
+    );
+    const result = await translateWorkflowPage(
+      f.context,
+      makeChapter(f.page),
+      f.page,
+      async () => ({ ...makeEmptyWorkContext(), workTitle: "Test" }),
+    );
+    expect(result.blocks[0].reviewStatus).toBe("needs_review");
+    expect(result.blocks[0].sourceText).toBe("原文");
+    expect(f.page.blocks[0].reviewStatus).toBeUndefined();
+  });
+
   it("still rejects an actual model request failure", async () => {
     const f = await fixture();
     f.context.plan = {

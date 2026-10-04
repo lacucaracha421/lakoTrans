@@ -92,6 +92,7 @@ function mergeWorkflowTranslations(
       ? {
           ...block,
           translatedText: output.translatedText,
+          ...(output.reviewStatus ? { reviewStatus: output.reviewStatus } : {}),
           fontRole: block.fontRole ?? output.fontRole,
           fontRoleConfidence:
             block.fontRoleConfidence ?? output.fontRoleConfidence,

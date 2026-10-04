@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -26,6 +26,11 @@ import {
 } from "../src/main/inpainting/fluxAssets/constants";
 
 import { prepareNativeInferenceLaunch } from "../src/main/runtimeSupport/nativeInferenceLaunch";
+import { ensureManagedFluxCpuRunner } from "../src/main/inpainting/fluxAssets/cpuRunner";
+const probe = vi.hoisted(() => vi.fn());
+vi.mock("node:child_process", () => ({
+  execFile: (...args: unknown[]) => probe(...args),
+}));
 vi.mock("../src/main/runtimeSupport/nativeInferenceLaunch", () => ({
   prepareNativeInferenceLaunch: vi.fn(async (options) => ({
     executable: options.executable,
@@ -39,6 +44,20 @@ const tempDirs: string[] = [];
 const repoRoot = join(__dirname, "..");
 const require = createRequire(import.meta.url);
 const AdmZip = require("adm-zip");
+const capabilities = {
+  engine: "koharu-diffusion-0.83.5",
+  backend: "cpu-native",
+  cpu_only: true,
+  cuda_compiled: false,
+  metal_compiled: false,
+};
+beforeEach(() => {
+  probe
+    .mockReset()
+    .mockImplementation((_command, _args, _options, callback) =>
+      callback(null, { stdout: JSON.stringify(capabilities) }),
+    );
+});
 
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) {
@@ -89,75 +108,133 @@ describeWindows("Flux CPU worker runtime", () => {
     );
   });
 
-  it("downloads and verifies the pinned CPU-only runner when it is not local", async () => {
-    const runtimeDir = createTempDir("mgt-flux-cpu-remote-runtime-");
-    const toolsDir = createTempDir("mgt-flux-cpu-remote-tools-");
-    const assetDir = createTempDir("mgt-flux-cpu-remote-assets-");
-    const executable = Buffer.from("remote-cpu-only-runner");
-    const archivePath = join(assetDir, FLUX_CPU_RUNNER_ASSET_FILE);
-    const zip = new AdmZip();
-    zip.addFile("mgt-flux-klein-cpu.exe", executable);
-    zip.writeZip(archivePath);
-    const archive = readFileSync(archivePath);
-    const archiveSha256 = createHash("sha256").update(archive).digest("hex");
-    const executableSha256 = createHash("sha256")
-      .update(executable)
-      .digest("hex");
-    const server = createServer((request, response) => {
-      const requestPath = new URL(request.url || "/", "http://127.0.0.1")
-        .pathname;
-      if (requestPath !== `/${FLUX_CPU_RUNNER_ASSET_FILE}`) {
-        response.writeHead(404);
-        response.end();
-        return;
+  it.each([false, true])(
+    "downloads the pinned CPU runner instead of an absent or stale local engine (stale=%s)",
+    async (stale) => {
+      const runtimeDir = createTempDir("mgt-flux-cpu-remote-runtime-");
+      const toolsDir = createTempDir("mgt-flux-cpu-remote-tools-");
+      if (stale) {
+        const oldDir = join(toolsDir, "mgt-flux-klein-cpu");
+        mkdirSync(oldDir);
+        writeFileSync(
+          join(oldDir, "mgt-flux-klein-cpu.exe"),
+          "legacy-candle-runner",
+        );
+        probe.mockImplementation((_command, _args, _options, callback) =>
+          callback(null, {
+            stdout: JSON.stringify({ ...capabilities, engine: "candle" }),
+          }),
+        );
       }
-      response.setHeader("Content-Length", String(archive.length));
-      if (request.method === "HEAD") {
+      const assetDir = createTempDir("mgt-flux-cpu-remote-assets-");
+      const executable = Buffer.from("remote-cpu-only-runner");
+      const archivePath = join(assetDir, FLUX_CPU_RUNNER_ASSET_FILE);
+      const zip = new AdmZip();
+      zip.addFile("mgt-flux-klein-cpu.exe", executable);
+      zip.writeZip(archivePath);
+      const archive = readFileSync(archivePath);
+      const archiveSha256 = createHash("sha256").update(archive).digest("hex");
+      const executableSha256 = createHash("sha256")
+        .update(executable)
+        .digest("hex");
+      const server = createServer((request, response) => {
+        const requestPath = new URL(request.url || "/", "http://127.0.0.1")
+          .pathname;
+        if (requestPath !== `/${FLUX_CPU_RUNNER_ASSET_FILE}`) {
+          response.writeHead(404);
+          response.end();
+          return;
+        }
+        response.setHeader("Content-Length", String(archive.length));
+        if (request.method === "HEAD") {
+          response.writeHead(200);
+          response.end();
+          return;
+        }
         response.writeHead(200);
-        response.end();
-        return;
-      }
-      response.writeHead(200);
-      response.end(archive);
-    });
-    await new Promise<void>((resolve, reject) => {
-      server.once("error", reject);
-      server.listen(0, "127.0.0.1", resolve);
-    });
-    const address = server.address();
-    if (!address || typeof address === "string") {
-      server.close();
-      throw new Error("test HTTP server did not bind to a TCP port");
-    }
-    process.env.MGT_FLUX_KLEIN_TOOLS_DIR = toolsDir;
-    process.env.MGT_FLUX_KLEIN_CPU_RUNNER_BASE_URL = `http://127.0.0.1:${address.port}`;
-    process.env.MGT_FLUX_KLEIN_CPU_RUNNER_BYTES = String(archive.length);
-    process.env.MGT_FLUX_KLEIN_CPU_RUNNER_SHA256 = archiveSha256;
-    process.env.MGT_FLUX_KLEIN_CPU_EXE_BYTES = String(executable.length);
-    process.env.MGT_FLUX_KLEIN_CPU_EXE_SHA256 = executableSha256;
-    process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
-
-    try {
-      const launch = await ensureFluxWorkerLaunch({
-        runtimeDir,
-        modelDir: createTempDir("mgt-flux-cpu-remote-model-"),
-        backend: "cpu-native",
+        response.end(archive);
       });
-      expect(launch.executable).toBe(
-        join(runtimeDir, FLUX_CPU_RUNNER_DIR, "mgt-flux-klein-cpu.exe"),
+      await new Promise<void>((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", resolve);
+      });
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        server.close();
+        throw new Error("test HTTP server did not bind to a TCP port");
+      }
+      process.env.MGT_FLUX_KLEIN_TOOLS_DIR = toolsDir;
+      process.env.MGT_FLUX_KLEIN_CPU_RUNNER_BASE_URL = `http://127.0.0.1:${address.port}`;
+      process.env.MGT_FLUX_KLEIN_CPU_RUNNER_BYTES = String(archive.length);
+      process.env.MGT_FLUX_KLEIN_CPU_RUNNER_SHA256 = archiveSha256;
+      process.env.MGT_FLUX_KLEIN_CPU_EXE_BYTES = String(executable.length);
+      process.env.MGT_FLUX_KLEIN_CPU_EXE_SHA256 = executableSha256;
+      process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
+
+      try {
+        const launch = await ensureFluxWorkerLaunch({
+          runtimeDir,
+          modelDir: createTempDir("mgt-flux-cpu-remote-model-"),
+          backend: "cpu-native",
+        });
+        expect(launch.executable).toBe(
+          join(runtimeDir, FLUX_CPU_RUNNER_DIR, "mgt-flux-klein-cpu.exe"),
+        );
+        expect(readFileSync(launch.executable, "utf8")).toBe(
+          "remote-cpu-only-runner",
+        );
+        expect(
+          existsSync(
+            join(runtimeDir, FLUX_CPU_RUNNER_DIR, ".mgt-flux-cpu-runner.json"),
+          ),
+        ).toBe(true);
+      } finally {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+      }
+    },
+  );
+
+  it.each([
+    { ...capabilities, engine: "candle" },
+    { ...capabilities, backend: "cuda-native" },
+    { ...capabilities, cpu_only: false },
+    { ...capabilities, cuda_compiled: true },
+    { ...capabilities, metal_compiled: true },
+    "invalid JSON",
+    new Error("capability probe timed out"),
+  ])(
+    "rejects incompatible or unresponsive automatically discovered CPU runners: %j",
+    async (result) => {
+      const root = createTempDir("mgt-flux-cpu-incompatible-");
+      const local = join(root, "mgt-flux-klein-cpu");
+      mkdirSync(local);
+      writeFileSync(
+        join(local, "mgt-flux-klein-cpu.exe"),
+        "incompatible-runner",
       );
-      expect(readFileSync(launch.executable, "utf8")).toBe(
-        "remote-cpu-only-runner",
+      process.env.MGT_FLUX_KLEIN_TOOLS_DIR = root;
+      process.env.MGT_FLUX_DISABLE_REMOTE_CPU_RUNNER_DOWNLOAD = "1";
+      probe.mockImplementation((_command, _args, _options, callback) =>
+        result instanceof Error
+          ? callback(result)
+          : callback(null, {
+              stdout:
+                typeof result === "string" ? result : JSON.stringify(result),
+            }),
       );
-      expect(
-        existsSync(
-          join(runtimeDir, FLUX_CPU_RUNNER_DIR, ".mgt-flux-cpu-runner.json"),
-        ),
-      ).toBe(true);
-    } finally {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
-    }
-  });
+      await expect(
+        ensureManagedFluxCpuRunner({ runtimeDir: join(root, "cache") }),
+      ).rejects.toThrow("준비하지 못했습니다");
+      expect(probe.mock.calls[0]?.[1]).toEqual(["--capabilities"]);
+      expect(probe.mock.calls[0]?.[2]).toMatchObject({
+        timeout: 5000,
+        windowsHide: true,
+      });
+      expect(readFileSync(join(local, "mgt-flux-klein-cpu.exe"), "utf8")).toBe(
+        "incompatible-runner",
+      );
+    },
+  );
 
   it("keeps legacy Diffusers CPU behind an explicit diagnostic environment variable", () => {
     expect(shouldUseLegacyFluxDiffusersCpu({})).toBe(false);

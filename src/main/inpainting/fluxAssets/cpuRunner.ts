@@ -7,6 +7,8 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { statSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { basename, join } from "node:path";
 import {
   FLUX_CPU_RUNNER_ARCHIVE_BYTES,
@@ -48,13 +50,14 @@ type RemoteFluxCpuRunnerSource = {
 };
 
 type FluxCpuRunnerSource = LocalFluxCpuRunnerSource | RemoteFluxCpuRunnerSource;
+const execute = promisify(execFile);
 
 export async function ensureManagedFluxCpuRunner(options: {
   runtimeDir: string;
   signal?: AbortSignal;
   onProgress?: (progress: FluxAssetProgress) => void;
 }): Promise<string> {
-  const source = resolveFluxCpuRunnerSource();
+  const source = await resolveFluxCpuRunnerSource();
   if (!source) {
     throw new Error(
       `${FLUX_CPU_RUNNER_DIR}/${FLUX_CPU_RUNTIME_EXECUTABLE}를 준비하지 못했습니다. ` +
@@ -94,8 +97,8 @@ export async function ensureManagedFluxCpuRunner(options: {
   return managedPath;
 }
 
-function resolveFluxCpuRunnerSource(): FluxCpuRunnerSource | null {
-  const local = resolveLocalFluxCpuRunnerSource();
+async function resolveFluxCpuRunnerSource(): Promise<FluxCpuRunnerSource | null> {
+  const local = await resolveLocalFluxCpuRunnerSource();
   if (local) {
     return local;
   }
@@ -137,7 +140,7 @@ function resolveFluxCpuRunnerSource(): FluxCpuRunnerSource | null {
   };
 }
 
-function resolveLocalFluxCpuRunnerSource(): LocalFluxCpuRunnerSource | null {
+async function resolveLocalFluxCpuRunnerSource(): Promise<LocalFluxCpuRunnerSource | null> {
   const explicit = process.env.MGT_FLUX_KLEIN_CPU_EXE;
   if (explicit && isExecutableFile(explicit)) {
     return { kind: "local", label: basename(explicit), path: explicit };
@@ -148,7 +151,7 @@ function resolveLocalFluxCpuRunnerSource(): LocalFluxCpuRunnerSource | null {
       "mgt-flux-klein-cpu",
       FLUX_CPU_RUNTIME_EXECUTABLE,
     );
-    if (isExecutableFile(path)) {
+    if (isExecutableFile(path) && (await isCompatibleCpuRunner(path))) {
       return {
         kind: "local",
         label: `mgt-flux-klein-cpu/${FLUX_CPU_RUNTIME_EXECUTABLE}`,
@@ -157,6 +160,28 @@ function resolveLocalFluxCpuRunnerSource(): LocalFluxCpuRunnerSource | null {
     }
   }
   return null;
+}
+
+async function isCompatibleCpuRunner(path: string): Promise<boolean> {
+  try {
+    const { stdout } = await execute(path, ["--capabilities"], {
+      encoding: "utf8",
+      timeout: 5_000,
+      maxBuffer: 64 * 1024,
+      windowsHide: true,
+    });
+    const capabilities = JSON.parse(stdout.trim());
+    return (
+      capabilities.engine === "koharu-diffusion-0.83.5" &&
+      capabilities.backend === "cpu-native" &&
+      capabilities.cpu_only === true &&
+      capabilities.cuda_compiled === false &&
+      capabilities.metal_compiled === false
+    );
+  } catch (_error) {
+    // A stale dev/packaging output must not shadow the pinned remote runner.
+    return false;
+  }
 }
 
 async function ensureDownloadedFluxCpuRunner(options: {

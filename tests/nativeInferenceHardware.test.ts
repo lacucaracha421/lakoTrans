@@ -41,7 +41,7 @@ it.runIf(process.env.MGT_NATIVE_HARDWARE_SMOKE === "1")(
       await writeFile(path, PNG.sync.write(png));
     }
     const runtimeDir = join(root, "runtime"),
-      modelDir = join(root, "models");
+      modelDir = process.env.MGT_NATIVE_SMOKE_MODEL_DIR || join(root, "models");
     const modelFiles = await ensureKoharuModelAssets({
       model: "lama-manga",
       modelDir,

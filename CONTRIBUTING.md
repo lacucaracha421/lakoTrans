@@ -26,7 +26,11 @@ tests, documentation updates, and pull requests are welcome.
 
 ## Development setup
 
-The primary development flow requires Node.js LTS, npm, Git, and Windows.
+The primary development flow uses Node.js 26.10.0 (`.node-version`), npm 12.2.0
+(`packageManager`), Git, and Windows. Native runner builds use Rust/Cargo 1.99.0
+(`rust-toolchain.toml`). Use the latest official stable releases, including
+non-LTS and major upgrades, after updating these pins and validating compatibility.
+CI installs the same Node.js and npm versions.
 Platform-specific macOS changes also need validation through the public macOS
 workflow or an appropriate Apple Silicon environment.
 

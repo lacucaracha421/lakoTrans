@@ -233,7 +233,7 @@ function isDownloadedSizeValid(
     maximumBytes: number;
     expectedTotalBytes?: number;
   },
-  fileStat: Awaited<ReturnType<typeof stat>>,
+  fileStat: NonNullable<Awaited<ReturnType<typeof stat>>>,
 ): boolean {
   return Boolean(
     fileStat.isFile() &&
@@ -246,7 +246,7 @@ function isDownloadedSizeValid(
 
 function isCurrentDownloadReceipt(
   receipt: unknown,
-  fileStat: Awaited<ReturnType<typeof stat>>,
+  fileStat: NonNullable<Awaited<ReturnType<typeof stat>>>,
   expectedSha256: string,
 ): boolean {
   return (

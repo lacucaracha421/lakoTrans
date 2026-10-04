@@ -29,7 +29,7 @@ function fail(message) {
   throw new Error(message);
 }
 
-/** @param {import("node:crypto").BinaryLike} value */
+/** @param {string | Uint8Array} value */
 function sha256Bytes(value) {
   return createHash("sha256").update(value).digest("hex");
 }

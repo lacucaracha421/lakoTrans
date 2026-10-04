@@ -109,7 +109,7 @@ async function loadClient(
 async function readValidatedCredential(
   filePath: string,
   dependencies: VertexServiceAccountAuthDependencies,
-  knownStat?: Awaited<ReturnType<typeof stat>>,
+  knownStat?: NonNullable<Awaited<ReturnType<typeof stat>>>,
 ): Promise<ServiceAccountCredential> {
   const normalizedPath = normalizeCredentialPath(filePath);
   const fileStat =
@@ -135,8 +135,8 @@ async function readValidatedCredential(
 async function readCredentialStat(
   filePath: string,
   dependencies: VertexServiceAccountAuthDependencies,
-): Promise<Awaited<ReturnType<typeof stat>>> {
-  let fileStat: Awaited<ReturnType<typeof stat>>;
+): Promise<NonNullable<Awaited<ReturnType<typeof stat>>>> {
+  let fileStat: NonNullable<Awaited<ReturnType<typeof stat>>>;
   try {
     fileStat = await dependencies.stat(filePath);
   } catch (error) {

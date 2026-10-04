@@ -5870,6 +5870,28 @@
         "pct": 96.77
       }
     },
+    "src/main/runtime/model/server-environment.cjs": {
+      "lines": {
+        "covered": 43,
+        "total": 46,
+        "pct": 93.47
+      },
+      "statements": {
+        "covered": 46,
+        "total": 51,
+        "pct": 90.19
+      },
+      "functions": {
+        "covered": 7,
+        "total": 8,
+        "pct": 87.5
+      },
+      "branches": {
+        "covered": 22,
+        "total": 46,
+        "pct": 47.82
+      }
+    },
     "src/main/runtime/model/server-preflight.cjs": {
       "lines": {
         "covered": 51,

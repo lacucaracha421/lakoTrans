@@ -36,7 +36,7 @@ const { resolvePreferredLlamaRuntime } =
       backend: string;
       dir: string;
       archive: string;
-      dflashRing?: string;
+
       archives: Array<{
         archive: string;
         url: string;
@@ -182,18 +182,18 @@ describe("Apple Silicon Gemma Metal runtimes", () => {
     expect(LlamaRuntimeProfileSchema.parse("mps")).toBe("metal");
   });
 
-  it("routes 12B/26B to llama.cpp and 31B to BeeLlama CPU-ring", () => {
+  it("routes 12B/26B to llama.cpp and 31B to BeeLlama upstream DFlash", () => {
     for (const [repo, file] of [
       [GEMMA_12B_MODEL_REPO, GEMMA_12B_MODEL_FILE_Q4_K_M],
       [GEMMA_26B_MODEL_REPO, GEMMA_26B_MODEL_FILE_IQ3_S],
     ]) {
       const runtime = resolvePreferredLlamaRuntime(metalOptions(repo, file));
-      expect(runtime.id).toBe("llama-b9547-metal-arm64");
+      expect(runtime.id).toBe("llama-b11146-metal-arm64");
       expect(runtime.backend).toBe("metal");
-      expect(runtime.archive).toBe("llama-b9547-bin-macos-arm64.tar.gz");
+      expect(runtime.archive).toBe("llama-b11146-bin-macos-arm64.tar.gz");
       expect(runtime.archives[0]).toMatchObject({
         sha256:
-          "8791fdac4d5b7008b53fd15c609491d5a2fce2d180bb0b0e041eac53c5ade000",
+          "1ad3f9eff80edb9dbef4259ad564d1720612ef7eea48fa4afed0e54f5f3d5711",
         type: "tar.gz",
         stripComponents: 1,
       });
@@ -203,14 +203,14 @@ describe("Apple Silicon Gemma Metal runtimes", () => {
       metalOptions(DEFAULT_GEMMA_MODEL_REPO, DEFAULT_GEMMA_MODEL_FILE),
     );
     expect(runtime).toMatchObject({
-      id: "beellama-v0.3.1-metal-arm64",
+      id: "beellama-v0.4.7-metal-arm64",
       kind: "beellama-metal",
       backend: "metal",
-      dflashRing: "cpu",
-      archive: "beellama-v0.3.1-bin-macos-arm64.tar.gz",
+
+      archive: "beellama-v0.4.7-bin-macos-arm64.tar.gz",
     });
     expect(runtime.archives[0]?.sha256).toBe(
-      "14c0af87fc124e50469279ceae96016bbc6f7649de484b1de8a0a38675004556",
+      "20085c6da04585c36e06233b78b8172f95b5bd9e4797856761e9502dc1a46b4d",
     );
   });
 
@@ -235,7 +235,7 @@ describe("Apple Silicon Gemma Metal runtimes", () => {
     );
   });
 
-  it("pins 31B DFlash to the CPU ring and rejects silent plain-31B fallback", () => {
+  it("uses upstream 31B DFlash and rejects silent plain-31B fallback", () => {
     const options = {
       ...metalOptions(DEFAULT_GEMMA_MODEL_REPO, DEFAULT_GEMMA_MODEL_FILE),
       useDraft: true,
@@ -249,9 +249,9 @@ describe("Apple Silicon Gemma Metal runtimes", () => {
       runtime.dir,
       "llama-server",
     );
-    expect(buildLlamaServerEnv(serverPath, options).GGML_DFLASH_GPU_RING).toBe(
-      "0",
-    );
+    expect(
+      buildLlamaServerEnv(serverPath, options).GGML_DFLASH_GPU_RING,
+    ).toBeUndefined();
     expect(() =>
       assertMetalDflashConfiguration(serverPath, runtime, options),
     ).not.toThrow();
@@ -260,7 +260,13 @@ describe("Apple Silicon Gemma Metal runtimes", () => {
         ...options,
         useDraft: false,
       }),
-    ).toThrow(/DFlash CPU-ring/);
+    ).toThrow(/DFlash/);
+    expect(() =>
+      assertMetalDflashConfiguration(serverPath, runtime, {
+        ...options,
+        draftSpecType: "draft-mtp",
+      }),
+    ).toThrow(/DFlash/);
   });
 });
 
@@ -520,14 +526,14 @@ describe("Metal runtime archive integrity", () => {
     const dir = mkdtempSync(join(tmpdir(), "mgt-mac-runtime-tar-"));
     try {
       const source = join(dir, "source");
-      const release = join(source, "llama-b9547");
+      const release = join(source, "llama-b11146");
       const output = join(dir, "output");
       const archive = join(dir, "runtime.tar.gz");
       mkdirSync(release, { recursive: true });
       writeFileSync(join(release, "llama-server"), "mach-o");
       writeFileSync(join(release, "libggml-metal.dylib"), "metal");
       writeFileSync(join(release, "README.md"), "not part of runtime");
-      await tar.c({ cwd: source, file: archive, gzip: true }, ["llama-b9547"]);
+      await tar.c({ cwd: source, file: archive, gzip: true }, ["llama-b11146"]);
 
       await extractSelectedTarEntries(
         archive,
@@ -624,7 +630,7 @@ describe("Metal runtime archive integrity", () => {
       const dir = mkdtempSync(join(tmpdir(), "mgt-mac-runtime-symlink-"));
       try {
         const source = join(dir, "source");
-        const releaseName = "beellama-v0.3.1";
+        const releaseName = "beellama-v0.4.7";
         const release = join(source, releaseName);
         const output = join(dir, "output");
         const archive = join(dir, "runtime.tar.gz");

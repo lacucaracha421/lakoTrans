@@ -58,7 +58,7 @@ function isIncompleteManagedLlamaRuntime(serverPath, options = {}) {
   );
 }
 
-/** @param {string} serverPath @param {LlamaRuntimeDescriptor & { dflashRing?: unknown }} runtime @param {RuntimeOptions & { useDraft?: unknown }} options */
+/** @param {string} serverPath @param {LlamaRuntimeDescriptor} runtime @param {RuntimeOptions & { useDraft?: unknown; draftSpecType?: unknown }} options */
 function assertMetalDflashConfiguration(serverPath, runtime, options) {
   if (
     String(runtime.backend || "").toLowerCase() !== "metal" ||
@@ -67,25 +67,22 @@ function assertMetalDflashConfiguration(serverPath, runtime, options) {
   ) {
     return;
   }
-  const env = buildLlamaServerEnv(serverPath, options);
   if (
     runtime.kind === "beellama-metal" &&
-    runtime.dflashRing === "cpu" &&
     options.useDraft === true &&
-    env.GGML_DFLASH_GPU_RING === "0"
+    options.draftSpecType !== "draft-mtp"
   ) {
     return;
   }
   throw createDetailedError(
-    "31B Apple Silicon 빌드는 BeeLlama DFlash CPU-ring 경로로만 실행할 수 있습니다. 단순 31B 실행으로 후퇴하지 않도록 중단합니다.",
+    "31B Apple Silicon 빌드는 BeeLlama DFlash 경로로만 실행할 수 있습니다. 단순 31B 실행으로 후퇴하지 않도록 중단합니다.",
     {
       serverPath,
       runtime: runtime.id,
       runtimeKind: runtime.kind,
       runtimeBackend: runtime.backend,
-      dflashRing: runtime.dflashRing,
       useDraft: options.useDraft,
-      dflashGpuRing: env.GGML_DFLASH_GPU_RING,
+      draftSpecType: options.draftSpecType,
     },
   );
 }

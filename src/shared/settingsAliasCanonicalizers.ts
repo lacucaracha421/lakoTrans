@@ -18,7 +18,10 @@ const GEMMA_VRAM_MODE_ALIASES = createAliasMap<GemmaVramMode>([
 ]);
 
 const LLAMA_RUNTIME_PROFILE_ALIASES = createAliasMap<LlamaRuntimeProfile>([
-  ["rtx50", ["rtx50", "blackwell", "cuda13", "cuda13.1", "cuda13.3"]],
+  [
+    "rtx50",
+    ["rtx50", "blackwell", "cuda13", "cuda13.1", "cuda13.3", "cuda13.4"],
+  ],
   ["cuda12", ["cuda12", "cuda12.4", "cuda"]],
   ["rocm", ["rocm", "hip", "amd-rocm"]],
   ["vulkan", ["vulkan", "amd-vulkan", "vk"]],

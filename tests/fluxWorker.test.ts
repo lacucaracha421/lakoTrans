@@ -103,7 +103,7 @@ function createTempToolsLayout(): {
   const runner = join(tools, "mgt-flux-klein");
   const cuda129 = join(tools, "mgt-flux-cuda12.9");
   const cuda128 = join(tools, "mgt-flux-cuda12.8");
-  const beellama = join(tools, "beellama-v0.2.0-cuda12.4");
+  const beellama = join(tools, "beellama-v0.4.7-cuda12.4");
   mkdirSync(runner, { recursive: true });
   mkdirSync(cuda129, { recursive: true });
   mkdirSync(cuda128, { recursive: true });

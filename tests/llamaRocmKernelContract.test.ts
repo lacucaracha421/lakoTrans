@@ -17,8 +17,8 @@ const {
   resolveSpeedLemonadeLlamaRuntimeRocm,
 } =
   require("../src/main/runtime/model/lemonade-llama-runtime-contracts.cjs") as {
-    resolveLemonadeLlamaRuntimeRocm: (target: string) => Runtime;
-    resolveSpeedLemonadeLlamaRuntimeRocm: (target: string) => Runtime;
+    resolveLemonadeLlamaRuntimeRocm: (target: unknown) => Runtime;
+    resolveSpeedLemonadeLlamaRuntimeRocm: (target: unknown) => Runtime;
   };
 const { hasRequiredLlamaRuntimeFiles, missingRequiredLlamaRuntimeFiles } =
   require("../src/main/runtime/model/runtime-files.cjs") as {
@@ -39,7 +39,7 @@ function withRocblasFixture(runtime: Runtime, check: (dir: string) => void) {
       const name = Array.isArray(requirement) ? requirement[0] : requirement;
       writeFileSync(join(dir, name), "runtime fixture");
     }
-    // The audited b1317 gfx103X ZIP includes this DLL, but no hipblaslt/ tree.
+    // The audited b1338 gfx103X ZIP includes this DLL, but no hipblaslt/ tree.
     writeFileSync(join(dir, "libhipblaslt.dll"), "bundled DLL");
     mkdirSync(join(dir, "rocblas", "library"), { recursive: true });
     writeFileSync(
@@ -53,9 +53,22 @@ function withRocblasFixture(runtime: Runtime, check: (dir: string) => void) {
 }
 
 describe("pinned ROCm kernel-library contracts", () => {
-  it("accepts the b1317 gfx103X archive without nonexistent hipBLASLt kernels (#108)", () => {
+  it.each([undefined, null, "", "gfx9999"])(
+    "rejects an unpinned GPU target %s before constructing a download",
+    (target) => {
+      for (const resolveRuntime of [
+        resolveLemonadeLlamaRuntimeRocm,
+        resolveSpeedLemonadeLlamaRuntimeRocm,
+      ]) {
+        expect(() => resolveRuntime(target)).toThrow(
+          /target is required|No pinned llama ROCm runtime/,
+        );
+      }
+    },
+  );
+  it("accepts the b1338 gfx103X archive without nonexistent hipBLASLt kernels (#108)", () => {
     const runtime = resolveSpeedLemonadeLlamaRuntimeRocm("gfx103X");
-    expect(runtime.id).toBe("lemonade-llama-b1317-rocm-gfx103X");
+    expect(runtime.id).toBe("lemonade-llama-b1338-rocm-gfx103X");
     withRocblasFixture(runtime, (dir) => {
       expect(missingRequiredLlamaRuntimeFiles(dir, runtime)).toEqual([]);
       expect(hasRequiredLlamaRuntimeFiles(dir, runtime)).toBe(true);
@@ -79,7 +92,7 @@ describe("pinned ROCm kernel-library contracts", () => {
   });
 
   it.each(["gfx110X", "gfx1150", "gfx1151", "gfx120X", "gfx908", "gfx90a"])(
-    "keeps hipBLASLt kernel checks for the b1317 %s contract",
+    "keeps hipBLASLt kernel checks for the b1338 %s contract",
     (target) => {
       const runtime = resolveSpeedLemonadeLlamaRuntimeRocm(target);
       withRocblasFixture(runtime, (dir) => {
@@ -91,15 +104,10 @@ describe("pinned ROCm kernel-library contracts", () => {
     },
   );
 
-  it("keeps the audited legacy gfx103X hipBLASLt subtree mandatory", () => {
+  it("uses the same audited gfx103X exception for legacy models", () => {
     const runtime = resolveLemonadeLlamaRuntimeRocm("gfx103X");
     withRocblasFixture(runtime, (dir) => {
-      expect(missingRequiredLlamaRuntimeFiles(dir, runtime)).toEqual([
-        hipblasltMissing,
-      ]);
-      const kernels = join(dir, "hipblaslt", "library", "gfx1100");
-      mkdirSync(kernels, { recursive: true });
-      writeFileSync(join(kernels, "Kernels.hsaco"), "legacy kernel");
+      expect(missingRequiredLlamaRuntimeFiles(dir, runtime)).toEqual([]);
       expect(hasRequiredLlamaRuntimeFiles(dir, runtime)).toBe(true);
     });
   });

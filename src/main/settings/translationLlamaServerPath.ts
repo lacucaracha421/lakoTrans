@@ -15,20 +15,20 @@ import {
   isVulkanLlamaRuntimeProfile,
 } from "./llamaRuntimeProfile";
 
-const BEELLAMA_LLAMA_RUNTIME_DIR_CUDA12 = "beellama-v0.2.0-cuda12.4";
-const BEELLAMA_LLAMA_RUNTIME_DIR_CUDA13 = "beellama-v0.2.0-cuda13.1";
-const BEELLAMA_LLAMA_RUNTIME_DIR_HIP_RADEON = "beellama-v0.3.1-hip-radeon";
-const MAINLINE_LLAMA_RUNTIME_DIR_CUDA12 = "llama-b9553-cuda12.4";
-const MAINLINE_LLAMA_RUNTIME_DIR_CUDA13 = "llama-b9553-cuda13.3";
-const LEMONADE_LLAMA_RUNTIME_ROCM_RELEASE = "b1291";
-const SPEED_LEMONADE_LLAMA_RUNTIME_ROCM_RELEASE = "b1317";
-const MAINLINE_LLAMA_RUNTIME_DIR_VULKAN = "llama-b9547-vulkan";
-const MAINLINE_LLAMA_RUNTIME_DIR_METAL_ARM64 = "llama-b9547-metal-arm64";
-const BEELLAMA_LLAMA_RUNTIME_DIR_METAL_ARM64 = "beellama-v0.3.1-metal-arm64";
-const SPEED_LLAMA_RUNTIME_DIR_CUDA12 = "llama-b10621-cuda12.4";
-const SPEED_LLAMA_RUNTIME_DIR_CUDA13 = "llama-b10621-cuda13.3";
-const SPEED_LLAMA_RUNTIME_DIR_VULKAN = "llama-b10621-vulkan";
-const SPEED_LLAMA_RUNTIME_DIR_METAL_ARM64 = "llama-b10621-metal-arm64";
+const BEELLAMA_LLAMA_RUNTIME_DIR_CUDA12 = "beellama-v0.4.7-cuda12.4";
+const BEELLAMA_LLAMA_RUNTIME_DIR_CUDA13 = "beellama-v0.4.7-cuda13.3";
+const BEELLAMA_LLAMA_RUNTIME_DIR_HIP_RADEON = "beellama-v0.4.7-hip-radeon";
+const MAINLINE_LLAMA_RUNTIME_DIR_CUDA12 = "llama-b11146-cuda12.4";
+const MAINLINE_LLAMA_RUNTIME_DIR_CUDA13 = "llama-b11146-cuda13.4";
+const LEMONADE_LLAMA_RUNTIME_ROCM_RELEASE = "b1338";
+const SPEED_LEMONADE_LLAMA_RUNTIME_ROCM_RELEASE = "b1338";
+const MAINLINE_LLAMA_RUNTIME_DIR_VULKAN = "llama-b11146-vulkan";
+const MAINLINE_LLAMA_RUNTIME_DIR_METAL_ARM64 = "llama-b11146-metal-arm64";
+const BEELLAMA_LLAMA_RUNTIME_DIR_METAL_ARM64 = "beellama-v0.4.7-metal-arm64";
+const SPEED_LLAMA_RUNTIME_DIR_CUDA12 = "llama-b11146-cuda12.4";
+const SPEED_LLAMA_RUNTIME_DIR_CUDA13 = "llama-b11146-cuda13.4";
+const SPEED_LLAMA_RUNTIME_DIR_VULKAN = "llama-b11146-vulkan";
+const SPEED_LLAMA_RUNTIME_DIR_METAL_ARM64 = "llama-b11146-metal-arm64";
 
 export function resolveDefaultLlamaServerPathForGemma(
   paths: TranslationOptionPaths,

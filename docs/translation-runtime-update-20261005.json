@@ -1,0 +1,607 @@
+{
+  "date": "2026-10-05",
+  "scope": "Translation runtimes only; PaddleOCR/PaddlePaddle, installed local developer tools, and diffusion/Koharu are excluded.",
+  "releases": [
+    {
+      "repository": "ggml-org/llama.cpp",
+      "stableTag": "v0.5.0",
+      "binaryTag": "b11146",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/tag/v0.5.0",
+      "binaryUrl": "https://github.com/ggml-org/llama.cpp/releases/tag/b11146",
+      "commit": "7fe450e19305b828c199d602c23a8337aaa1f03b",
+      "evidence": "Official stable nightly-tag.txt points to b11146; both tags dereference to this exact commit. The companion binary release is marked prerelease upstream."
+    },
+    {
+      "repository": "Anbeeld/beellama.cpp",
+      "stableTag": "v0.4.7",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/tag/v0.4.7",
+      "commit": "0ba48c55a17cb4d3f5f1bd76bba8ee52fdb2573f"
+    },
+    {
+      "repository": "lemonade-sdk/llamacpp-rocm",
+      "stableTag": "b1338",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/tag/b1338"
+    }
+  ],
+  "assets": [
+    {
+      "name": "beellama-v0.4.7-bin-macos-arm64.tar.gz",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-macos-arm64.tar.gz",
+      "release": "v0.4.7",
+      "sha256": "20085c6da04585c36e06233b78b8172f95b5bd9e4797856761e9502dc1a46b4d",
+      "bytes": 11812195
+    },
+    {
+      "name": "beellama-v0.4.7-bin-win-cuda-12.4-x64.zip",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-win-cuda-12.4-x64.zip",
+      "release": "v0.4.7",
+      "sha256": "f3ccc98aaabd06e4e0b8ef26628d486d9e95564ada71efcff9f9a07d2137623a",
+      "bytes": 1239910667
+    },
+    {
+      "name": "beellama-v0.4.7-bin-win-cuda-13.3-x64.zip",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-win-cuda-13.3-x64.zip",
+      "release": "v0.4.7",
+      "sha256": "400dfa350f7e5e23e0b9a3ad57fd959d65600ef2143d84f2b404bc84fbb0168b",
+      "bytes": 574421501
+    },
+    {
+      "name": "beellama-v0.4.7-bin-win-hip-radeon-x64.zip",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-win-hip-radeon-x64.zip",
+      "release": "v0.4.7",
+      "sha256": "694297c86437ec92e6363bfa4a4a30060a966dda7dcbee7b9d9d669109c1c386",
+      "bytes": 674803338
+    },
+    {
+      "name": "beellama-v0.4.7-cudart-win-cuda-12.4-x64.zip",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-cudart-win-cuda-12.4-x64.zip",
+      "release": "v0.4.7",
+      "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+      "bytes": 391443627
+    },
+    {
+      "name": "beellama-v0.4.7-cudart-win-cuda-13.3-x64.zip",
+      "url": "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-cudart-win-cuda-13.3-x64.zip",
+      "release": "v0.4.7",
+      "sha256": "1462a050eb4c684921ba51dcc4cc488a036674c3e73e9945ee705b854808d03e",
+      "bytes": 390970417
+    },
+    {
+      "name": "cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "release": "b11146",
+      "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+      "bytes": 391443627
+    },
+    {
+      "name": "cudart-llama-bin-win-cuda-13.4-x64.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/cudart-llama-bin-win-cuda-13.4-x64.zip",
+      "release": "b11146",
+      "sha256": "738f8c251ac22b70c3ae6f83a10cf222725df0395246a2cf58f32bdb85fbe668",
+      "bytes": 423535356
+    },
+    {
+      "name": "llama-b11146-bin-macos-arm64.tar.gz",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/llama-b11146-bin-macos-arm64.tar.gz",
+      "release": "b11146",
+      "sha256": "1ad3f9eff80edb9dbef4259ad564d1720612ef7eea48fa4afed0e54f5f3d5711",
+      "bytes": 11189714
+    },
+    {
+      "name": "llama-b11146-bin-win-cuda-12.4-x64.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/llama-b11146-bin-win-cuda-12.4-x64.zip",
+      "release": "b11146",
+      "sha256": "3c806a6ceccc3dae1c743ceb1a1fb2cce5b76f40bfbd4c6b7b8afb6ef45a5807",
+      "bytes": 253869799
+    },
+    {
+      "name": "llama-b11146-bin-win-cuda-13.4-x64.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/llama-b11146-bin-win-cuda-13.4-x64.zip",
+      "release": "b11146",
+      "sha256": "b1866c0ce76bc7bfb0c24b33e9a37e9669f1be18539b12c74ce361f81c41f047",
+      "bytes": 149758833
+    },
+    {
+      "name": "llama-b11146-bin-win-vulkan-x64.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11146/llama-b11146-bin-win-vulkan-x64.zip",
+      "release": "b11146",
+      "sha256": "55a378aa095b466979d85075234f66d7655c7a7483222af0c006c0e55b4d7bd6",
+      "bytes": 32127004
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx103X-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx103X-x64.zip",
+      "release": "b1338",
+      "sha256": "7963fe1bdf2c70b48a886ea3c3bb416bedc5b1d89db6f9ac5771e1982140aef3",
+      "bytes": 152829227
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx110X-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx110X-x64.zip",
+      "release": "b1338",
+      "sha256": "fb62564b905a7066b7c6c900b0cd20fe4ada5dc0ca007e10288066d8e10b710a",
+      "bytes": 172438846
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx1150-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx1150-x64.zip",
+      "release": "b1338",
+      "sha256": "81b8bd5a86bdc09e8ab655e890f4c8f93a673aa258265d976a950296a35da9f5",
+      "bytes": 97098453
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx1151-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx1151-x64.zip",
+      "release": "b1338",
+      "sha256": "1531edd5d913da4323454244c7ea5820f3951f3f3569e075b348ab5328d814a5",
+      "bytes": 101889331
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx120X-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx120X-x64.zip",
+      "release": "b1338",
+      "sha256": "574d0096e99d386ac7c9176ac601dc2f8ea78fd82af27cb3699cd50d54d92a23",
+      "bytes": 496335963
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx908-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx908-x64.zip",
+      "release": "b1338",
+      "sha256": "ef47c37a456debe29f316aa17b822d710573dbace851eca7bc918810f8c90089",
+      "bytes": 102506274
+    },
+    {
+      "name": "llama-b1338-windows-rocm-gfx90a-x64.zip",
+      "url": "https://github.com/lemonade-sdk/llamacpp-rocm/releases/download/b1338/llama-b1338-windows-rocm-gfx90a-x64.zip",
+      "release": "b1338",
+      "sha256": "8b8e8e22f04505a118f0b81970e6299b695051ea6eab713d86bd3d8c1e5a9200",
+      "bytes": 216941934
+    }
+  ],
+  "installVerification": {
+    "productionArchiveExtractionCount": 15,
+    "layouts": [
+      {
+        "id": "beellama-v0.4.7-cuda12.4",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          ["ggml-cuda.dll", "ggml-cuda-cu12.dll"],
+          ["cublas64_12.dll"],
+          ["cublasLt64_12.dll"],
+          ["cudart64_12.dll"]
+        ],
+        "fileCount": 35,
+        "maxRelativePathLength": 28,
+        "inventorySha256": "0f87819ec342019b46269a63ac8d064058d7ca468da5d19ad3d87fd9a189e04c"
+      },
+      {
+        "id": "beellama-v0.4.7-cuda13.3",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          ["ggml-cuda.dll", "ggml-cuda-cu13.dll"],
+          ["cublas64_13.dll", "cublas64_12.dll"],
+          ["cublasLt64_13.dll", "cublasLt64_12.dll"],
+          ["cudart64_13.dll", "cudart64_12.dll"]
+        ],
+        "fileCount": 35,
+        "maxRelativePathLength": 28,
+        "inventorySha256": "1fc9d435deb8cf666fc136ad0716f0c3371c329c26c1e449b29f3dff3876b349"
+      },
+      {
+        "id": "beellama-v0.4.7-hip-radeon",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          "llama.dll",
+          "ggml-hip.dll",
+          "rocblas.dll",
+          ["libhipblas.dll", "hipblas.dll"],
+          "libhipblaslt.dll"
+        ],
+        "fileCount": 2005,
+        "maxRelativePathLength": 127,
+        "inventorySha256": "4f72924f335034e3bd135d025488e6fd1a836a98d6ed74116904ee06f7c3d754"
+      },
+      {
+        "id": "beellama-v0.4.7-metal-arm64",
+        "requiredFiles": [
+          "llama-server",
+          ["libggml.dylib", "libggml-base.dylib"],
+          ["libggml-metal.dylib", "libggml-metal.0.dylib"],
+          ["libllama.dylib", "libllama.0.dylib"]
+        ],
+        "fileCount": 38,
+        "maxRelativePathLength": 33,
+        "inventorySha256": "bf8ea95744277ed27dd4bfac672a314effb2b4a5349e6d4273d8f07fb4a99acd"
+      },
+      {
+        "id": "llama-b11146-cuda12.4",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          ["ggml-cuda.dll", "ggml-cuda-cu12.dll"],
+          ["cublas64_12.dll"],
+          ["cublasLt64_12.dll"],
+          ["cudart64_12.dll"]
+        ],
+        "fileCount": 34,
+        "maxRelativePathLength": 28,
+        "inventorySha256": "ff8eefc3ca3300d2e19267eb7fd7e40590587c0c0a76d68d39991d5746206637"
+      },
+      {
+        "id": "llama-b11146-cuda13.4",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          ["ggml-cuda.dll", "ggml-cuda-cu13.dll"],
+          ["cublas64_13.dll", "cublas64_12.dll"],
+          ["cublasLt64_13.dll", "cublasLt64_12.dll"],
+          ["cudart64_13.dll", "cudart64_12.dll"]
+        ],
+        "fileCount": 34,
+        "maxRelativePathLength": 28,
+        "inventorySha256": "9288e4f8f616d0d11cd3f4094979997a303f7b497e44f73afdaa3a5e77648d48"
+      },
+      {
+        "id": "llama-b11146-vulkan",
+        "requiredFiles": [
+          "llama-server.exe",
+          "llama-server-impl.dll",
+          ["ggml-vulkan.dll", "libggml-vulkan.so"]
+        ],
+        "fileCount": 31,
+        "maxRelativePathLength": 28,
+        "inventorySha256": "55bfe5d7b9b03c06f9a720a356f807db8e3685008640711a4fd4a5f65582c42d"
+      },
+      {
+        "id": "llama-b11146-metal-arm64",
+        "requiredFiles": [
+          "llama-server",
+          ["libggml.dylib", "libggml-base.dylib"],
+          ["libggml-metal.dylib", "libggml-metal.0.dylib"],
+          ["libllama.dylib", "libllama.0.dylib"]
+        ],
+        "fileCount": 38,
+        "maxRelativePathLength": 33,
+        "inventorySha256": "3833dec94b2e97a9e10a89fed0c1fe09ce24ebaf7ffdf7fc9f21fae647400eaa"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx103X",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": false,
+        "fileCount": 1020,
+        "maxRelativePathLength": 102,
+        "inventorySha256": "749ca264593f53c06be36e550a2ebac3731f5383476a874847957a4784799544"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx110X",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 830,
+        "maxRelativePathLength": 122,
+        "inventorySha256": "802f316b8cfb84f80cc76ee3cfa2b4186c9e542a4e4ec22997c7f43c2e2cb317"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx1150",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 226,
+        "maxRelativePathLength": 122,
+        "inventorySha256": "a5908522960782bedb8fec1c48b2c3ebcbf20b4e3f995f24d0399ce816bde516"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx1151",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 226,
+        "maxRelativePathLength": 122,
+        "inventorySha256": "27bf3f75711ad81bed33df63913a51a317dbce58a3eacc7558946a15313eaed8"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx120X",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 533,
+        "maxRelativePathLength": 134,
+        "inventorySha256": "9296860b8d3f1c56862cde3eec4917966ca5c5ff03a075d68c5ff8756d490e28"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx908",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 306,
+        "maxRelativePathLength": 121,
+        "inventorySha256": "31e2591eced49abc4205103ee8d5cb2b56e8577c5d7ac5b3d9a67471c031da57"
+      },
+      {
+        "id": "lemonade-llama-b1338-rocm-gfx90a",
+        "requiredFiles": [
+          "llama-server.exe",
+          ["llama-server-impl.dll", "llama.dll"],
+          ["amdhip64.dll", "amdhip64_7.dll"],
+          [
+            "ggml-hip.dll",
+            "ggml-rocm.dll",
+            "libggml-hip.so",
+            "libggml-rocm.so"
+          ],
+          "hipblas.dll",
+          "rocblas.dll"
+        ],
+        "requiresHipblasltKernels": true,
+        "fileCount": 614,
+        "maxRelativePathLength": 137,
+        "inventorySha256": "46b43ab885fb4d3c7a6afaf478144e3ef58e7ed03b15ad72c1db6b8cb05cbe3d"
+      }
+    ],
+    "coldRemoteInstall": {
+      "runtime": "llama-b11146-cuda12.4",
+      "dir": "C:\\tmp\\mgt-llama-20261005\\cold\\tools\\llama-b11146-cuda12.4",
+      "remoteInstall": true,
+      "markerIntegrity": true,
+      "cacheReuseWithAbortedNetwork": true
+    },
+    "newRuntimeDirs": true,
+    "oldCachesPreserved": true,
+    "source": "src/main/runtime/model/llama-runtime-download.cjs"
+  },
+  "nvidia": {
+    "automaticRoutingUnchanged": "RTX 20/30/40 and older NVIDIA remain on CUDA 12.4; RTX 50/compute capability >= 12 uses the CUDA 13 profile. Explicit CUDA 13 selection remains available.",
+    "cuda12BinaryArchitectures": {
+      "mainline": {
+        "elf": ["sm_86", "sm_89"],
+        "elfLogSha256": "7700e6099bdcefb62f0d2aa68e4b507458209cb36e059c27f24cfe0aaec50b99",
+        "ptx": ["sm_50", "sm_61", "sm_70", "sm_75", "sm_80", "sm_90"],
+        "ptxLogSha256": "6db7d6abca9669d41029bb7c930d3d987f6c04686c998d78509f6c29ce0334b2"
+      },
+      "beellama": {
+        "elf": ["sm_86", "sm_89"],
+        "elfLogSha256": "d2792a173fc0f3f9ccbeacce0e817b056a70c01f6606c4246bfaec1fa11e5492",
+        "ptx": ["sm_50", "sm_61", "sm_70", "sm_75", "sm_80", "sm_90"],
+        "ptxLogSha256": "42aa15179385dd313c62ebe7cb0078566e5d81129703f8b09ab1ecd20159ae37"
+      }
+    },
+    "qualification": "sm_75 is present as PTX, JIT compiled by the driver, not native SASS. RTX 20 was not physically tested. CUDA 12.4 is retained rather than making CUDA 13 mandatory.",
+    "driverSource": "https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html",
+    "smokeHardware": {
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "computeCapability": "8.9",
+      "driver": "610.88"
+    }
+  },
+  "dflashMigration": {
+    "reason": "BeeLlama >= 0.4.0 replaced fork DFlash with upstream draft-dflash and rejects the old dflash-draft GGUF architecture.",
+    "releaseNotes": "https://github.com/Anbeeld/beellama.cpp/releases/tag/v0.4.0",
+    "argumentChange": "--spec-type draft-dflash; removed --spec-dflash-cross-ctx and --spec-branch-budget",
+    "model": {
+      "revision": "16e51736d898d460e527acebd5aaa31f72cf7ff7",
+      "file": "gemma4-31b-it-dflash-Q4_K_M.gguf",
+      "url": "https://huggingface.co/Anbeeld/gemma-4-31B-it-DFlash-GGUF/resolve/16e51736d898d460e527acebd5aaa31f72cf7ff7/gemma4-31b-it-dflash-Q4_K_M.gguf",
+      "destination": "C:\\tmp\\mgt-llama-20261005\\hf\\hub\\models--Anbeeld--gemma-4-31B-it-DFlash-GGUF\\snapshots\\16e51736d898d460e527acebd5aaa31f72cf7ff7\\gemma4-31b-it-dflash-Q4_K_M.gguf",
+      "sha256": "859f365b1e3cf8e2c0791fae6b5d5e74af4eb7411f6d440f8126dd9765af83da",
+      "bytes": 912636896
+    },
+    "oldFile": "gemma4-31b-it-dflash-IQ4_XS.gguf",
+    "newArchitecture": "dflash",
+    "mac": "Removed obsolete CPU-ring environment and validation claims; still require DFlash and reject arbitrary server reuse. Metal hardware not tested."
+  },
+  "validation": {
+    "gpuSmokes": [
+      {
+        "runtime": "llama-b11146-cuda12.4",
+        "productionPreflight": true,
+        "productionLaunchArgs": true,
+        "model": "Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+        "draft": "mtp",
+        "ready": true,
+        "httpStatus": 200,
+        "translation": "안녕하세요.",
+        "usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 27,
+          "total_tokens": 44,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "draftMaxTokens": 4,
+        "contextTokens": 2048
+      },
+      {
+        "runtime": "llama-b11146-cuda13.4",
+        "productionPreflight": true,
+        "productionLaunchArgs": true,
+        "model": "Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+        "draft": "mtp",
+        "ready": true,
+        "httpStatus": 200,
+        "translation": "안녕하세요.",
+        "usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 27,
+          "total_tokens": 44,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "draftMaxTokens": 4,
+        "contextTokens": 2048
+      },
+      {
+        "runtime": "beellama-v0.4.7-cuda12.4",
+        "productionPreflight": true,
+        "productionLaunchArgs": true,
+        "model": "gemma-4-31B-it-The-DECKARD-HERETIC-UNCENSORED-Thinking.i1-IQ3_S.gguf",
+        "draft": "dflash",
+        "ready": true,
+        "httpStatus": 200,
+        "translation": "안녕하세요.",
+        "usage": {
+          "completion_tokens": 20,
+          "prompt_tokens": 29,
+          "total_tokens": 49,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 2,
+            "visible_tokens": 19
+          }
+        },
+        "draftMaxTokens": 16,
+        "contextTokens": 2048
+      },
+      {
+        "runtime": "beellama-v0.4.7-cuda13.3",
+        "productionPreflight": true,
+        "productionLaunchArgs": true,
+        "model": "gemma-4-31B-it-The-DECKARD-HERETIC-UNCENSORED-Thinking.i1-IQ3_S.gguf",
+        "draft": "dflash",
+        "ready": true,
+        "httpStatus": 200,
+        "translation": "안녕하세요.",
+        "usage": {
+          "completion_tokens": 20,
+          "prompt_tokens": 29,
+          "total_tokens": 49,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 2,
+            "visible_tokens": 19
+          }
+        },
+        "draftMaxTokens": 16,
+        "contextTokens": 2048
+      }
+    ],
+    "fullCheckLog": ".tmp/translation-runtime-update-20261005/runtime-check-final.log",
+    "fullCheck": {
+      "status": "passed",
+      "gates": 27,
+      "durationSeconds": 350.39,
+      "testsPassed": 10151,
+      "testsSkipped": 9,
+      "testsFailed": 0,
+      "logSha256": "47de47de0f1eae374e840a926c9c93f2dd2cf6bd89f77d5f7270ec19feaa9eea",
+      "node": "26.10.0",
+      "npm": "12.2.0"
+    },
+    "focused": {
+      "passed": 68,
+      "skipped": 1
+    },
+    "coldManagedPreflight": "passed",
+    "coverageFloorAddition": {
+      "file": "src/main/runtime/model/server-environment.cjs",
+      "sourceArtifact": ".tmp/production-cleanup-coverage-baseline-node22.json",
+      "sourceArtifactSha256": "a0e1199f46a80734d228ff1772b99d1fde2f700321346da77abf9c29795e4c0a",
+      "policy": "Added exact pre-existing sealed baseline; no existing floor lowered."
+    },
+    "isolatedGateTests": {
+      "passed": 32,
+      "log": ".tmp/translation-runtime-update-20261005/focused-gates.log",
+      "note": "Revalidated the unchanged 2000-entry restoration test without concurrent model download/GPU smoke load after a full-run timeout."
+    },
+    "rocmContractCoverage": {
+      "testsPassed": 14,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100,
+      "log": ".tmp/translation-runtime-update-20261005/rocm-coverage.log"
+    }
+  },
+  "limitations": [
+    "No physical RTX 20/Turing, AMD or Apple Silicon inference run. AMD/Metal coverage is production extraction, required-library/kernel checks, pinned integrity and routing tests.",
+    "Small synthetic translation smoke does not prove long-context behavior or page-level translation quality.",
+    "The new DFlash Q4_K_M sidecar is 912636896 bytes, about 76 MB larger than the old IQ4_XS draft."
+  ],
+  "consumerFiles": [
+    "src/main/runtime/simple-page-llama-runtimes.cjs",
+    "src/main/runtime/model/speed-llama-runtime-contracts.cjs",
+    "src/main/runtime/model/lemonade-llama-runtime-contracts.cjs",
+    "src/main/runtime/model/llama-runtime-archive-policy.cjs",
+    "src/main/settings/translationLlamaServerPath.ts",
+    "scripts/mac-runtime-manifest.cjs",
+    "src/main/runtime/model/launch-arguments.cjs",
+    "src/main/runtime/model/hf-model-download-tasks.cjs",
+    "src/shared/modelPresets.ts"
+  ],
+  "rollback": "Revert this translation-runtime commit as a unit: binary pins, DFlash argv and draft-model pin must roll back together. Existing runtime/model caches and upstream release assets are unchanged. Do not roll back the prior npm or FLUX commits, and do not remove user data."
+}

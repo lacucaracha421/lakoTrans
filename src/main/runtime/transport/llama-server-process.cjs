@@ -158,16 +158,14 @@ async function canReuseServer(baseUrl, options) {
 
 /** @param {RuntimeOptions} [options] */
 function shouldAllowExistingLlamaServerReuse(options = {}) {
-  const runtime = /** @type {{ backend?: string; dflashRing?: string }} */ (
-    resolvePreferredLlamaRuntime(options)
-  );
+  const runtime = resolvePreferredLlamaRuntime(options);
   if (
     String(runtime.backend || "").toLowerCase() === "metal" &&
-    runtime.dflashRing === "cpu"
+    runtime.kind === "beellama-metal"
   ) {
-    // A reachable arbitrary server cannot prove that the 31B DFlash ring is
-    // running on the required CPU/unified-memory path. Start and verify the
-    // pinned BeeLlama runtime instead of silently reusing it.
+    // A reachable arbitrary server cannot prove that the 31B model uses the
+    // pinned BeeLlama and compatible upstream DFlash draft. Start and verify
+    // that runtime instead of silently reusing another server.
     return false;
   }
   return isTruthy(
@@ -213,9 +211,6 @@ function requestedServerPath(options) {
 
 /** @param {ServerRuntimeOptions} options */
 function emitServerStarting(options) {
-  const runtime = /** @type {any} */ (resolvePreferredLlamaRuntime(options));
-  const dflashDetail =
-    runtime.dflashRing === "cpu" ? " [macOS: DFlash CPU ring 검증됨]" : "";
   emitRuntimeProgress(
     options,
     "booting",
@@ -223,7 +218,7 @@ function emitServerStarting(options) {
     `${resolveConfiguredModelFile(options)} 로드 중`,
     {
       progressMode: "indeterminate",
-      installLogLine: `llama-server를 시작합니다.${dflashDetail}`,
+      installLogLine: "llama-server를 시작합니다.",
     },
   );
 }

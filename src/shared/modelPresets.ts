@@ -69,7 +69,7 @@ export const DEFAULT_GEMMA_MMPROJ_FILE = GEMMA_31B_MMPROJ_FILE;
 export const DEFAULT_GEMMA_DRAFT_MODEL_REPO =
   "Anbeeld/gemma-4-31B-it-DFlash-GGUF";
 export const DEFAULT_GEMMA_DRAFT_MODEL_FILE =
-  "gemma4-31b-it-dflash-IQ4_XS.gguf";
+  "gemma4-31b-it-dflash-Q4_K_M.gguf";
 
 export type CodexModelPreset = {
   id: string;

@@ -44,8 +44,8 @@ describe("application path snapshot", () => {
       const toolsDir = resolve(__dirname, "../tools");
       const binary =
         process.platform === "win32" ? "llama-server.exe" : "llama-server";
-      const firstServer = join(toolsDir, "llama-b10621-metal-arm64", binary);
-      const gpuDir = join(toolsDir, "beellama-v0.2.0-cuda12.4");
+      const firstServer = join(toolsDir, "llama-b11146-metal-arm64", binary);
+      const gpuDir = join(toolsDir, "beellama-v0.4.7-cuda12.4");
       const gpuServer = join(gpuDir, binary);
       const files = new Set([firstServer, gpuServer]);
       if (gpuAvailable) files.add(join(gpuDir, "ggml-cuda.dll"));

@@ -115,7 +115,6 @@ export type LlamaRuntimeDescriptor = {
   backend?: string;
   platform?: string;
   arch?: string;
-  dflashRing?: "cpu" | "gpu";
   dir: string;
   id?: string;
   kind?: string;

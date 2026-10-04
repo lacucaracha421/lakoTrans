@@ -1,6 +1,6 @@
 /* eslint-disable max-lines -- launch-argument regression cases share the same exact argv contract and fixture helpers */
 import { describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   GEMMA_12B_QAT_MMPROJ_FILE,
@@ -470,19 +470,19 @@ describe("runtime launch argument contracts", () => {
     expect(draftFlagIndex).toBeGreaterThanOrEqual(0);
     expect(args[draftFlagIndex + 1]).toSatisfy(
       (value: string) =>
-        value === `${DEFAULT_DRAFT_REPO}:IQ4_XS` ||
+        value === `${DEFAULT_DRAFT_REPO}:Q4_K_M` ||
         value.endsWith(DEFAULT_DRAFT_FILE),
     );
     expect(args).toContain("--spec-type");
-    expect(args).toContain("dflash");
-    expect(args).toContain("--spec-dflash-cross-ctx");
+    expect(args).toContain("draft-dflash");
+    expect(args).not.toContain("--spec-dflash-cross-ctx");
     expect(args).toContain("--spec-draft-ngl");
     expect(args).toContain("all");
     expect(args).not.toContain("--spec-draft-type-k");
     expect(args).not.toContain("--spec-draft-type-v");
     expect(args).toContain("--spec-draft-n-max");
     expect(args).toContain("16");
-    expect(args).toContain("--spec-branch-budget");
+    expect(args).not.toContain("--spec-branch-budget");
     expect(args).toContain("0");
     expect(args).toContain("--kv-unified");
     expect(args).toContain("--jinja");
@@ -580,7 +580,7 @@ describe("runtime launch argument contracts", () => {
       enablePerf: true,
       llamaRuntimeProfile: "rocm",
       serverPath:
-        "C:/app-data/tools/beellama-v0.3.1-hip-radeon/llama-server.exe",
+        "C:/app-data/tools/beellama-v0.4.7-hip-radeon/llama-server.exe",
       useDraft: true,
       draftModelRepo: DEFAULT_DRAFT_REPO,
       draftModelFile: DEFAULT_DRAFT_FILE,
@@ -593,9 +593,9 @@ describe("runtime launch argument contracts", () => {
     });
 
     expect(args).toContain("--spec-type");
-    expect(args).toContain("dflash");
-    expect(args).toContain("--spec-dflash-cross-ctx");
-    expect(args).toContain("--spec-branch-budget");
+    expect(args).toContain("draft-dflash");
+    expect(args).not.toContain("--spec-dflash-cross-ctx");
+    expect(args).not.toContain("--spec-branch-budget");
     expect(args).toContain("--kv-unified");
     expect(args).toContain("--jinja");
     expect(args).toContain("--no-mmap");
@@ -960,6 +960,38 @@ describe("runtime launch argument contracts", () => {
         "9b1edfa05b634728ca4bfd60b4e6b278e95166c078fa54ae4fa83e680112fd1d",
       url: `https://huggingface.co/${DEFAULT_12B_MMPROJ_REPO}/resolve/d72ee27227da2ba16c725180ddd507ee96208d23/mmproj-gemma-4-12B-it-BF16.gguf`,
     });
+  });
+
+  it("downloads upstream DFlash separately from an incompatible fork draft cache", () => {
+    const options = {
+      modelRepo: DEFAULT_31B_REPO,
+      modelFile: DEFAULT_31B_FILE,
+      draftModelRepo: DEFAULT_DRAFT_REPO,
+      draftModelFile: DEFAULT_DRAFT_FILE,
+      useDraft: true,
+      hfHubCacheDir: createTempDir("hf-dflash-migration-"),
+      llamaCacheDir: createTempDir("llama-dflash-migration-"),
+    };
+    const oldFile = resolveManagedHfFilePath(
+      options,
+      DEFAULT_DRAFT_REPO,
+      "gemma4-31b-it-dflash-IQ4_XS.gguf",
+    );
+    if (!oldFile) throw new Error("draft cache path not resolved");
+    mkdirSync(join(oldFile, ".."), { recursive: true });
+    writeFileSync(oldFile, "old dflash-draft architecture");
+    const draft = collectRequiredHfDownloads(options).find(
+      (task) => task.kind === "draft",
+    );
+    expect(draft).toMatchObject({
+      file: "gemma4-31b-it-dflash-Q4_K_M.gguf",
+      revision: "16e51736d898d460e527acebd5aaa31f72cf7ff7",
+      expectedSha256:
+        "859f365b1e3cf8e2c0791fae6b5d5e74af4eb7411f6d440f8126dd9765af83da",
+      url: `https://huggingface.co/${DEFAULT_DRAFT_REPO}/resolve/16e51736d898d460e527acebd5aaa31f72cf7ff7/gemma4-31b-it-dflash-Q4_K_M.gguf`,
+    });
+    expect(draft?.destination).not.toBe(oldFile);
+    expect(readFileSync(oldFile, "utf8")).toBe("old dflash-draft architecture");
   });
 
   it("reuses the known-working lowercase 12B mmproj as a cache-only alias", () => {

@@ -175,7 +175,7 @@ function buildMacTranslationOptions(
       toolsDir:
         "/Applications/CarrotMangaTranslator.app/Contents/Resources/tools",
       llamaServerPath:
-        "/Applications/CarrotMangaTranslator.app/Contents/Resources/tools/llama-b9547-metal-arm64/llama-server",
+        "/Applications/CarrotMangaTranslator.app/Contents/Resources/tools/llama-b11146-metal-arm64/llama-server",
       hfHomeDir: "/tmp/hf-home",
       hfHubCacheDir: "/tmp/hf-home/hub",
     },

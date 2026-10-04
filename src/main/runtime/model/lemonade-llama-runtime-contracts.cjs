@@ -1,83 +1,42 @@
 // @ts-check
 
-const LEMONADE_CONTRACTS = Object.freeze({
-  legacy: {
-    release: "b1291",
-    requireBundledBlas: false,
-    hipblasltKernelExemptTargets: Object.freeze([]),
-    sha256ByTarget: Object.freeze({
-      gfx103X:
-        "3692a765ca0d5616284cbfe71c0a8a925824a538e9fe0efeb8710620612ecf77",
-      gfx110X:
-        "bcdec2f3e256162b8a52abb10a39969329deaa2fc57e33ded938a1e761d57b20",
-      gfx1150:
-        "09a6fe572e2be24e3e87654355db84f6fc79a057eb60427a2aad1f388f9dc5a8",
-      gfx1151:
-        "f185c81c0eeab19f83e24a5a98576d6c2994d746d34f465d6582efe4547edb02",
-      gfx120X:
-        "51072424c83349ac375b574f432bf80d14a2c7920946128de2c526cfdc3012f1",
-      gfx908:
-        "3634008a78f75bafc27c211b374ad62b6eaec5dd2f79a354add5b8aec7eb71ae",
-      gfx90a:
-        "23746b7593158e9796d18f2d13448b318b8937710c3ed1447740db6193ab36e7",
-    }),
-    bytesByTarget: Object.freeze({
-      gfx103X: 160_723_690,
-      gfx110X: 201_186_573,
-      gfx1150: 120_027_841,
-      gfx1151: 125_399_764,
-      gfx120X: 528_745_915,
-      gfx908: 123_928_182,
-      gfx90a: 242_111_030,
-    }),
-  },
-  speed: {
-    release: "b1317",
-    requireBundledBlas: true,
-    // SHA-256/size-audited b1317 gfx103X ships rocBLAS kernels and the
-    // hipBLASLt DLL, but no hipblaslt/library data. Legacy b1291 differs.
-    hipblasltKernelExemptTargets: Object.freeze(["gfx103X"]),
-    sha256ByTarget: Object.freeze({
-      gfx103X:
-        "51bd001843b3d38ed93c88483bc8308b8a6c9384fa777a54d12e75ae1c657e17",
-      gfx110X:
-        "dbbca4f3b631ed29ad26395c965c899ef256d2031daf24c193145113c00b6390",
-      gfx1150:
-        "081cbcc117d3fb1a54b0e48ab50713f196729d461ea4ba25409f06bdf04094f5",
-      gfx1151:
-        "a532bcd7e64dd43cdef9c3fb0d63fbad6ee429696de08fa696b7bbae45cf2357",
-      gfx120X:
-        "eec9fa362b35be948b9b791be95ffb12d41bb3360938b1719fd2050381697684",
-      gfx908:
-        "0470a28a36918971a1ccb8ce409dcb6b9301265d8650e27c816c4e9187ffdd79",
-      gfx90a:
-        "3c2c8e324779dd09141b5ab89f7946e2768c83cdb7f7227b61c66a70bfcc3c9f",
-    }),
-    bytesByTarget: Object.freeze({
-      gfx103X: 151_016_735,
-      gfx110X: 163_321_007,
-      gfx1150: 94_296_835,
-      gfx1151: 99_120_177,
-      gfx120X: 491_692_872,
-      gfx908: 99_960_674,
-      gfx90a: 215_157_539,
-    }),
-  },
+// Both model families use audited b1338 assets; gfx103X has no hipBLASLt kernel subtree.
+const LEMONADE_CONTRACT = Object.freeze({
+  release: "b1338",
+  hipblasltKernelExemptTargets: Object.freeze(["gfx103X"]),
+  sha256ByTarget: Object.freeze({
+    gfx103X: "7963fe1bdf2c70b48a886ea3c3bb416bedc5b1d89db6f9ac5771e1982140aef3",
+    gfx1150: "81b8bd5a86bdc09e8ab655e890f4c8f93a673aa258265d976a950296a35da9f5",
+    gfx110X: "fb62564b905a7066b7c6c900b0cd20fe4ada5dc0ca007e10288066d8e10b710a",
+    gfx1151: "1531edd5d913da4323454244c7ea5820f3951f3f3569e075b348ab5328d814a5",
+    gfx908: "ef47c37a456debe29f316aa17b822d710573dbace851eca7bc918810f8c90089",
+    gfx90a: "8b8e8e22f04505a118f0b81970e6299b695051ea6eab713d86bd3d8c1e5a9200",
+    gfx120X: "574d0096e99d386ac7c9176ac601dc2f8ea78fd82af27cb3699cd50d54d92a23",
+  }),
+  bytesByTarget: Object.freeze({
+    gfx103X: 152829227,
+    gfx1150: 97098453,
+    gfx110X: 172438846,
+    gfx1151: 101889331,
+    gfx908: 102506274,
+    gfx90a: 216941934,
+    gfx120X: 496335963,
+  }),
 });
 
 /** @param {unknown} target */
 function resolveLemonadeLlamaRuntimeRocm(target) {
-  return resolvePinnedLemonadeRuntime(target, LEMONADE_CONTRACTS.legacy);
+  return resolvePinnedLemonadeRuntime(target, LEMONADE_CONTRACT);
 }
 
 /** @param {unknown} target */
 function resolveSpeedLemonadeLlamaRuntimeRocm(target) {
-  return resolvePinnedLemonadeRuntime(target, LEMONADE_CONTRACTS.speed);
+  return resolvePinnedLemonadeRuntime(target, LEMONADE_CONTRACT);
 }
 
 /**
  * @param {unknown} target
- * @param {{ release: string; requireBundledBlas: boolean; hipblasltKernelExemptTargets: readonly string[]; sha256ByTarget: Readonly<Record<string, string>>; bytesByTarget: Readonly<Record<string, number>> }} contract
+ * @param {{ release: string; hipblasltKernelExemptTargets: readonly string[]; sha256ByTarget: Readonly<Record<string, string>>; bytesByTarget: Readonly<Record<string, number>> }} contract
  */
 function resolvePinnedLemonadeRuntime(target, contract) {
   const normalized = String(target || "").trim();
@@ -108,7 +67,8 @@ function resolvePinnedLemonadeRuntime(target, contract) {
       ["llama-server-impl.dll", "llama.dll"],
       ["amdhip64.dll", "amdhip64_7.dll"],
       ["ggml-hip.dll", "ggml-rocm.dll", "libggml-hip.so", "libggml-rocm.so"],
-      ...(contract.requireBundledBlas ? ["hipblas.dll", "rocblas.dll"] : []),
+      "hipblas.dll",
+      "rocblas.dll",
     ],
   };
 }

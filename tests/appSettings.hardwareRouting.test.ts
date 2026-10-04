@@ -118,7 +118,7 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
     expect(economyOptions.llamaRuntimeProfile).toBe("rtx50");
     expect(economyOptions.ocrGpuCudaTag).toBe(RTX_50_OCR_GPU_CUDA_TAG);
     expect(economyOptions.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda13.3", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda13.4", "llama-server.exe"),
     );
 
     const rtx50LargeDefaults = resolveDefaultAppSettings(
@@ -147,7 +147,7 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
     expect(rtx50LargeDefaults.gemma.vramMode).toBe("economy26b");
     expect(largeOptions.llamaRuntimeProfile).toBe("rtx50");
     expect(largeOptions.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda13.3", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda13.4", "llama-server.exe"),
     );
   });
 
@@ -200,7 +200,7 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
       join(
         "C:/app-data",
         "tools",
-        "beellama-v0.3.1-hip-radeon",
+        "beellama-v0.4.7-hip-radeon",
         "llama-server.exe",
       ),
     );
@@ -272,7 +272,7 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
       join(
         "C:/app-data",
         "tools",
-        "lemonade-llama-b1317-rocm-gfx110X",
+        "lemonade-llama-b1338-rocm-gfx110X",
         "llama-server.exe",
       ),
     );
@@ -979,12 +979,12 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
     expect(cuda12Options.ocrGpuCudaTag).toBe(RTX_50_OCR_GPU_CUDA_TAG);
     expect(cuda12Options.llamaRuntimeProfile).toBe("cuda12");
     expect(cuda12Options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda12.4", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda12.4", "llama-server.exe"),
     );
     expect(rtx50Options.ocrGpuCudaTag).toBe(RTX_50_OCR_GPU_CUDA_TAG);
     expect(rtx50Options.llamaRuntimeProfile).toBe("rtx50");
     expect(rtx50Options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda13.3", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda13.4", "llama-server.exe"),
     );
   });
 

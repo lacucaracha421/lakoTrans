@@ -41,7 +41,7 @@ describeWindows(
 
     it("resolves the preferred bundled beellama llama-server when present", () => {
       const toolsDir = createTempDir("llama-tools-");
-      const runtimeDir = join(toolsDir, "beellama-v0.2.0-cuda12.4");
+      const runtimeDir = join(toolsDir, "beellama-v0.4.7-cuda12.4");
       mkdirSync(runtimeDir, { recursive: true });
       const serverPath = join(runtimeDir, "llama-server.exe");
       writeFileSync(serverPath, "");
@@ -53,7 +53,7 @@ describeWindows(
 
     it("resolves another bundled llama-server when the preferred runtime is absent", () => {
       const toolsDir = createTempDir("llama-tools-");
-      const runtimeDir = join(toolsDir, "llama-b9553-cuda12.4");
+      const runtimeDir = join(toolsDir, "llama-b11146-cuda12.4");
       mkdirSync(runtimeDir, { recursive: true });
       const serverPath = join(runtimeDir, "llama-server.exe");
       writeFileSync(serverPath, "");
@@ -346,7 +346,7 @@ describeWindows(
 
     it("builds a minimal llama-server environment with app-scoped caches", () => {
       const toolsDir = createTempDir("llama-tools-");
-      const runtimeDir = join(toolsDir, "beellama-v0.2.0-cuda12.4");
+      const runtimeDir = join(toolsDir, "beellama-v0.4.7-cuda12.4");
       const serverPath = join(
         runtimeDir,
         process.platform === "win32" ? "llama-server.exe" : "llama-server",

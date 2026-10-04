@@ -127,7 +127,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
       join(
         "C:/app-data",
         "tools",
-        "lemonade-llama-b1317-rocm-gfx110X",
+        "lemonade-llama-b1338-rocm-gfx110X",
         "llama-server.exe",
       ),
     );
@@ -186,7 +186,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
     expect(options.imageMinTokens).toBe(1024);
     expect(options.imageMaxTokens).toBe(1024);
     expect(options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b9553-cuda12.4", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda12.4", "llama-server.exe"),
     );
   });
 
@@ -271,7 +271,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
     expect(options.gpuLayers).toBe("fit");
     expect(options.fitEnabled).toBeUndefined();
     expect(options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda12.4", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda12.4", "llama-server.exe"),
     );
   });
 
@@ -334,7 +334,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
     expect(options.threads).toBe(10);
     expect(options.threadsBatch).toBe(12);
     expect(options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda12.4", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda12.4", "llama-server.exe"),
     );
   });
 
@@ -394,7 +394,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
     expect(options.threads).toBe(10);
     expect(options.threadsBatch).toBe(12);
     expect(options.serverPath).toBe(
-      join("C:/app-data", "tools", "llama-b10621-cuda12.4", "llama-server.exe"),
+      join("C:/app-data", "tools", "llama-b11146-cuda12.4", "llama-server.exe"),
     );
   });
 
@@ -453,7 +453,7 @@ describeWindows("app settings helpers: packaged runtime profiles", () => {
       join(
         "C:/app-data",
         "tools",
-        "beellama-v0.2.0-cuda12.4",
+        "beellama-v0.4.7-cuda12.4",
         "llama-server.exe",
       ),
     );

@@ -56,7 +56,7 @@ function main() {
 
 - 16GB 이상: 12B, AOT, LaMa, Flux — **실기 결과 접수 전 미검증**
 - 24GB 이상: 26B — **실기 결과 접수 전 미검증**
-- 32GB 이상: 31B + DFlash CPU-ring — **실기 결과 접수 전 미검증**
+- 32GB 이상: 31B + DFlash — **실기 결과 접수 전 미검증**
 
 모델 가중치는 첫 사용 때 체크섬 검증 후 내려받습니다. 대략 12B 7.6GB, 26B 13.1GB, 31B 15.8GB 외에 OCR·인페인팅 모델 공간이 필요하며 네트워크에 따라 오래 걸릴 수 있습니다.
 
@@ -70,7 +70,7 @@ ${installation.join("\n")}
 - 번역 시작·취소·재실행과 앱 재시작 후 저장 상태
 - AOT·LaMa·Flux 인페인팅 및 수동 보정
 - 이미지/폴더/CBZ 가져오기와 PNG/TXT/CSV 내보내기
-- 31B 사용 시 로그에 DFlash CPU-ring 경로가 명시되는지 확인
+- 31B 사용 시 DFlash draft 모델 로드와 번역 완료 여부 확인
 
 자세한 항목은 함께 첨부된 \`MAC_ALPHA_TEST_CHECKLIST.md\`를 사용해 주세요.
 

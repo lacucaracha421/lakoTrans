@@ -113,9 +113,9 @@ const PINNED_BUILT_IN_GEMMA_ASSETS = new Map(
     ],
     [
       "Anbeeld/gemma-4-31B-it-DFlash-GGUF",
-      "gemma4-31b-it-dflash-IQ4_XS.gguf",
-      "66a750fccd64d8235e1cc249490cc9ce06335b0f",
-      "3ec6a5cb58d5ec1ee14cb3ce8dc297998a0d69eca9f6377851dcea4365c0d2d4",
+      "gemma4-31b-it-dflash-Q4_K_M.gguf",
+      "16e51736d898d460e527acebd5aaa31f72cf7ff7",
+      "859f365b1e3cf8e2c0791fae6b5d5e74af4eb7411f6d440f8126dd9765af83da",
     ],
   ].map(([repo, file, revision, expectedSha256]) => [
     assetKey(repo, file),

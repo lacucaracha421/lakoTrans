@@ -15,13 +15,13 @@ const {
 /** @typedef {{ archive?: unknown; url?: unknown; sha256?: unknown; expectedBytes?: unknown; type?: unknown; stripComponents?: unknown }} RuntimeArchiveDescriptor */
 
 const BEELLAMA_HIP_RADEON_ARCHIVE_CONTRACT = Object.freeze({
-  runtimeId: "beellama-v0.3.1-hip-radeon",
+  runtimeId: "beellama-v0.4.7-hip-radeon",
   runtimeKind: "beellama-hip",
   backend: "rocm",
-  archive: "beellama-v0.3.1-bin-win-hip-radeon-x64.zip",
-  url: "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.3.1/beellama-v0.3.1-bin-win-hip-radeon-x64.zip",
-  sha256: "53302ae602dc43381f1c61794c2508a5e72931916b6de015531683358dc78fbc",
-  bytes: 553_375_639,
+  archive: "beellama-v0.4.7-bin-win-hip-radeon-x64.zip",
+  url: "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-win-hip-radeon-x64.zip",
+  sha256: "694297c86437ec92e6363bfa4a4a30060a966dda7dcbee7b9d9d669109c1c386",
+  bytes: 674803338,
 });
 
 // Runtime archives are owned, hashed before extraction, and hashed again

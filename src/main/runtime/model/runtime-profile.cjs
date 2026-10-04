@@ -45,7 +45,14 @@ function normalizedConfiguredProfile(options = {}) {
 function shouldUseRtx50LlamaRuntime(options = {}) {
   const profile = normalizedConfiguredProfile(options);
   if (
-    ["rtx50", "blackwell", "cuda13", "cuda13.1", "cuda13.3"].includes(profile)
+    [
+      "rtx50",
+      "blackwell",
+      "cuda13",
+      "cuda13.1",
+      "cuda13.3",
+      "cuda13.4",
+    ].includes(profile)
   )
     return true;
   if (["default", "cuda12", "cuda12.4", "legacy"].includes(profile))
@@ -57,7 +64,7 @@ function shouldUseRtx50LlamaRuntime(options = {}) {
   )
     .trim()
     .toLowerCase();
-  return ["cu129", "cu13", "cu131", "cu133"].includes(cudaTag);
+  return ["cu129", "cu13", "cu131", "cu133", "cu134"].includes(cudaTag);
 }
 
 /** @param {RuntimePathOptions} [options] */
@@ -67,9 +74,14 @@ function resolveLlamaRuntimeProfile(options = {}) {
   if (["vulkan", "vk", "amd-vulkan"].includes(profile)) return "vulkan";
   if (["metal", "apple", "apple-metal", "mps"].includes(profile))
     return "metal";
-  return ["rtx50", "blackwell", "cuda13", "cuda13.1", "cuda13.3"].includes(
-    profile,
-  )
+  return [
+    "rtx50",
+    "blackwell",
+    "cuda13",
+    "cuda13.1",
+    "cuda13.3",
+    "cuda13.4",
+  ].includes(profile)
     ? "rtx50"
     : "cuda12";
 }

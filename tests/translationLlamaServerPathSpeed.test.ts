@@ -23,10 +23,10 @@ const binaryName =
 
 describe("speed llama server path selection", () => {
   it.each([
-    ["cuda12", "llama-b10621-cuda12.4", paths.dataRoot],
-    ["cuda13", "llama-b10621-cuda13.3", paths.dataRoot],
-    ["vulkan", "llama-b10621-vulkan", paths.dataRoot],
-    ["metal", "llama-b10621-metal-arm64", paths.toolsDir],
+    ["cuda12", "llama-b11146-cuda12.4", paths.dataRoot],
+    ["cuda13", "llama-b11146-cuda13.4", paths.dataRoot],
+    ["vulkan", "llama-b11146-vulkan", paths.dataRoot],
+    ["metal", "llama-b11146-metal-arm64", paths.toolsDir],
   ])("routes QAT speed models on %s through %s", (profile, directory, root) => {
     const defaults = resolveDefaultAppSettings();
     const gemma = {
@@ -63,7 +63,7 @@ describe("speed llama server path selection", () => {
       join(
         paths.dataRoot,
         "tools",
-        "lemonade-llama-b1317-rocm-gfx110X",
+        "lemonade-llama-b1338-rocm-gfx110X",
         binaryName,
       ),
     );
@@ -71,7 +71,7 @@ describe("speed llama server path selection", () => {
       join(
         paths.dataRoot,
         "tools",
-        "lemonade-llama-b1291-rocm-unknown",
+        "lemonade-llama-b1338-rocm-unknown",
         binaryName,
       ),
     );
@@ -93,22 +93,22 @@ describe("speed llama server path selection", () => {
 
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy12, "cuda12"),
-    ).toContain("llama-b9553-cuda12.4");
+    ).toContain("llama-b11146-cuda12.4");
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy12, "cuda13"),
-    ).toContain("llama-b9553-cuda13.3");
+    ).toContain("llama-b11146-cuda13.4");
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy12, "vulkan"),
-    ).toContain("llama-b9547-vulkan");
+    ).toContain("llama-b11146-vulkan");
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy12, "metal"),
-    ).toContain("llama-b9547-metal-arm64");
+    ).toContain("llama-b11146-metal-arm64");
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy31, "metal"),
-    ).toContain("beellama-v0.3.1-metal-arm64");
+    ).toContain("beellama-v0.4.7-metal-arm64");
     expect(
       resolveDefaultLlamaServerPathForGemma(paths, legacy31, "rocm"),
-    ).toContain("beellama-v0.3.1-hip-radeon");
+    ).toContain("beellama-v0.4.7-hip-radeon");
   });
 
   it("keeps custom Hugging Face models on the explicitly selected server", () => {

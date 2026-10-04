@@ -192,7 +192,7 @@ describe("llama runtime path selection", () => {
         "gfx1201",
         GEMMA_26B_MODEL_REPO,
         GEMMA_26B_MODEL_FILE_IQ3_S,
-        127,
+        134,
       ],
       ["rocm", "gfx90a", GEMMA_26B_MODEL_REPO, GEMMA_26B_MODEL_FILE_IQ3_S, 137],
       [
@@ -720,11 +720,11 @@ describe("llama runtime path selection", () => {
     });
 
     expect(runtime.backend).toBe("rocm");
-    expect(runtime.id).toBe("lemonade-llama-b1291-rocm-gfx120X");
-    expect(runtime.dir).toBe("lemonade-llama-b1291-rocm-gfx120X");
-    expect(runtime.archive).toBe("llama-b1291-windows-rocm-gfx120X-x64.zip");
+    expect(runtime.id).toBe("lemonade-llama-b1338-rocm-gfx120X");
+    expect(runtime.dir).toBe("lemonade-llama-b1338-rocm-gfx120X");
+    expect(runtime.archive).toBe("llama-b1338-windows-rocm-gfx120X-x64.zip");
     expect(runtime.url).toContain(
-      "lemonade-sdk/llamacpp-rocm/releases/download/b1291/",
+      "lemonade-sdk/llamacpp-rocm/releases/download/b1338/",
     );
     expect(runtime.archives[0]?.sha256).toMatch(/^[a-f0-9]{64}$/);
   });
@@ -738,16 +738,16 @@ describe("llama runtime path selection", () => {
     });
 
     expect(runtime.backend).toBe("rocm");
-    expect(runtime.id).toBe("beellama-v0.3.1-hip-radeon");
-    expect(runtime.dir).toBe("beellama-v0.3.1-hip-radeon");
-    expect(runtime.archive).toBe("beellama-v0.3.1-bin-win-hip-radeon-x64.zip");
+    expect(runtime.id).toBe("beellama-v0.4.7-hip-radeon");
+    expect(runtime.dir).toBe("beellama-v0.4.7-hip-radeon");
+    expect(runtime.archive).toBe("beellama-v0.4.7-bin-win-hip-radeon-x64.zip");
     expect(runtime.url).toBe(
-      "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.3.1/beellama-v0.3.1-bin-win-hip-radeon-x64.zip",
+      "https://github.com/Anbeeld/beellama.cpp/releases/download/v0.4.7/beellama-v0.4.7-bin-win-hip-radeon-x64.zip",
     );
     expect(runtime.archives[0]).toMatchObject({
       sha256:
-        "53302ae602dc43381f1c61794c2508a5e72931916b6de015531683358dc78fbc",
-      expectedBytes: 553_375_639,
+        "694297c86437ec92e6363bfa4a4a30060a966dda7dcbee7b9d9d669109c1c386",
+      expectedBytes: 674_803_338,
     });
   });
 
@@ -776,7 +776,7 @@ describe("llama runtime path selection", () => {
       maximumEntryBytes: MAX_RUNTIME_ARCHIVE_EXPANDED_BYTES,
     });
     expect(Object.isFrozen(limits)).toBe(true);
-    expect(resolveRuntimeArchiveMaximumBytes(archive)).toBe(553_375_639);
+    expect(resolveRuntimeArchiveMaximumBytes(archive)).toBe(674_803_338);
 
     const mismatches: Array<
       [Record<string, unknown>, Record<string, unknown>, typeof verification]
@@ -852,8 +852,8 @@ describe("llama runtime path selection", () => {
       disableHostRocmTargetDetection: true,
     });
 
-    expect(runtime.id).toBe("beellama-v0.3.1-hip-radeon");
-    expect(runtime.archive).toBe("beellama-v0.3.1-bin-win-hip-radeon-x64.zip");
+    expect(runtime.id).toBe("beellama-v0.4.7-hip-radeon");
+    expect(runtime.archive).toBe("beellama-v0.4.7-bin-win-hip-radeon-x64.zip");
   });
 
   it("accepts BeeLlama HIP Radeon runtime files for DFlash", () => {
@@ -908,6 +908,8 @@ describe("llama runtime path selection", () => {
         "llama-server-impl.dll",
         "ggml-hip.dll",
         "amdhip64_7.dll",
+        "hipblas.dll",
+        "rocblas.dll",
       ]) {
         writeFileSync(join(runtimeDir, fileName), "");
       }

@@ -106,9 +106,6 @@ function buildDraftArgs(options, target) {
       String(options.cacheTypeV || "q4_0"),
     );
   }
-  if (specType === "dflash") {
-    args.push("--spec-dflash-cross-ctx", "512", "--spec-branch-budget", "0");
-  }
   return args;
 }
 
@@ -126,7 +123,7 @@ function resolveDraftSpecType(value) {
     .trim()
     .toLowerCase() === "draft-mtp"
     ? "draft-mtp"
-    : "dflash";
+    : "draft-dflash";
 }
 
 /** @param {LaunchOptions} options */

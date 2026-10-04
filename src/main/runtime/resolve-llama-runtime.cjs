@@ -13,6 +13,21 @@ function binaryName() {
 function bundledServerCandidates(toolsDir) {
   const serverBinary = binaryName();
   const knownRuntimeDirs = [
+    "llama-b11146-metal-arm64",
+    "beellama-v0.4.7-metal-arm64",
+    "beellama-v0.4.7-hip-radeon",
+    "beellama-v0.4.7-cuda13.3",
+    "beellama-v0.4.7-cuda12.4",
+    "lemonade-llama-b1338-rocm-gfx120X",
+    "lemonade-llama-b1338-rocm-gfx1151",
+    "lemonade-llama-b1338-rocm-gfx1150",
+    "lemonade-llama-b1338-rocm-gfx110X",
+    "lemonade-llama-b1338-rocm-gfx103X",
+    "lemonade-llama-b1338-rocm-gfx90a",
+    "lemonade-llama-b1338-rocm-gfx908",
+    "llama-b11146-vulkan",
+    "llama-b11146-cuda13.4",
+    "llama-b11146-cuda12.4",
     "llama-b10621-metal-arm64",
     "beellama-v0.3.1-metal-arm64",
     "llama-b9547-metal-arm64",

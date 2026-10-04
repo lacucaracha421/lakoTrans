@@ -136,11 +136,11 @@ describe("Windows installer clean uninstall option", () => {
         },
         {
           from: "node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs",
-          to: "app-runtime/onnxruntime-web/1.27.0/ort-wasm-simd-threaded.mjs",
+          to: "app-runtime/onnxruntime-web/1.30.0/ort-wasm-simd-threaded.mjs",
         },
         {
           from: "node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm",
-          to: "app-runtime/onnxruntime-web/1.27.0/ort-wasm-simd-threaded.wasm",
+          to: "app-runtime/onnxruntime-web/1.30.0/ort-wasm-simd-threaded.wasm",
         },
         {
           from: "out/app-runtime/o",
@@ -238,8 +238,8 @@ describe("Windows installer clean uninstall option", () => {
     ]) {
       expect(packageJson.dependencies).toHaveProperty(runtimePackage);
     }
-    expect(packageJson.dependencies["onnxruntime-web"]).toBe("1.27.0");
-    expect(packageJson.dependencies["onnxruntime-node"]).toBe("1.27.0");
+    expect(packageJson.dependencies["onnxruntime-web"]).toBe("1.30.0");
+    expect(packageJson.dependencies["onnxruntime-node"]).toBe("1.30.0");
     expect(packageJson.dependencies["@openai/codex"]).toBe("0.160.0");
     expect(packageJson.devDependencies).not.toHaveProperty("@openai/codex");
     expect(packageJson.overrides["onnxruntime-node"]?.["adm-zip"]).toBe(

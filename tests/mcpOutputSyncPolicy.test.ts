@@ -187,6 +187,53 @@ describe("strict output sync contracts", () => {
 });
 
 describe("durable publication policy", () => {
+  it("settles a reviewed deletion only with a zero-byte removed effect", () => {
+    const review = syncReview();
+    const intent = McpOutputSyncIntentSchema.parse({
+      fileId: "result:page:remove",
+      role: "result",
+      pageId: "page",
+      action: "remove",
+      previous: { bytes: 9, sha256: "a".repeat(64) },
+      relativePath: "results/old-page.png",
+      desired: null,
+    });
+    review.files.push({
+      fileId: intent.fileId,
+      role: intent.role,
+      pageId: intent.pageId,
+      action: intent.action,
+      previous: intent.previous,
+    });
+    const initialRecord = createOutputSyncRecord({
+      id: randomUUID(),
+      owner: syncOwner,
+      jobId: randomUUID(),
+      now: 1000,
+      review,
+      request: syncRequest(review),
+    });
+    const admitted = admitOutputSyncIntent(initialRecord, intent, 1001);
+    const settled = settleOutputSyncEffect(
+      admitted,
+      0,
+      syncEffect(intent, 1002),
+    );
+    expect(
+      RetainedOutputSyncSchema.parse(settled).admissions[0].effect,
+    ).toMatchObject({ state: "removed", bytes: 0, sha256: null });
+    for (const change of [
+      { bytes: 9 },
+      { sha256: "a".repeat(64) },
+      { state: "published" },
+    ]) {
+      const tampered = structuredClone(settled);
+      const effect = tampered.admissions[0].effect;
+      if (!effect) throw new Error("Expected a settled deletion effect");
+      Object.assign(effect, change);
+      expect(RetainedOutputSyncSchema.safeParse(tampered).success).toBe(false);
+    }
+  });
   it("requires exact digest settlement and permits only an identical receipt retry", () => {
     const intent = syncIntents()[0];
     const record = admitOutputSyncIntent(initial(), intent, 1001);

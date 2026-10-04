@@ -56,6 +56,14 @@ and validated Node/V8 families. A tool upgrade must pass those existing floors.
 Zod 4 schemas use `partialRecord` where stored settings and receipts intentionally
 contain only some enum keys; keep those sparse persisted contracts compatible.
 
+ONNX Node and Web are pinned to 1.30.0. Sealed model contracts retain their
+original 1.27.0 provenance; the loader explicitly accepts that contract version
+on 1.30.0 while rejecting other unvalidated version pairs. The 2026-10-04
+fixed-input encoder/ranker comparison produced identical WASM outputs and a
+maximum CPU absolute difference of 4.77e-7. This is runtime compatibility evidence,
+not a new model quality evaluation. Update packaging paths and benchmark runtime
+hashes together with the npm pins, and keep model artifacts unchanged.
+
 ## Making a change
 
 1. Keep the change focused and avoid unrelated formatting or generated-file

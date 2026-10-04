@@ -1,11 +1,41 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { expect, it, vi } from "vitest";
 import { workflowFixture } from "./mcpWorkflow.fixture";
 import { McpOperationService } from "../src/main/application/mcpOperationService";
 import { createMcpOperationTools } from "../src/main/mcp/mcpOperationTools";
 import { McpWorkflowRecordSchema } from "../src/main/application/mcpWorkflowPolicy";
 import { workflowErasureCompleted } from "../src/main/mcp/mcpWorkflowReconciliation";
+
+it("preserves excluded blocks without starting an erasure job", async () => {
+  const f = await workflowFixture();
+  try {
+    const chapter = JSON.parse(await readFile(f.chapterPath, "utf8"));
+    for (const page of chapter.pages)
+      for (const block of page.blocks) block.inpaintExcluded = true;
+    await writeFile(f.chapterPath, JSON.stringify(chapter));
+    const before = await readFile(f.chapterPath);
+    const plan = await f.prepare([
+      { kind: "erase", allowAssetDownloads: true },
+    ]);
+    await f.run(plan.id);
+    const completed = await f.done(plan.id);
+    expect(completed.status).toBe("completed");
+    expect(
+      completed.steps.every(
+        (step) => step.outcome === "no_eligible_erasure_blocks",
+      ),
+    ).toBe(true);
+    expect(
+      completed.steps.every(
+        (step) => step.jobId === undefined || step.jobId === null,
+      ),
+    ).toBe(true);
+    expect(await readFile(f.chapterPath)).toEqual(before);
+  } finally {
+    await f.close();
+  }
+});
 
 it("requires a conclusive matching erasure receipt after journal reconstruction and never executes to verify it", async () => {
   const f = await workflowFixture();

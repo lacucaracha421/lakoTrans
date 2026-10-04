@@ -99,14 +99,14 @@ const onnxWasmModulePath = join(
   resourcesDir,
   "app-runtime",
   "onnxruntime-web",
-  "1.27.0",
+  "1.30.0",
   "ort-wasm-simd-threaded.mjs",
 );
 const onnxWasmBinaryPath = join(
   resourcesDir,
   "app-runtime",
   "onnxruntime-web",
-  "1.27.0",
+  "1.30.0",
   "ort-wasm-simd-threaded.wasm",
 );
 const onnxWasmBinaryFixturePath = join(
@@ -117,7 +117,7 @@ const onnxWasmBinaryFixturePath = join(
   "ort-wasm-simd-threaded.wasm",
 );
 // Must match ONNXRUNTIME_WEB_WASM_BINARY_BYTES in bubbleLayout/constants.ts.
-const expectedOnnxWasmBinaryBytes = 13_479_978;
+const expectedOnnxWasmBinaryBytes = 14_239_897;
 const allowedElectronLocales = new Set([
   "en-GB.pak",
   "en-US.pak",

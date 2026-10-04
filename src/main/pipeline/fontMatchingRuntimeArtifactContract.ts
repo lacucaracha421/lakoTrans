@@ -11,7 +11,7 @@ export const FONT_MATCHING_RUNTIME_ARTIFACT_OWNER =
   "carrot-manga-translator/font-matching-runtime-artifact";
 export const FONT_MATCHING_RUNTIME_ARTIFACT_OWNER_V2 =
   "carrot-manga-translator/font-matching-runtime-artifact-v2";
-export const FONT_MATCHING_RUNTIME_ORT_VERSION = "1.27.0";
+export const FONT_MATCHING_RUNTIME_ORT_VERSION = "1.30.0";
 export const FONT_MATCHING_ACTIVE_CATALOG_FILE =
   "auto-match-active-catalog.json";
 export const FONT_MATCHING_SELECTION_CALIBRATION_FILE =

@@ -89,8 +89,8 @@ describe("bubble-fit gate ORT-Web WASM benchmark", () => {
       entry: {
         file: "ort.node.min.js",
         sha256:
-          "e83abc8b43ce2e160d3fe1a84ac7cdb674e7c3713e84545da1ba27baaf56db4a",
-        sizeBytes: 27_103,
+          "f2ffa91920b249103bbfeb58a1a9b68bf92e9e9018bd164dc16da52bd14ee305",
+        sizeBytes: 27_160,
       },
       wasmModule: {
         file: ONNXRUNTIME_WEB_WASM_MODULE_FILE,
@@ -164,7 +164,7 @@ describe("bubble-fit gate ORT-Web WASM benchmark", () => {
         executionMode: "sequential",
         graphOptimizationLevel: "all",
         wasmNumThreads: 1,
-        versions: { onnxruntimeWeb: "1.27.0" },
+        versions: { onnxruntimeWeb: "1.30.0" },
         assets: {
           entry: BUBBLE_FIT_GATE_BENCHMARK_RUNTIME_PINS.entry,
           wasmModule: BUBBLE_FIT_GATE_BENCHMARK_RUNTIME_PINS.wasmModule,

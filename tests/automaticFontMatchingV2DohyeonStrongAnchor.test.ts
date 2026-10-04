@@ -6,8 +6,78 @@ import {
 } from "../src/main/pipeline/automaticFontMatchingV2PageConsistency";
 import type { VerifiedAutomaticFontPixelInferenceV2 } from "../src/main/pipeline/fontMatchingPagePixelInferenceTypes";
 import type { RankedFontCandidateV2 } from "../src/shared/fontMatchingProfileTypes";
+import { applyDohyeonLocalPolicy } from "../src/main/pipeline/automaticFontMatchingV2PageConsistencyDohyeonSelection";
+import {
+  compareCandidates,
+  comparePixelCandidates,
+} from "../src/main/pipeline/automaticFontMatchingV2PageConsistencyShared";
 
 describe("noninverse Dohyeon strong page-anchor recovery", () => {
+  it.each([
+    "pageBalloonAnchorEvidenceCount",
+    "pageBalloonAnchorSupportShare",
+  ] as const)("does not recover an anchor without %s", (field) => {
+    const target = noninverseDohyeonTarget("missing-anchor-evidence", 7);
+    const plan = buildAutomaticFontPageConsistencyPlan([
+      ...strongRidiAnchorRows(4),
+      target,
+    ]);
+    const state = mergeAutomaticFontPageConsistencyState(
+      undefined,
+      plan.get(target.blockId),
+    );
+    const result = applyDohyeonLocalPolicy(
+      target.localEvidence.rankedCandidates,
+      { ...state, [field]: undefined },
+    );
+    expect(
+      result?.find((candidate) => candidate.fontId === "ridi-batang")
+        ?.reasonCodes,
+    ).not.toContain("strong_page_anchor_after_dohyeon_veto");
+    expect(
+      result?.find((candidate) => candidate.fontId === "dohyeon")?.confidence,
+    ).toBe(0);
+  });
+
+  it("does not promote an anchor when the current positive winner is no longer Dohyeon", () => {
+    const target = noninverseDohyeonTarget("different-winner", 7);
+    const plan = buildAutomaticFontPageConsistencyPlan([
+      ...strongRidiAnchorRows(4),
+      target,
+    ]);
+    const candidates = target.localEvidence.rankedCandidates.map(
+      (candidate, index) =>
+        index === 0 ? { ...candidate, fontId: "another-font" } : candidate,
+    );
+    const result = applyDohyeonLocalPolicy(
+      candidates,
+      mergeAutomaticFontPageConsistencyState(
+        undefined,
+        plan.get(target.blockId),
+      ),
+    );
+    expect(
+      result?.find((candidate) => candidate.fontId === "ridi-batang")
+        ?.reasonCodes,
+    ).not.toContain("strong_page_anchor_after_dohyeon_veto");
+  });
+
+  it("breaks equal ranked scores deterministically by font ID with legacy pixel metadata", () => {
+    const base = noninverseDohyeonTarget("tie", 7).localEvidence
+      .rankedCandidates[0];
+    const candidates = ["z-font", "a-font", "m-font"].map((fontId) => ({
+      ...base,
+      fontId,
+      rawPixelRank: undefined,
+      rawPixelScore: undefined,
+    }));
+    for (const compare of [compareCandidates, comparePixelCandidates]) {
+      expect(
+        [...candidates].sort(compare).map((candidate) => candidate.fontId),
+      ).toEqual(["a-font", "m-font", "z-font"]);
+      expect(compare(candidates[0], candidates[0])).toBe(0);
+    }
+  });
   it("keeps inverse page-anchor recovery on its separate evidence route", () => {
     const anchors = strongRidiAnchorRows(4);
     const target = inverseDohyeonTarget("inverse-target", 7);

@@ -43,7 +43,7 @@ async function smokePackagedOnnxNodeRuntime(
    * }}
    */
   const ort = require(runtimeEntryPath);
-  if (ort.env?.versions?.node !== "1.27.0") {
+  if (ort.env?.versions?.node !== "1.30.0") {
     throw new Error(
       `Unexpected packaged onnxruntime-node version: ${String(ort.env?.versions?.node)}`,
     );

@@ -195,7 +195,7 @@ function verifyPackagedOnnxRuntime(appPath) {
     resourcesDir,
     "app-runtime",
     "onnxruntime-web",
-    "1.27.0",
+    "1.30.0",
     "ort-wasm-simd-threaded.mjs",
   );
   const wasmBinaryFixturePath = join(

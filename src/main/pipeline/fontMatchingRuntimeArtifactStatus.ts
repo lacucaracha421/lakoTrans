@@ -142,7 +142,13 @@ export async function projectFontMatchingRuntimeArtifactStatus({
     bundle.activeCatalog,
   );
   if (!parsed) return disabled("invalid_contract");
-  if (parsed.runtimeVersion !== onnxRuntimeVersion) {
+  // Sealed 1.27.0 artifacts retain their original provenance. Their encoder
+  // and ranker passed output parity on the 1.30.0 CPU/WASM runtimes; other
+  // version pairs still require an explicit compatibility validation.
+  if (
+    parsed.runtimeVersion !== onnxRuntimeVersion &&
+    !(parsed.runtimeVersion === "1.27.0" && onnxRuntimeVersion === "1.30.0")
+  ) {
     return disabled("runtime_version_mismatch");
   }
   const catalogMatches = await verifyInstalledCatalog(

@@ -10,7 +10,7 @@ const depcruiseBin = join(
   "node_modules",
   "dependency-cruiser",
   "bin",
-  "dependency-cruise.mjs",
+  "dependency-cruiser.mjs",
 );
 
 /**

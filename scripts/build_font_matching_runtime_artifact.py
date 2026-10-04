@@ -63,7 +63,7 @@ POLICY_SCHEMA = "font-matching-runtime-policy-v1"
 POLICY_RECORD_TYPE = "font_matching_runtime_policy"
 
 TARGET_ORT_PACKAGE = "onnxruntime-web"
-TARGET_ORT_VERSION = "1.27.0"
+TARGET_ORT_VERSION = "1.30.0"
 TARGET_ORT_PROVIDER = "wasm"
 EXPECTED_CANDIDATE_SCORING = (
     "three-view-gated-concat-projection-to-prototype-dot-"

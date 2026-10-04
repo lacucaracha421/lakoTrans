@@ -81,16 +81,19 @@ describe("Gemma text layout intent", () => {
     },
   );
 
-  it("rejects an uncertain narration role while preserving the raw advisory", () => {
-    const page = makePage({
-      fontRole: "narration",
-      fontRoleConfidence: 0.81,
-    });
-    const processed = applyBubbleNaturalTextLayout(page, { locale: "ko" });
+  it.each([undefined, 0.81])(
+    "rejects narration confidence %s while preserving the raw advisory",
+    (fontRoleConfidence) => {
+      const page = makePage({
+        fontRole: "narration",
+        fontRoleConfidence,
+      });
+      const processed = applyBubbleNaturalTextLayout(page, { locale: "ko" });
 
-    expect(processed.blocks[0]?.layoutIntent).toBe("vertical");
-    expect(processed.blocks[0]?.renderDirection).toBe("horizontal");
-  });
+      expect(processed.blocks[0]?.layoutIntent).toBe("vertical");
+      expect(processed.blocks[0]?.renderDirection).toBe("horizontal");
+    },
+  );
 
   it("never applies the advisory to a usable bubble profile", () => {
     const bubbleLayout = makeBubbleLayout();

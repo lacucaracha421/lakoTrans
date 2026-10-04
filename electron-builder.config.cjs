@@ -45,7 +45,7 @@ const macDeveloperSigning = process.env.MGT_MAC_SIGNING_MODE === "developer-id";
 const macRuntimeRoot =
   process.env.MGT_MAC_RUNTIME_ROOT || join(__dirname, ".tmp", "mac-runtime");
 const stagedMacTools = join(macRuntimeRoot, "tools");
-const onnxRuntimeWebVersion = "1.27.0";
+const onnxRuntimeWebVersion = "1.30.0";
 const onnxWasmModuleFile = "ort-wasm-simd-threaded.mjs";
 const onnxWasmBinaryFile = "ort-wasm-simd-threaded.wasm";
 const extraResources = [

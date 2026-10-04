@@ -12,6 +12,38 @@ import {
 } from "../src/shared/modelPresets";
 
 const require = createRequire(import.meta.url);
+
+it.each(["ggml-vulkan.dll", "ggml-cuda.dll"])(
+  "uses a legacy %s backend for a custom model when the managed runtime is incomplete",
+  (backend) => {
+    if (process.platform !== "win32") return;
+    const root = mkdtempSync(join(tmpdir(), "mgt-custom-fallback-"));
+    try {
+      const options = {
+        workingDir: root,
+        managedToolsDir: join(root, "managed"),
+        toolsDir: join(root, "bundled"),
+        llamaRuntimeProfile: "vulkan",
+        modelRepo: "custom/model",
+        modelFile: "custom.gguf",
+      };
+      const runtime = resolvePreferredLlamaRuntime(options);
+      const managed = join(options.managedToolsDir, runtime.dir);
+      mkdirSync(managed, { recursive: true });
+      writeFileSync(
+        join(managed, "llama-server.exe"),
+        "incomplete managed runtime",
+      );
+      mkdirSync(options.toolsDir, { recursive: true });
+      const legacy = join(options.toolsDir, "llama-server.exe");
+      writeFileSync(legacy, "custom legacy runtime");
+      writeFileSync(join(options.toolsDir, backend), "backend");
+      expect(defaultServerPath(options)).toBe(legacy);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
 const { inferAmdRocmTargetFromText, selectAmdRocmTargetFromProbeText } =
   require("../src/main/runtime/simple-page-amd-rocm-target.cjs") as {
     inferAmdRocmTargetFromText: (value: string) => string | null;

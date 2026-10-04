@@ -4616,6 +4616,28 @@
         "pct": 71.48
       }
     },
+    "src/main/pipeline/fontMatchingRuntimeArtifactContract.ts": {
+      "lines": {
+        "covered": 10,
+        "total": 10,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 10,
+        "total": 10,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
     "src/main/pipeline/fontMatchingRuntimeArtifactStatus.ts": {
       "lines": {
         "covered": 75,

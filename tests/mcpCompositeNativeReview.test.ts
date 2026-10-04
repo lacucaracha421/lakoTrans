@@ -8,6 +8,27 @@ import {
   reviewReport,
 } from "./mcpCompositeWorkflow.fixture";
 
+it("rejects a finding outside the saved page block inventory", async () => {
+  const f = await compositeNativeReviewFixture();
+  try {
+    await f.issue();
+    const report = reviewReport(f.record, "needs-correction");
+    report.findings = [
+      {
+        ...report.findings[0],
+        chapterId: f.targets[0].chapterId,
+        pageId: f.targets[0].pageId,
+        blockId: "missing-block",
+      },
+    ];
+    await expect(
+      f.review.verifyReviewReport(f.record, report, f.guard),
+    ).rejects.toMatchObject({ code: "invalid_edit" });
+  } finally {
+    await f.close();
+  }
+});
+
 it("requires each issued actual PNG retrieval before accepting visual evidence and returns exact bytes", async () => {
   const f = await compositeNativeReviewFixture();
   try {

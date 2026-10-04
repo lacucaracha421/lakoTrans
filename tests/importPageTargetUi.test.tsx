@@ -107,6 +107,30 @@ function switchToPages() {
 }
 
 describe("library import destination modes", () => {
+  it.each([first.workId, null])(
+    "skips stale chapter order entries with current work %s and no current chapter",
+    async (currentWorkId) => {
+      setup({
+        currentWorkId,
+        currentChapterId: null,
+        library: {
+          ...library,
+          works: library.works.map((work) =>
+            work.id === first.workId
+              ? { ...work, chapterOrder: ["missing", second.id, first.id] }
+              : work,
+          ),
+        },
+      });
+      switchToPages();
+      await screen.findByRole("combobox", { name: "추가 위치" });
+      expect(screen.getByRole("combobox", { name: "화 선택" })).toHaveProperty(
+        "value",
+        second.id,
+      );
+      expect(openChapter).toHaveBeenLastCalledWith(second.id);
+    },
+  );
   it("defaults to a new chapter and retains edited inputs and selected sources through page mode", async () => {
     const { onSubmit } = setup();
     expect(

@@ -29,12 +29,12 @@ export const KOHARU_LAYOUT_SCORE_THRESHOLDS = [0.25, 0.2, 0.5, 0.5] as const;
  * the same sealed ORT-Web assets. Keep the published hashes shared so both
  * runtime paths reject a partial or substituted package.
  */
-export const ONNXRUNTIME_WEB_VERSION = "1.27.0";
+export const ONNXRUNTIME_WEB_VERSION = "1.30.0";
 export const ONNXRUNTIME_WEB_WASM_MODULE_FILE = "ort-wasm-simd-threaded.mjs";
 export const ONNXRUNTIME_WEB_WASM_MODULE_SHA256 =
-  "0a1e718d99c41b22c21f2520ff4f9e883a6b5533856e398d21816ee8eb8185d3";
-export const ONNXRUNTIME_WEB_WASM_MODULE_BYTES = 24_180;
+  "e13f7f94fc51b4ca72b12faeb1ee95f4ace6dfbc8939bc718aabdc0a27c4299b";
+export const ONNXRUNTIME_WEB_WASM_MODULE_BYTES = 24_381;
 export const ONNXRUNTIME_WEB_WASM_BINARY_FILE = "ort-wasm-simd-threaded.wasm";
 export const ONNXRUNTIME_WEB_WASM_BINARY_SHA256 =
-  "d1ab1b94b16a65b29d710d0b587b29e7bed336827577623913479b8afe8113e6";
-export const ONNXRUNTIME_WEB_WASM_BINARY_BYTES = 13_479_978;
+  "3398c10d07d229bd91b364548e130e0e51a8e5704b88c7c083ebbeb78842dee2";
+export const ONNXRUNTIME_WEB_WASM_BINARY_BYTES = 14_239_897;

@@ -93,8 +93,12 @@ describe("official Gemma 4 26B chat template", () => {
         templateModule.GEMMA4_OFFICIAL_CHAT_TEMPLATE_CACHE_ENV
       ];
       for (const name of tempEnvironmentNames) process.env[name] = appTemp;
-      for (const name of fallbackEnvironmentNames)
-        process.env[name] = fallbackRoot;
+      // Node 26's Windows entropy provider needs the real SystemRoot/windir.
+      // The test redirects cache locations, not the operating system itself.
+      for (const name of fallbackEnvironmentNames) {
+        if (name !== "SystemRoot" && name !== "windir")
+          process.env[name] = fallbackRoot;
+      }
       expect(tmpdir()).toBe(appTemp);
       const stagedPath = templateModule.prepareGemma4OfficialChatTemplate({
         platform: "win32",

@@ -678,6 +678,25 @@ describe("font matching runtime artifact status", () => {
     });
   });
 
+  it.each(["1.27.0", "1.29.0"])(
+    "only accepts the parity-verified legacy runtime contract %s on 1.30.0",
+    async (version) => {
+      const bundle = await writeBundle();
+      bundle.contract.runtime.version = version;
+      await rewriteContract(bundle.root, sealRecord(bundle.contract));
+      const result = await loadFontMatchingRuntimeArtifactStatus({
+        artifactDir: bundle.root,
+        installedCandidates: bundle.installedCandidates,
+        onnxRuntimeVersion: "1.30.0",
+      });
+      expect(result).toMatchObject(
+        version === "1.27.0"
+          ? { state: "ready" }
+          : { state: "disabled", reason: "runtime_version_mismatch" },
+      );
+    },
+  );
+
   it.each([
     ["non-validation split", { calibration_split: "test" }],
     ["zero temperature", { temperature: 0 }],

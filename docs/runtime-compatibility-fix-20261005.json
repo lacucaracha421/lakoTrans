@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-05",
+  "scope": "Repair translation startup regression after a8fbd7e7 and prevent native CLI drift across CUDA, AMD and Apple Silicon runtimes",
+  "failure": {
+    "observed": "error: invalid argument: --no-mmap; llama-server exited before becoming ready (code=1)",
+    "configuration": "QAT 26B, CUDA12, 32768 context, q4_0 K/V, MTP, disableMmap=true",
+    "reproduced": "Pinned b11146 executable rejects --no-mmap --help with exit 1",
+    "previousValidationGap": "Earlier 12B/31B inference smokes omitted the QAT 26B/31B disableMmap setting; unit tests asserted the obsolete flag"
+  },
+  "changes": {
+    "mainlineAndLemonade": "disableMmap=true now emits --load-mode none; false leaves upstream auto mode unchanged",
+    "beellama": "Replace deprecated --no-mmap --mlock with equivalent --load-mode mlock across CUDA, HIP and Metal",
+    "ci": "Check runs scripts/verify-llama-runtime-cli.cjs on Windows and Apple Silicon after the normal build. Uses production model/runtime presets, pinned production downloader and native --help parsers; both memory modes, all six model presets, seven AMD targets. Canary proves --help rejects an unknown argument. No model download or GPU inference is required. Logs and argument inventory are uploaded.",
+    "ciExpectedMatrix": {
+      "windows": 120,
+      "windowsRuntimes": 13,
+      "macOS": 12,
+      "macOSRuntimes": 2
+    }
+  },
+  "compatibilityReview": {
+    "amd": "All seven Lemonade b1338 target executables and BeeLlama HIP v0.4.7 load and parse the production options on Windows without an AMD GPU. Existing architecture-specific archive selection, ROCm DLL checks and Vulkan alternative remain in place.",
+    "macOS": "All 72 extracted Mach-O executable/library entries are arm64, require at most macOS 14.0, and resolve their non-system dylib names within the runtime. All flags in twelve Metal configurations occur in the corresponding native argument parser. Actual native parser execution is added to Apple Silicon CI.",
+    "attentionAndMemory": "Retain matched q4_0 K/V, Flash Attention and existing unified-memory guard. QAT MTP remains restricted to CUDA by the production preset. No unqualified KVarN or mixed-cache tuning is introduced; upstream's Metal mixed-quantized-KV issue supports avoiding that combination.",
+    "nvidia": "CUDA12 routing and the previous RTX20 SM75 artifact check remain unchanged. New inference tests used RTX4090; they are not RTX20 hardware qualification. The existing MTP fit calibration also exercised its reserve increase on CUDA13 without changing saved settings.",
+    "excluded": [
+      "PaddleOCR/PaddlePaddle",
+      "global local development toolchain",
+      "user library/original/output modifications"
+    ]
+  },
+  "validation": {
+    "windowsNativeCli": "PASS: 120 configurations, 13 pinned native executables",
+    "macOSStatic": "PASS: 72 Mach-O entries and 12 production flag configurations",
+    "gpuInference": "PASS: production startServer/preflight/calibration on QAT26B CUDA12 and CUDA13 at 32768 context, MTP, disableMmap=true; QAT12B Vulkan at 8192 context without MTP. Each tested text plus synthetic image input and returned valid Korean translation JSON (HTTP 200).",
+    "beellamaInference": "PASS: 31B IQ3_S + upstream Q4_K_M DFlash on CUDA12 with --load-mode mlock; Korean translation JSON",
+    "focusedTests": "58 passed, 1 skipped",
+    "fullCheck": "PASS: 27 gates in 359.03s; 1313 test files passed, 1 skipped; 10159 tests passed, 9 skipped; typechecks, lint, coverage floors, build, page artwork parity, image protocol smoke and bundle boundaries passed",
+    "hardwareLimits": "No physical AMD or Apple Silicon inference performed. Newly added remote CI steps have not been dispatched; no push requested. Synthetic image smoke verifies multimodal execution, not manga OCR accuracy or the entire original 308-page job."
+  },
+  "evidence": {
+    "nativeCli": ".tmp/llama-runtime-cli/report.json",
+    "localReports": ".tmp/runtime-compatibility-fix-20261005/",
+    "previousAssets": "docs/translation-runtime-update-20261005.json"
+  },
+  "sources": [
+    "https://raw.githubusercontent.com/ggml-org/llama.cpp/7fe450e19305b828c199d602c23a8337aaa1f03b/common/arg.cpp",
+    "https://raw.githubusercontent.com/Anbeeld/beellama.cpp/0ba48c55a17cb4d3f5f1bd76bba8ee52fdb2573f/common/arg.cpp",
+    "https://raw.githubusercontent.com/Anbeeld/beellama.cpp/0ba48c55a17cb4d3f5f1bd76bba8ee52fdb2573f/docs/beellama-features.md",
+    "https://github.com/lemonade-sdk/llamacpp-rocm/releases/tag/b1338",
+    "https://github.com/ggml-org/llama.cpp/issues/21450"
+  ]
+}

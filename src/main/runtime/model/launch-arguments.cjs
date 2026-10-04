@@ -228,7 +228,7 @@ function buildComputeArgs(options, useBeellama) {
     "-np",
     "1",
     ...(useBeellama ? [] : ["--no-cache-prompt", "--no-warmup"]),
-    ...(disableMmap ? ["--no-mmap"] : []),
+    ...(disableMmap ? ["--load-mode", "none"] : []),
     options.mmprojOffload === true ? "--mmproj-offload" : "--no-mmproj-offload",
     "--cache-ram",
     "0",
@@ -238,7 +238,7 @@ function buildComputeArgs(options, useBeellama) {
 /** @param {string[]} args @param {LaunchOptions} options @param {boolean} enabled */
 function appendBeellamaArgs(args, options, enabled) {
   if (!enabled) return;
-  args.push("--kv-unified", "--jinja", "--no-mmap", "--mlock");
+  args.push("--kv-unified", "--jinja", "--load-mode", "mlock");
   if (options.noHost !== false) args.push("--no-host");
 }
 

@@ -147,8 +147,11 @@ describe("runtime launch argument contracts", () => {
     expect(args).toContain("--kv-offload");
     expect(args).toContain("--kv-unified");
     expect(args).toContain("--jinja");
-    expect(args).toContain("--no-mmap");
-    expect(args).toContain("--mlock");
+    expect(
+      args.slice(args.indexOf("--load-mode"), args.indexOf("--load-mode") + 2),
+    ).toEqual(["--load-mode", "mlock"]);
+    expect(args).not.toContain("--no-mmap");
+    expect(args).not.toContain("--mlock");
     expect(args).toContain("--no-host");
     expect(args).not.toContain("--no-kv-offload");
     expect(args).not.toContain("--fit");
@@ -486,8 +489,11 @@ describe("runtime launch argument contracts", () => {
     expect(args).toContain("0");
     expect(args).toContain("--kv-unified");
     expect(args).toContain("--jinja");
-    expect(args).toContain("--no-mmap");
-    expect(args).toContain("--mlock");
+    expect(
+      args.slice(args.indexOf("--load-mode"), args.indexOf("--load-mode") + 2),
+    ).toEqual(["--load-mode", "mlock"]);
+    expect(args).not.toContain("--no-mmap");
+    expect(args).not.toContain("--mlock");
     expect(args).toContain("--no-host");
     expect(args).not.toContain("--n-cpu-moe");
     expect(args).not.toContain("--chat-template-kwargs");
@@ -598,8 +604,11 @@ describe("runtime launch argument contracts", () => {
     expect(args).not.toContain("--spec-branch-budget");
     expect(args).toContain("--kv-unified");
     expect(args).toContain("--jinja");
-    expect(args).toContain("--no-mmap");
-    expect(args).toContain("--mlock");
+    expect(
+      args.slice(args.indexOf("--load-mode"), args.indexOf("--load-mode") + 2),
+    ).toEqual(["--load-mode", "mlock"]);
+    expect(args).not.toContain("--no-mmap");
+    expect(args).not.toContain("--mlock");
     expect(args).toContain("--no-host");
     expect(args).not.toContain("--fit");
     expect(args).not.toContain("--no-cache-prompt");

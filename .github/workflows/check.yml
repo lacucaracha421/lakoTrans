@@ -53,6 +53,10 @@ jobs:
       - name: Run checks
         run: npm run check
 
+      - name: Validate published Windows CUDA, AMD and Vulkan command lines
+        timeout-minutes: 30
+        run: node scripts/verify-llama-runtime-cli.cjs
+
       - name: Preserve check diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -63,6 +67,8 @@ jobs:
             .tmp/check-logs/
             .tmp/check-results/
             coverage/coverage-summary.json
+            .tmp/llama-runtime-cli/report.json
+            .tmp/llama-runtime-cli/*-help.log
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
@@ -110,6 +116,10 @@ jobs:
       - name: Test Flux Metal runtime
         run: npm run test:flux-metal
 
+      - name: Validate published Apple Silicon command lines and native loader
+        timeout-minutes: 15
+        run: node scripts/verify-llama-runtime-cli.cjs
+
       - name: Set up font runtime smoke Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -130,6 +140,8 @@ jobs:
             .tmp/check-logs/
             .tmp/check-results/
             coverage/coverage-summary.json
+            .tmp/llama-runtime-cli/report.json
+            .tmp/llama-runtime-cli/*-help.log
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7

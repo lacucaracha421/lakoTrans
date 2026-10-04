@@ -69,7 +69,15 @@ fn main() -> Result<()> {
     moe_builder.build_lib(out_dir.join("libmoe.a"))?;
     println!("cargo:rustc-link-search={}", out_dir.display());
     println!("cargo:rustc-link-lib=moe");
-    println!("cargo:rustc-link-lib=dylib=cudart");
+    // Native kernel registration runs before main. Static CUDART keeps the
+    // CPU/ROCm worker launch independent of a globally installed CUDA SDK.
+    if is_target_msvc {
+        let cuda = PathBuf::from(env::var_os("CUDA_PATH").expect("CUDA_PATH is required for the native kernel build"));
+        println!("cargo:rustc-link-search=native={}", cuda.join("lib/x64").display());
+        println!("cargo:rustc-link-lib=static=cudart_static");
+    } else {
+        println!("cargo:rustc-link-lib=dylib=cudart");
+    }
     if !is_target_msvc {
         println!("cargo:rustc-link-lib=stdc++");
     }

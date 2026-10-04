@@ -1,0 +1,8 @@
+{
+  "crate": "candle-core",
+  "version": "0.11.0",
+  "source": "https://crates.io/crates/candle-core/0.11.0",
+  "patch": "Cargo.toml only: select cudarc dynamic-loading instead of dynamic-linking. CPU/LibTorch/ROCm must start on machines without NVIDIA DLLs; AnimeText prepares its explicit CUDA/ZLUDA libraries before calling Candle.",
+  "sourceChanges": false,
+  "license": "LICENSE"
+}

@@ -464,6 +464,20 @@ describeWindows("Flux worker runtime helpers", () => {
     ).rejects.toThrow();
   });
 
+  it("reports a missing native runner when remote installation is disabled", async () => {
+    const runtimeDir = createTempDir("mgt-flux-missing-native-");
+    process.env.MGT_FLUX_KLEIN_TOOLS_DIR = createTempDir(
+      "mgt-flux-empty-tools-",
+    );
+    process.env.MGT_FLUX_DISABLE_REMOTE_RUNNER_DOWNLOAD = "1";
+    await expect(
+      ensureManagedFluxRunner({ runtimeDir, nvidiaComputeCapability: 8.6 }),
+    ).rejects.toThrow("준비하지 못했습니다");
+    await expect(ensureManagedFluxRunner({ runtimeDir })).rejects.toThrow(
+      "찾지 못했습니다",
+    );
+  });
+
   it("downloads and verifies the exact NVIDIA Flux runner when it is not bundled", async () => {
     const runtimeDir = createTempDir("mgt-flux-runner-remote-runtime-");
     const toolsDir = createTempDir("mgt-flux-runner-remote-tools-");

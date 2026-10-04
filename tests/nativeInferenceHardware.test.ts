@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { PNG } from "pngjs";
-import { expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import {
   ensureKoharuModelAssets,
   ensureKoharuWorkerLaunch,
@@ -14,12 +14,15 @@ import {
 } from "../src/main/runtimeSupport/modelDownloads";
 import * as models from "../src/main/inpainting/fluxAssets/constants";
 
+afterEach(() => vi.unstubAllEnvs());
+
 // Opt-in network/hardware check. The normal suite never downloads models.
 it.runIf(process.env.MGT_NATIVE_HARDWARE_SMOKE === "1")(
   "installs the pinned runtimes and performs real LaMa and FLUX CPU inference",
   async () => {
     await mkdir(resolve(".tmp/native-hardware"), { recursive: true });
     const root = await mkdtemp(resolve(".tmp/native-hardware/한글-"));
+    vi.stubEnv("MANGA_TRANSLATOR_LOG_PATH", join(root, "app.log"));
     const input = join(root, "input.png"),
       mask = join(root, "mask.png");
     for (const [path, isMask] of [

@@ -29,6 +29,19 @@ jobs:
           cache: npm
       - run: npm install --global npm@12.2.0
       - run: npm ci
+      - name: Restore native build cache
+        id: native-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/mgt-koharu-inpaint-runner/target
+            tools/mgt-flux-klein-runner/target
+            tools/runner-runtime-policy/target
+            tools/runner-image-processing/target
+          key: native-macos-26-${{ hashFiles('tools/**/Cargo.lock', 'tools/**/Cargo.toml', 'tools/**/build.rs') }}
+          restore-keys: native-macos-26-
       - name: Build native Metal-capable workers
         shell: bash
         run: |
@@ -37,6 +50,18 @@ jobs:
           export CANDLE_METAL_XCODE=1
           cargo build --release --locked --manifest-path tools/mgt-koharu-inpaint-runner/Cargo.toml --target aarch64-apple-darwin --no-default-features --features metal
           cargo build --release --locked --manifest-path tools/mgt-flux-klein-runner/Cargo.toml --target aarch64-apple-darwin --no-default-features --features metal
+      - name: Save compiled native workers
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/mgt-koharu-inpaint-runner/target
+            tools/mgt-flux-klein-runner/target
+            tools/runner-runtime-policy/target
+            tools/runner-image-processing/target
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
       - name: Test native and image-processing contracts
         run: npm run test:flux-metal
       - name: Install from remote assets and run real CPU inference

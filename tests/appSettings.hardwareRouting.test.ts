@@ -278,6 +278,21 @@ describeWindows("app settings helpers: GPU and OCR hardware routing", () => {
     );
   });
 
+  it("keeps an unknown AMD runtime target on the CPU inpainting backend", () => {
+    const settings = resolveDefaultAppSettings(
+      {},
+      {
+        name: "Unknown AMD GPU",
+        vendor: "amd",
+        memoryMb: 8192,
+        computeCapability: null,
+        rtxGeneration: null,
+        rocmArch: "gfx9999",
+      },
+    );
+    expect(settings.inpainting?.fluxBackend).toBe("cpu-native");
+  });
+
   it("keeps GPU OCR off for AMD GPUs Windows ROCm PyTorch does not support", () => {
     const rx7600mXtDefaults = resolveDefaultAppSettings(
       {},

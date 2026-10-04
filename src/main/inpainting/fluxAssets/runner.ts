@@ -241,7 +241,7 @@ async function ensureDownloadedFluxRunner(options: {
       progressText: "Flux 실행 파일 캐시 사용",
       detail: options.source.label,
       progressMode: "log-only",
-      installLogLine: `캐시된 GPU별 Flux 실행 파일을 사용합니다: ${options.source.label}`,
+      installLogLine: `캐시된 Flux 네이티브 실행 파일을 사용합니다: ${options.source.label}`,
     });
     return options.managedPath;
   }
@@ -272,7 +272,7 @@ async function ensureDownloadedFluxRunner(options: {
     progressText: "Flux 실행 파일 준비 중",
     detail: options.source.label,
     progressMode: "log-only",
-    installLogLine: `GPU별 Flux 실행 파일을 앱 데이터 캐시에 설치했습니다: ${options.source.label}`,
+    installLogLine: `Flux 네이티브 실행 파일을 앱 데이터 캐시에 설치했습니다: ${options.source.label}`,
   });
   return options.managedPath;
 }
@@ -357,12 +357,12 @@ function buildMissingFluxRunnerMessage(
     if (!FLUX_NVIDIA_RUNNER_COMPUTE_CAPS.includes(normalized)) {
       return (
         `Flux NVIDIA 실행 파일이 이 GPU compute capability ${formatCudaComputeCapability(normalized)}(sm${normalized})를 지원하지 않습니다. ` +
-        `지원되는 대상은 ${supported}입니다. 정확한 sm 타깃 러너가 필요하며 낮은 sm/generic 러너로 대체하지 않습니다.`
+        `현재 배포된 CUDA 런타임의 지원 대상은 ${supported}입니다. 설정에서 Flux 백엔드를 CPU로 변경할 수 있습니다.`
       );
     }
     return (
       `${requiredDir}/${FLUX_RUNTIME_EXECUTABLE}를 준비하지 못했습니다. ` +
-      `감지된 NVIDIA GPU compute capability ${formatCudaComputeCapability(normalized)}에는 정확히 sm${normalized} 러너가 필요합니다. ` +
+      `감지된 NVIDIA GPU compute capability는 ${formatCudaComputeCapability(normalized)}입니다. ` +
       `설치 파일 또는 Flux runner 다운로드 자산을 확인하세요.`
     );
   }

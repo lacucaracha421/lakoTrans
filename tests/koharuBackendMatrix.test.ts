@@ -140,6 +140,22 @@ describe("Koharu backend contracts across GPU vendors and generations", () => {
     },
   );
 
+  it("preserves the managed native DLL path without discovering the old CUDA runtime", () => {
+    const env = buildKoharuWorkerEnv({
+      backend: "rocm-native",
+      executable: process.execPath,
+      runtimePath: process.execPath,
+      label: "native",
+      args: ["--native-runtime", "runtime.json"],
+      env: { PATH: "managed-rocm", RUST_LOG: "error", RUST_BACKTRACE: "0" },
+    });
+    expect(env.PATH?.startsWith("managed-rocm")).toBe(true);
+    expect(env.RUST_LOG).toBe("error");
+    expect(env.HIP_VISIBLE_DEVICES).toBe(
+      process.platform === "win32" ? "0" : undefined,
+    );
+  });
+
   it.each(["cuda-native", "zluda-native", "cpu", "metal-native"] as const)(
     "isolates the selected device for %s only in its own API",
     (backend) => {

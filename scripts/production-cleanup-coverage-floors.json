@@ -1184,28 +1184,6 @@
         "pct": 50
       }
     },
-    "src/main/inpainting/fluxAssets/zludaRuntime.ts": {
-      "lines": {
-        "covered": 21,
-        "total": 33,
-        "pct": 63.63
-      },
-      "statements": {
-        "covered": 21,
-        "total": 33,
-        "pct": 63.63
-      },
-      "functions": {
-        "covered": 4,
-        "total": 5,
-        "pct": 80
-      },
-      "branches": {
-        "covered": 6,
-        "total": 10,
-        "pct": 60
-      }
-    },
     "src/main/inpainting/fluxCompositeConstraint.ts": {
       "lines": {
         "covered": 8,
@@ -22502,28 +22480,6 @@
         "covered": 8,
         "total": 18,
         "pct": 44.44
-      }
-    },
-    "src/main/inpainting/fluxAssets/hipSdk.ts": {
-      "lines": {
-        "total": 124,
-        "covered": 121,
-        "pct": 97.58
-      },
-      "statements": {
-        "total": 139,
-        "covered": 134,
-        "pct": 96.4
-      },
-      "functions": {
-        "total": 31,
-        "covered": 31,
-        "pct": 100
-      },
-      "branches": {
-        "total": 77,
-        "covered": 65,
-        "pct": 84.41
       }
     },
     "src/main/inpainting/fluxCudaDevice.ts": {
@@ -47432,6 +47388,7 @@
     }
   },
   "deletedFiles": [
+    "src/main/inpainting/fluxAssets/zludaRuntime.ts",
     "src/main/nativeDynamicImport.ts",
     "src/main/openaiOauthEndpoint.ts",
     "src/renderer/src/components/AutomaticFontMatchNotice.tsx",

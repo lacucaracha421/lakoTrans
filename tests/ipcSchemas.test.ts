@@ -759,8 +759,8 @@ describe("IPC schemas", () => {
       ).ocr.qualityMode,
     ).toBe("full");
     expect(parsed.inpainting?.model).toBe("lama-manga");
-    expect(parsed.inpainting?.fluxBackend).toBe("zluda-native");
-    expect(parsed.inpainting?.koharuBackend).toBe("zluda-native");
+    expect(parsed.inpainting?.fluxBackend).toBe("rocm-native");
+    expect(parsed.inpainting?.koharuBackend).toBe("rocm-native");
     expect(
       parseIpcPayload(
         AppSettingsSchema,

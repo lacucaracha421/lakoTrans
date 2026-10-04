@@ -4,7 +4,7 @@
   "scope": {
     "paddle": "Excluded. Dedicated locks, legacy install plans, legacy import checks and managedPython 3.12.7 remain unchanged.",
     "localDevelopmentEnvironment": "No global tool installation or upgrade. Existing Node/Rust/Python/uv/CUDA were used; test environments are isolated under .tmp/runtime-update-stage23.",
-    "applicationRelease": "No app release, push or existing external asset replacement."
+    "applicationRelease": "No application release. Source branch pushed for CI; new immutable asset-only prerelease published and re-downloaded for verification."
   },
   "python": {
     "hayaiBootstrap": {
@@ -406,10 +406,10 @@
       }
     },
     "engineMigration": {
-      "status": "Approved by user; full LibTorch/stable-diffusion.cpp engine migration in progress.",
-      "currentKoharu": "0.61.1 / 0d640615d435a399bc195c892de8f5d17efb68f8",
+      "status": "Native 0.83.5 app integration implemented; final validation recorded in docs/koharu-0835-native-migration.json.",
+      "currentKoharu": "0.83.5 / 52bb4f55e2266f72c1523562a583c827ec191ceb",
       "latestKoharu": "0.83.5 / 52bb4f55e2266f72c1523562a583c827ec191ceb",
-      "currentCandle": "0.9.2 custom fork + local Metal patches",
+      "currentCandle": "0.11.0 for AnimeText only; FLUX/LaMa/AOT moved to native engines",
       "latestCandle": "0.11.0",
       "reason": "Koharu 0.83.5 has no candle dependencies or cuda/metal cargo features. It replaces ComputePolicy/RuntimeManager with new Runtime/Store/Device contracts. LaMa uses koharu-torch and FLUX uses koharu-diffusion; model load no longer takes app-owned file paths. A rev/version replacement would remove model binding, backend selection and existing Metal/CUDA patches.",
       "sources": [
@@ -417,11 +417,12 @@
         "https://github.com/koharu-rs/koharu/blob/0.83.5/crates/koharu-ml/Cargo.toml",
         "https://github.com/koharu-rs/koharu/blob/0.83.5/crates/koharu-ml/src/lama/mod.rs",
         "https://github.com/koharu-rs/koharu/blob/0.83.5/crates/koharu-ml/src/flux2_klein/mod.rs"
-      ]
+      ],
+      "handoff": "docs/koharu-0835-native-migration.json"
     }
   },
   "validation": {
-    "status": "Dependency checkpoint passed; engine migration remains in progress",
+    "status": "Dependency checkpoint passed; native migration final validation in dedicated handoff",
     "nativeTests": {
       "koharu": 11,
       "importSource": 3,
@@ -446,7 +447,7 @@
       "CUDA 12.6 package resolution/hash validation only; actual GPU inference used CUDA 13.0."
     ],
     "evidenceDirectory": ".tmp/runtime-update-stage23",
-    "check": {
+    "dependencyCheckpoint": {
       "command": "npm run check",
       "gates": 27,
       "passed": 10106,

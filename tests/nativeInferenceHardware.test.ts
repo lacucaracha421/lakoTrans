@@ -98,6 +98,8 @@ it.runIf(process.env.MGT_NATIVE_HARDWARE_SMOKE === "1")(
         id: name,
         input,
         mask,
+        bubble_mask: mask,
+        windows: [[80, 80, 180, 180]],
         output,
         max_pixels: 65536,
         steps: 4,

@@ -2,7 +2,7 @@ import catalog from "../runtime/native-inference-manifest.json";
 
 export type NativeInferenceEngine = "torch" | "diffusion" | "rocm-probe";
 export type NativeInferenceBackend = "cpu" | "cuda" | "rocm" | "metal";
-export type NativeInferencePackage = {
+type NativeInferencePackage = {
   id: string;
   url: string;
   sha256: string;

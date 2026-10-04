@@ -16,7 +16,10 @@ export function applyComputeGpuVisibilityEnv(
   backend: string,
   platform: NodeJS.Platform = process.platform,
 ): void {
-  const index = normalizeComputeGpuIndex(computeGpuSelection);
+  // Native ROCm probes physical adapter 0 when the selection is automatic.
+  const index =
+    normalizeComputeGpuIndex(computeGpuSelection) ??
+    (backend === "rocm-native" ? 0 : undefined);
   const isolationKey = resolveGpuIsolationKey(backend, platform);
   const uuid =
     isolationKey === "CUDA_VISIBLE_DEVICES"

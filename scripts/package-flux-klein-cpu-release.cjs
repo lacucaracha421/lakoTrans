@@ -279,7 +279,7 @@ function assertArchivedCpuRunner(executable) {
 /** @param {string} path */
 function assertCpuOnlyRunner(path) {
   const capabilities = runJsonProbe(path, ["--capabilities"]);
-  if (capabilities?.engine === "koharu-diffusion-0.83.5") {
+  if (capabilities.engine === "koharu-diffusion-0.83.5") {
     throw new Error(
       "Use scripts/package-native-inference-release.cjs for native 0.83.5 assets and their license inventory.",
     );

@@ -142,7 +142,7 @@ describeWindows("app settings helpers: UI settings and migrations", () => {
 
     expect(resolveKoharuInpaintingBackend("default")).toBe("auto");
     expect(resolveKoharuInpaintingBackend("nvidia")).toBe("cuda-native");
-    expect(resolveKoharuInpaintingBackend("amd")).toBe("zluda-native");
+    expect(resolveKoharuInpaintingBackend("amd")).toBe("rocm-native");
     expect(resolveKoharuInpaintingBackend("apple")).toBe("metal-native");
     expect(resolveKoharuInpaintingBackend("python-cpu")).toBe("cpu");
   });
@@ -298,7 +298,7 @@ describeWindows("app settings helpers: UI settings and migrations", () => {
       ocrQualityMode: "full",
       ocrGpuCudaTag: DEFAULT_OCR_GPU_CUDA_TAG,
       ocrGpuBackend: "rocm-transformers",
-      fluxBackend: "zluda-native",
+      fluxBackend: "rocm-native",
       llamaRuntimeProfile: "rocm",
       llamaRocmTarget: "gfx110X",
     });
@@ -319,7 +319,7 @@ describeWindows("app settings helpers: UI settings and migrations", () => {
       ocrQualityMode: "full",
       ocrGpuCudaTag: DEFAULT_OCR_GPU_CUDA_TAG,
       ocrGpuBackend: "rocm-transformers",
-      fluxBackend: "zluda-native",
+      fluxBackend: "rocm-native",
       llamaRuntimeProfile: "rocm",
       llamaRocmTarget: "gfx110X",
     });

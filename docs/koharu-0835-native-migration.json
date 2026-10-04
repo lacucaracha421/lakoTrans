@@ -1,5 +1,5 @@
 {
-  "status": "native-producers-validated-app-integration-in-progress",
+  "status": "app-integrated-final-checks-and-macos-ci-in-progress",
   "scope": "User-approved Koharu engine migration; PaddleOCR and installed local development tools excluded",
   "koharu": {
     "version": "0.83.5",
@@ -22,7 +22,7 @@
     "adapterTests": 19,
     "nativePolicyTests": 5,
     "fluxTests": 3,
-    "installerTests": 12,
+    "installerTests": 21,
     "actualProductionWorkerInferences": [
       "LaMa CPU",
       "AOT CPU",
@@ -34,7 +34,23 @@
     "actualAdapterInferences": ["AnimeText CPU", "AnimeText RTX4090 F32"],
     "smokeFixture": "Synthetic 256x256 manga lettering mask; validates execution, dimensions and JSON protocol, not image-quality equivalence between engines",
     "smokeReceipt": ".tmp/runtime-update-stage23/production-native-smoke.json",
-    "windowsUnicodeRegression": "All production smokes used Korean absolute paths; SDCPP failed before the process UTF-8 manifest fix"
+    "windowsUnicodeRegression": "All production smokes used Korean absolute paths; SDCPP failed before the process UTF-8 manifest fix",
+    "coldRemoteInstall": "Empty native-cold-r1 data root: actual app installers fetched LaMa CPU libraries and FLUX CPU runner/runtime from remote, and both workers completed inference.",
+    "rocmInstall": "Actual ROCm 10 core/libraries/gfx1100 archive installation passed under a long Korean Windows data path. Core DLL probe loaded successfully and returned HIP status 100/devices 0 on the NVIDIA-only machine; AMD inference is unverified.",
+    "hfAssets": "npm run verify:hf-assets: 36 assets verified, including pinned new VAE and Qwen3 text encoder.",
+    "ui": {
+      "wide": "C:/tmp/native-runtime-qa-wide-r2.png",
+      "narrow": "C:/tmp/native-runtime-qa-narrow-r2.png",
+      "result": "Actual FluxBackendSettings component, supported/unsupported AMD states, 1440x900 and 390x844; no horizontal overflow, clipping or overlap. Temporary entrypoints removed."
+    },
+    "introducedCoverage": {
+      "artifact": ".tmp/runtime-update-stage23/native-focused-coverage/coverage-summary.json",
+      "sha256": "83c66bdc172d2a5fee01e7293eb65156c42b9b1828a803ec7637ca9fb98f5cc2",
+      "platform": "Windows",
+      "node": "26.10.0",
+      "vitest": "5.0.3",
+      "result": "21 tests passed; three new native modules measured separately. Existing coverage floors unchanged."
+    }
   },
   "build": {
     "installedToolsChanged": false,
@@ -49,11 +65,55 @@
       "Flux build-time Cargo cache mutation"
     ]
   },
-  "release": null,
+  "release": {
+    "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/koharu-native-0.83.5-win-x64-r1",
+    "tag": "koharu-native-0.83.5-win-x64-r1",
+    "sourceCommit": "223cbdaeaabaf021739d128ee5364b186b51d19f",
+    "manifest": "docs/koharu-0835-native-assets.json",
+    "remoteVerification": {
+      "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/koharu-native-0.83.5-win-x64-r1",
+      "assets": [
+        {
+          "name": "manifest.json",
+          "bytes": 7134,
+          "sha256": "c1d81dc7a86d27dfbac5827a8018463809f44407f4578a207e13cf3ac1bb449d"
+        },
+        {
+          "name": "mgt-flux-klein-cpu-0.83.5-win-x64.zip",
+          "bytes": 3244240,
+          "sha256": "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e"
+        },
+        {
+          "name": "mgt-flux-klein-native-0.83.5-win-x64.zip",
+          "bytes": 3243118,
+          "sha256": "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3"
+        },
+        {
+          "name": "msvc-14.51.36247-native-win-x64.zip",
+          "bytes": 631189,
+          "sha256": "5dd740b84a0d315852b1e3e64c041a551b3adff3d0696c59354ffe7b7ca7f5cc"
+        },
+        {
+          "name": "stable-diffusion-master-853-cpu-win-x64.zip",
+          "bytes": 22590910,
+          "sha256": "91ecf36a94007c17c8cd997b7c3d71c893b92ca6d1249e4c5a36f710c2f3fad3"
+        }
+      ],
+      "verified": true
+    },
+    "contract": "Four flat ZIP archives plus binding manifest.json; five server assets matched names, bytes and SHA-256 after re-download. Archive member inventories verified. Immutable asset-only prerelease; no application release."
+  },
   "remaining": [
-    "Publish immutable runtime/runner assets and re-download verify",
-    "Finish app backend/model/runtime integration and cold remote installation",
-    "Update existing contract tests, CI and model metadata checks",
-    "Complete full application checks and platform smoke validation"
-  ]
+    "Final npm run check",
+    "macOS native CI compilation and real inference"
+  ],
+  "consumerContracts": {
+    "runtimeCatalog": "src/main/runtime/native-inference-manifest.json",
+    "runtimeCache": "koharu-0.83.5-r1 + platform/backend/engine/exact ROCm target; package fingerprint and file SHA receipts",
+    "models": "Transformer unchanged; FLUX.2-small-decoder full_encoder_small_decoder.safetensors and Qwen3-4B-Q4_K_M.gguf pinned by revision/SHA",
+    "backendMigration": "Existing zluda-native/python-rocm choices normalize to rocm-native for inpainting. AnimeText retains its separate Candle/ZLUDA contract. Legacy supportsFluxZluda IPC field now describes native ROCm package availability, not AMD hardware certification.",
+    "gpuSelection": "ROCm probes an unmasked physical adapter index before selecting the exact gfx package, then uses the same adapter for worker visibility. CUDA keeps UUID binding.",
+    "nativeDllSearch": "Managed CUDA 13.3/ROCm/MSVC directories precede host PATH; native workers skip legacy CUDA 12.9 discovery."
+  },
+  "rollback": "Revert migration commits as one source/catalog/native-binary unit to dependency checkpoint 39e997ff. Old external releases and caches are retained; new assets use unique tags/cache versions. Never delete library, originals or outputs."
 }

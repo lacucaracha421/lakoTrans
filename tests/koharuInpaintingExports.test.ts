@@ -10,14 +10,13 @@ import {
   ensureKoharuWorkerLaunch,
   resolveKoharuModelFiles,
 } from "../src/main/inpainting/koharuAssets";
-import {
-  CUDNN_REDIST_MANIFEST_URL,
-  CUDA_REDIST_MANIFEST_URL,
-  FLUX_CUDA_DLLS,
-  FLUX_CUDA_RUNTIME_DIR,
-  FLUX_CUDA_RUNTIME_MARKER,
-  FLUX_CUDNN_DLLS,
-} from "../src/main/inpainting/fluxAssets/constants";
+vi.mock("../src/main/runtimeSupport/nativeInferenceLaunch", () => ({
+  prepareNativeInferenceLaunch: vi.fn(async (options) => ({
+    executable: options.executable,
+    manifest: join(options.runtimeDir, "torch-test.json"),
+    env: { PATH: "managed-native-runtime" },
+  })),
+}));
 
 const tempDirs: string[] = [];
 
@@ -70,7 +69,7 @@ describe("Koharu inpainting public surface", () => {
     expect(typeof prepareKoharuInpaintingEngine).toBe("function");
   });
 
-  it("puts the managed Flux CUDA runtime first for native Koharu CUDA", async () => {
+  it("uses the managed LibTorch runtime contract for Koharu CUDA", async () => {
     const runtimeDir = createTempDir("mgt-koharu-runtime-");
     const fluxRuntimeDir = createTempDir("mgt-koharu-flux-runtime-");
     const runnerDir = createTempDir("mgt-koharu-runner-");
@@ -78,7 +77,6 @@ describe("Koharu inpainting public surface", () => {
     writeFileSync(runnerPath, "runner");
     process.env.MGT_KOHARU_INPAINT_EXE = runnerPath;
     process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
-    const cudaDir = writeCachedFluxCudaRuntime(fluxRuntimeDir);
 
     const launch = await ensureKoharuWorkerLaunch({
       runtimeDir,
@@ -91,9 +89,14 @@ describe("Koharu inpainting public surface", () => {
       backend: "cuda-native",
     });
 
-    expect(launch.env?.PATH?.split(delimiter)[0]).toBe(cudaDir);
+    expect(launch.env?.PATH?.split(delimiter)[0]).toBe(
+      "managed-native-runtime",
+    );
     expect(launch.args).toEqual(
-      expect.arrayContaining(["--cuda-runtime-dir", cudaDir]),
+      expect.arrayContaining([
+        "--native-runtime",
+        join(runtimeDir, "torch-test.json"),
+      ]),
     );
     expect(launch.env?.KOHARU_DATA_ROOT).toBe(join(runtimeDir, "koharu-data"));
   });
@@ -107,17 +110,4 @@ function createTempDir(prefix: string): string {
   tempDirs.push(dir);
   mkdirSync(dir, { recursive: true });
   return dir;
-}
-
-function writeCachedFluxCudaRuntime(runtimeDir: string): string {
-  const cudaDir = join(runtimeDir, FLUX_CUDA_RUNTIME_DIR);
-  mkdirSync(cudaDir, { recursive: true });
-  for (const fileName of [...FLUX_CUDA_DLLS, ...FLUX_CUDNN_DLLS]) {
-    writeFileSync(join(cudaDir, fileName), fileName);
-  }
-  writeFileSync(
-    join(cudaDir, FLUX_CUDA_RUNTIME_MARKER),
-    `${JSON.stringify({ cudaManifest: CUDA_REDIST_MANIFEST_URL, cudnnManifest: CUDNN_REDIST_MANIFEST_URL })}\n`,
-  );
-  return cudaDir;
 }

@@ -22,6 +22,7 @@ const ALLOWED_INTERNAL_BOUNDARY_MOCKS = new Set([
   "tests/nativeInferenceLaunch.test.ts::../src/main/runtimeSupport/nativeInferenceRuntime",
   "tests/fluxCpuWorker.test.ts::../src/main/runtimeSupport/nativeInferenceLaunch",
   "tests/fluxWorker.test.ts::../src/main/runtimeSupport/nativeInferenceLaunch",
+  "tests/koharuInpaintingExports.test.ts::../src/main/runtimeSupport/nativeInferenceLaunch",
   // Substitute only the Python installer; use real command/env modules and worker transport.
   "tests/hayaiRecognitionSession.test.ts::../src/main/runtimeModuleLoader",
   // Exercise real context analysis/research against isolated storage and a controlled provider lifecycle.

@@ -73,7 +73,7 @@ describe("settings alias surfaces", () => {
           ["cuda-sm75-experimental", "cuda-sm75", "sm75-cuda", "sm75"],
         ],
         [
-          "zluda-native",
+          "rocm-native",
           ["zluda-native", "zluda", "python-rocm", "rocm", "hip", "amd"],
         ],
         ["metal-native", ["metal-native", "metal", "apple"]],
@@ -118,7 +118,10 @@ describe("settings alias surfaces", () => {
       [
         ["auto", ["auto", "default"]],
         ["cuda-native", ["cuda", "cuda-native", "nvidia"]],
-        ["zluda-native", ["zluda", "zluda-native", "amd"]],
+        [
+          "rocm-native",
+          ["rocm-native", "rocm", "zluda", "zluda-native", "amd"],
+        ],
         ["metal-native", ["metal", "metal-native", "apple"]],
         ["cpu", ["cpu", "python-cpu"]],
       ],

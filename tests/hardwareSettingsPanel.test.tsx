@@ -133,7 +133,7 @@ describe("HardwareSettingsPanel", () => {
       ocrQualityMode: "economy",
     });
     expect(supported).toMatchObject({
-      fluxBackend: "zluda-native",
+      fluxBackend: "rocm-native",
       ocrDevice: "gpu",
       ocrGpuBackend: "rocm-transformers",
       ocrQualityMode: "full",
@@ -147,7 +147,7 @@ describe("HardwareSettingsPanel", () => {
     });
   });
 
-  it("warns for officially unsupported AMD Flux hardware and offers CPU", () => {
+  it("warns when AMD Flux runtime compatibility is unverified and offers CPU", () => {
     const setFluxBackend = vi.fn();
     const clearTestState = vi.fn();
     render(
@@ -157,7 +157,7 @@ describe("HardwareSettingsPanel", () => {
         computeGpuIndex={null}
         controlsBusy={false}
         detectedGpuName="AMD Radeon RX 6700 XT"
-        fluxBackend="zluda-native"
+        fluxBackend="rocm-native"
         graphicsGpuPreference="high-performance"
         inpaintingModel="flux-klein"
         isFluxBackendOptionDisabled={() => false}
@@ -186,7 +186,7 @@ describe("HardwareSettingsPanel", () => {
     );
 
     const warning = screen.getByRole("alert");
-    expect(warning.textContent).toContain("공식 지원 대상이 아닌 AMD GPU");
+    expect(warning.textContent).toContain("AMD GPU 런타임 호환성 확인 필요");
     expect(warning.textContent).toContain("AMD Radeon RX 6700 XT");
     fireEvent.click(
       within(warning).getByRole("button", { name: "CPU 백엔드로 전환" }),
@@ -510,7 +510,7 @@ describe("HardwareSettingsPanel", () => {
         clearTestState={vi.fn()}
         computeGpuIndex={null}
         controlsBusy={false}
-        fluxBackend="zluda-native"
+        fluxBackend="rocm-native"
         graphicsGpuPreference="high-performance"
         inpaintingModel="flux-klein"
         isFluxBackendOptionDisabled={() => false}
@@ -542,9 +542,13 @@ describe("HardwareSettingsPanel", () => {
       (screen.getByRole("button", { name: "HayaiOCR" }) as HTMLButtonElement)
         .disabled,
     ).toBe(false);
-    const rocmButton = screen.getByRole("button", {
-      name: "AMD ROCm",
-    }) as HTMLButtonElement;
+    const rocmButton = screen
+      .getAllByRole("button", {
+        name: "AMD ROCm",
+      })
+      .find(
+        (button) => (button as HTMLButtonElement).disabled,
+      ) as HTMLButtonElement;
     expect(rocmButton.disabled).toBe(true);
     fireEvent.click(rocmButton);
     expect(setOcrDevice).not.toHaveBeenCalled();

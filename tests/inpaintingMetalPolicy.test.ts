@@ -129,7 +129,11 @@ describe("Apple Silicon inpainting policy", () => {
     ]);
     for (const entry of plan) {
       const cargo = readFileSync(entry.manifestPath, "utf8");
-      expect(cargo).toMatch(/^metal\s*=\s*\["koharu-ml\/metal"\]/m);
+      expect(cargo).toMatch(
+        entry.id === "mgt-flux-klein"
+          ? /^metal\s*=\s*\[\]/m
+          : /^metal\s*=\s*\["koharu-ml\/metal"\]/m,
+      );
       expect(entry.build).toEqual({
         command: "cargo",
         args: [

@@ -252,7 +252,7 @@ describeWindows("Flux worker runtime helpers", () => {
     );
 
     expect(error.message).toContain("Flux CUDA 커널/심볼");
-    expect(error.message).toContain("compute capability");
+    expect(error.message).toContain("NVIDIA 드라이버");
     expect(error.message).toContain("CUDA 13.3");
   });
 

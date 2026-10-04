@@ -26,6 +26,15 @@ const LAUNCH: FluxWorkerLaunchSpec = {
 };
 
 describe("Flux physical CUDA device binding", () => {
+  it("keeps automatic ROCm execution on the physical adapter used by its probe", () => {
+    const env: NodeJS.ProcessEnv = {
+      HIP_VISIBLE_DEVICES: "3",
+      ROCR_VISIBLE_DEVICES: "4",
+    };
+    applyComputeGpuVisibilityEnv(env, undefined, "rocm-native", "win32");
+    expect(env.HIP_VISIBLE_DEVICES).toBe("0");
+    expect(env.ROCR_VISIBLE_DEVICES).toBeUndefined();
+  });
   it("loads the pinned native runtime ahead of inherited CUDA directories", () => {
     const env = buildFluxWorkerEnv({
       ...LAUNCH,

@@ -1,5 +1,5 @@
 {
-  "status": "app-integrated-final-checks-and-macos-ci-in-progress",
+  "status": "complete-validated-with-explicit-hardware-limits",
   "scope": "User-approved Koharu engine migration; PaddleOCR and installed local development tools excluded",
   "koharu": {
     "version": "0.83.5",
@@ -15,7 +15,7 @@
     "orchestration": "Old crop, balloon, mask, alpha and pixel-budget behavior characterized before moving into runner-image-processing",
     "windowsPaths": "UTF-8 activeCodePage manifests; no system locale change",
     "amd": "Native ROCm 10 exact-device probe and managed packages; hardware validation pending",
-    "mac": "Native Metal libraries and colocated worker; hardware validation pending"
+    "mac": "Native Metal libraries and colocated worker; macOS arm64 builds/Rust tests and real CPU inference passed. Metal GPU inference unverified."
   },
   "validation": {
     "preMoveImageTests": 18,
@@ -59,15 +59,15 @@
       "command": "npm run check",
       "node": "26.10.0 (isolated portable runtime)",
       "gates": 27,
-      "passed": 10119,
+      "passed": 10127,
       "failed": 0,
       "skipped": 9,
-      "durationSeconds": 566.51,
+      "durationSeconds": 624.23,
       "coverage": {
         "statements": 85.44,
         "branches": 78.74,
         "functions": 87.73,
-        "lines": 86.62
+        "lines": 86.63
       },
       "coverageFloors": "passed without lowering existing floors",
       "build": "passed, rebuilt Electron/renderer/runtime assets",
@@ -76,6 +76,84 @@
         "image protocol smoke",
         "renderer bundle boundary",
         "preload bundle boundary"
+      ],
+      "sourceCommit": "82127672758552928c5e82cd6636b5649878929c"
+    },
+    "windowsFullRemoteModelInstall": {
+      "firstRun": "Downloaded and SHA-256 verified LaMa, FLUX transformer, Qwen3 and VAE into an initially empty model directory. This exposed stale local CPU runner selection.",
+      "regression": "Autodiscovered tools/mgt-flux-klein-cpu legacy Candle binaries must pass the bounded --capabilities engine/CPU check or be skipped for the pinned remote runner. Explicit developer overrides remain explicit.",
+      "retry": "Fresh runtime directory, real remote libraries/CPU runner, reusing only the just-verified isolated model downloads; LaMa and FLUX inference passed.",
+      "responses": [
+        {
+          "name": "lama",
+          "id": "lama",
+          "ok": true,
+          "elapsed_ms": 305,
+          "error": null
+        },
+        {
+          "name": "flux",
+          "id": "flux",
+          "ok": true,
+          "elapsed_ms": 46179,
+          "error": null
+        }
+      ],
+      "receipt": ".tmp/native-hardware/한글-0RPToX/receipt.json"
+    },
+    "macOS": {
+      "workflow": "https://github.com/ucx0204/CarrotMangaTranslator/actions/runs/37197800000",
+      "sourceCommit": "82127672758552928c5e82cd6636b5649878929c",
+      "conclusion": "success",
+      "platform": "darwin",
+      "arch": "arm64",
+      "nativeBuilds": "Both Metal-capable workers compiled on macos-26 arm64",
+      "rustTests": "5 runtime policy, 3 Flux, 18 image-processing tests passed",
+      "remoteCpuInference": [
+        {
+          "name": "lama",
+          "id": "lama",
+          "ok": true,
+          "elapsed_ms": 1802,
+          "error": null
+        },
+        {
+          "name": "flux",
+          "id": "flux",
+          "ok": true,
+          "elapsed_ms": 174548,
+          "error": null
+        }
+      ],
+      "hardwareLimitation": "Metal GPU inference is not verified; the actual macOS inference smoke selects CPU.",
+      "artifactReceipt": ".tmp/runtime-update-stage23/mac-native-final-artifacts/한글-6Htxhi/receipt.json",
+      "previousSuccessfulRun": "https://github.com/ucx0204/CarrotMangaTranslator/actions/runs/37196504023"
+    },
+    "cleanup": "Automatic approval review rejected recursive removal of isolated verification download copies, including an explicit single verified path. Copies retained under .tmp; source artifacts, receipts and user data preserved.",
+    "windowsPackage": {
+      "directory": ".tmp/runtime-update-stage23/native-package/win-unpacked",
+      "publish": false,
+      "installed": false,
+      "electron": "44.5.1",
+      "files": 371,
+      "unpackedMiB": 1306.5,
+      "asciiPayloadEntries": 402,
+      "maxRelativePathLength": 79,
+      "verification": "Existing verify-packaged-runtime.cjs executed with only its unpackedDir redirected to the isolated package; all checks retained.",
+      "passed": [
+        "Codex app-server handshake",
+        "ONNX WASM",
+        "ONNX Node CPU/DirectML/font proxy",
+        "Electron main module graph",
+        "FFmpeg WebP conversion",
+        "PDF/RAR/CBR import runner capabilities",
+        "private-file exclusion and installer path budget"
+      ],
+      "koharuSha256": "08b3195dab998630312fc44478fab987a1daaa9cb7b7b3ffc22db2a4dde116d3",
+      "fluxSha256": "219fbf182c85d8f7fed27dd87d1ae49028e66c36af28f9848055ab4025bbba27",
+      "logs": [
+        ".tmp/runtime-update-stage23/native-package-build.log",
+        ".tmp/runtime-update-stage23/native-package-verify.log"
       ]
     }
   },
@@ -145,10 +223,7 @@
     },
     "contract": "Four flat ZIP archives plus binding manifest.json; five server assets matched names, bytes and SHA-256 after re-download. Archive member inventories verified. Immutable asset-only prerelease; no application release."
   },
-  "remaining": [
-    "macOS native CI real inference",
-    "Final isolated remote model installation/inference receipt"
-  ],
+  "remaining": [],
   "consumerContracts": {
     "runtimeCatalog": "src/main/runtime/native-inference-manifest.json",
     "runtimeCache": "koharu-0.83.5-r1 + platform/backend/engine/exact ROCm target; package fingerprint and file SHA receipts",

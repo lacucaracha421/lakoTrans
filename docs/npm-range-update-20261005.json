@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-05",
+  "baseCommit": "00963d84",
+  "scope": [
+    "jsdom",
+    "ci-info",
+    "ignore",
+    "plist",
+    "safe-buffer",
+    "semver",
+    "whatwg-url"
+  ],
+  "changes": [
+    {
+      "path": "node_modules/app-builder-lib/node_modules/ci-info",
+      "from": null,
+      "to": "4.3.1"
+    },
+    {
+      "path": "node_modules/app-builder-lib/node_modules/plist",
+      "from": null,
+      "to": "3.1.0"
+    },
+    {
+      "path": "node_modules/app-builder-lib/node_modules/semver",
+      "from": null,
+      "to": "7.7.4"
+    },
+    {
+      "path": "node_modules/ci-info",
+      "from": "4.3.1",
+      "to": "4.4.0"
+    },
+    {
+      "path": "node_modules/data-urls",
+      "from": "7.0.0",
+      "to": "8.0.0"
+    },
+    {
+      "path": "node_modules/dependency-cruiser/node_modules/ignore",
+      "from": null,
+      "to": "7.0.11"
+    },
+    {
+      "path": "node_modules/duplexer2/node_modules/safe-buffer",
+      "from": null,
+      "to": "5.1.2"
+    },
+    {
+      "path": "node_modules/ignore",
+      "from": "7.0.11",
+      "to": "7.0.12"
+    },
+    {
+      "path": "node_modules/jsdom",
+      "from": "30.1.1",
+      "to": "30.1.2"
+    },
+    {
+      "path": "node_modules/plist",
+      "from": "3.1.0",
+      "to": "3.1.1"
+    },
+    {
+      "path": "node_modules/plist/node_modules/@xmldom/xmldom",
+      "from": null,
+      "to": "0.9.12"
+    },
+    {
+      "path": "node_modules/safe-buffer",
+      "from": "5.1.2",
+      "to": "5.2.1"
+    },
+    {
+      "path": "node_modules/semver",
+      "from": "7.7.4",
+      "to": "7.8.5"
+    },
+    {
+      "path": "node_modules/string_decoder/node_modules/safe-buffer",
+      "from": null,
+      "to": "5.1.2"
+    },
+    {
+      "path": "node_modules/tr46",
+      "from": "6.0.0",
+      "to": "7.0.0"
+    },
+    {
+      "path": "node_modules/whatwg-url",
+      "from": "17.1.2",
+      "to": "17.2.0"
+    }
+  ],
+  "validation": {
+    "command": "node scripts/check.cjs (Node 26.10.0/npm 12.2.0)",
+    "passed": true,
+    "seconds": 370.08,
+    "testsPassed": 10136,
+    "testsFailed": 0,
+    "testsPending": 9
+  },
+  "notes": [
+    "Exact parent pins retain nested old versions; no overrides or declaration ranges changed.",
+    "data-urls 8.0.0 and tr46 7.0.0 are jsdom 30.1.2 dependencies; plist 3.1.1 adds @xmldom/xmldom 0.9.12.",
+    "Paddle and global development tools unchanged."
+  ]
+}

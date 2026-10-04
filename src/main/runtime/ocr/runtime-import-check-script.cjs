@@ -41,7 +41,7 @@ function buildRocmImportCheckScript(options) {
     "x = torch.ones((1,), device='cuda')",
     "torch.cuda.synchronize()",
     "import tokenizers",
-    "assert tokenizers.__version__.replace('-', '') == '0.23.0rc0', 'Unsupported tokenizers version: ' + tokenizers.__version__",
+    `assert tokenizers.__version__.replace('-', '') == '${isHayaiOcrPipeline(options) ? "0.23.2" : "0.23.0rc0"}', 'Unsupported tokenizers version: ' + tokenizers.__version__`,
     ...buildTransformersApiCheckLines(options),
     "print('torch', torch.__version__)",
     "print('hip', torch.version.hip)",
@@ -71,7 +71,7 @@ function buildCudaTransformersImportCheckScript(options) {
     "x = torch.ones((1,), device='cuda')",
     "torch.cuda.synchronize()",
     "import tokenizers",
-    "assert tokenizers.__version__.replace('-', '') == '0.23.0rc0', 'Unsupported tokenizers version: ' + tokenizers.__version__",
+    `assert tokenizers.__version__.replace('-', '') == '${isHayaiOcrPipeline(options) ? "0.23.2" : "0.23.0rc0"}', 'Unsupported tokenizers version: ' + tokenizers.__version__`,
     ...buildTransformersApiCheckLines(options),
     "print('torch', torch.__version__)",
     "print('cuda', torch.version.cuda)",
@@ -85,19 +85,21 @@ function buildCudaTransformersImportCheckScript(options) {
 
 /** @param {RuntimeOptions} options @returns {string} */
 function buildCpuTransformersImportCheckScript(options) {
+  const torchVersion = "2.14.1";
+  const visionVersion = "0.29.1";
   return [
     ...buildTransformersImportPrelude(options),
     "assert not missing, 'Missing HayaiOCR CPU package(s): ' + ', '.join(missing)",
     "import torch",
     "_torch_version = str(torch.__version__).lower()",
-    "assert _torch_version in ('2.9.1', '2.9.1+cpu'), 'Unexpected CPU PyTorch build: expected 2.9.1 or 2.9.1+cpu, got ' + _torch_version",
+    `assert _torch_version in ('${torchVersion}', '${torchVersion}+cpu'), 'Unexpected CPU PyTorch build: expected ${torchVersion} or ${torchVersion}+cpu, got ' + _torch_version`,
     "assert not getattr(torch.version, 'cuda', None), 'Unexpected CPU PyTorch build: CUDA-enabled package installed'",
     "assert not getattr(torch.version, 'hip', None), 'Unexpected CPU PyTorch build: ROCm-enabled package installed'",
     "import torchvision",
     "_torchvision_version = str(torchvision.__version__).lower()",
-    "assert _torchvision_version in ('0.24.1', '0.24.1+cpu'), 'Unexpected CPU TorchVision build: expected 0.24.1 or 0.24.1+cpu, got ' + _torchvision_version",
+    `assert _torchvision_version in ('${visionVersion}', '${visionVersion}+cpu'), 'Unexpected CPU TorchVision build: expected ${visionVersion} or ${visionVersion}+cpu, got ' + _torchvision_version`,
     "import tokenizers",
-    "assert tokenizers.__version__.replace('-', '') == '0.23.0rc0', 'Unsupported tokenizers version: ' + tokenizers.__version__",
+    `assert tokenizers.__version__.replace('-', '') == '0.23.2', 'Unsupported tokenizers version: ' + tokenizers.__version__`,
     "import transformers",
     "_auto_model = transformers.AutoModel",
     "_auto_processor = transformers.AutoProcessor",

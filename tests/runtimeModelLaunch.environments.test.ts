@@ -291,9 +291,9 @@ describeWindows(
       expect(resolveOcrRuntimeVariant(options)).toBe("hayai-cuda-cu130");
       expect(batches.flat()).toEqual(
         expect.arrayContaining([
-          "torch==2.9.1+cu130",
-          "transformers==5.13.1",
-          "safetensors>=0.6.2",
+          "torch==2.14.1+cu130",
+          "transformers==5.18.0",
+          "safetensors==0.8.0",
         ]),
       );
       expect(batches.flat().join(" ")).not.toContain("paddlepaddle-gpu");

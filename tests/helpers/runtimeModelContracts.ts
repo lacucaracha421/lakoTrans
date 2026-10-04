@@ -55,6 +55,7 @@ const runtimeHelpers = {
   buildOcrPipBuildToolUpgradeCommand: (
     pythonPath: string,
     pipProgressArgs?: string[],
+    options?: { [key: string]: unknown },
   ) => CommandSpec;
   buildOcrPipInstallCommand: (
     pythonPath: string,

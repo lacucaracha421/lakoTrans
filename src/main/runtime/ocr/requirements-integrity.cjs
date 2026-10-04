@@ -43,10 +43,6 @@ const CUDA_130_TORCH_HASH =
   "sha256:cd3232a562ad2a2699d48130255e1b24c07dfe694a40dcd24fad683c752de121";
 const CUDA_130_TORCHVISION_HASH =
   "sha256:d31ceaded0d9b737471fa680ccd9e1acb6d5f0f70f03ef3a8d786a99c79da7cf";
-const CPU_TORCH_HASH =
-  "sha256:01b1884f724977a20c7da2f640f1c7b37f4a2c117a7f4a6c1c0424d14cb86322";
-const CPU_TORCHVISION_HASH =
-  "sha256:0a3fecbadc155e7bf378178029215bfcd86f2cf453fbb1d9a474f375b3d475ae";
 
 /** @type {Record<string, { required: string[]; forbidden: string[] }>} */
 const OCR_BUILTIN_LOCK_CONTRACTS = {
@@ -61,13 +57,13 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
   "hayai-cpu": {
     required: [
       "--index-url https://download.pytorch.org/whl/cpu",
-      "torch==2.9.1+cpu",
-      CPU_TORCH_HASH,
-      "torchvision==0.24.1+cpu",
-      CPU_TORCHVISION_HASH,
-      "huggingface-hub==1.29.0",
-      "transformers==5.13.1",
-      "tokenizers==0.23.0rc0",
+      "torch==2.14.1+cpu",
+      "sha256:a93db7947d53caab62c2436205a60ddf9c3150c2e09eb9b24610c1c3f4cbaf99",
+      "torchvision==0.29.1+cpu",
+      "sha256:502a45b518f801e4b2689e63c4d2085995e257c54002bc5a0e602093db95405d",
+      "huggingface-hub==1.33.0",
+      "transformers==5.18.0",
+      "tokenizers==0.23.2",
     ],
     forbidden: [
       "paddleocr==",
@@ -151,13 +147,13 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
   "hayai-cuda-cu126": {
     required: [
       "--index-url https://download.pytorch.org/whl/cu126",
-      "torch==2.9.1+cu126",
-      CUDA_126_TORCH_HASH,
-      "torchvision==0.24.1+cu126",
-      CUDA_126_TORCHVISION_HASH,
-      "huggingface-hub==1.29.0",
-      "transformers==5.13.1",
-      "tokenizers==0.23.0rc0",
+      "torch==2.14.1+cu126",
+      "sha256:7297cd4c9cea15d93acb74cae927f5043705fb3570bad9e552adedc9ce2d6a77",
+      "torchvision==0.29.1+cu126",
+      "sha256:f84aa3864cc5a4da6de460275a07a3e20deb982d715bf1c4eae1c624311c3c58",
+      "huggingface-hub==1.33.0",
+      "transformers==5.18.0",
+      "tokenizers==0.23.2",
     ],
     forbidden: [
       "paddleocr==",
@@ -171,13 +167,13 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
   "hayai-cuda-cu130": {
     required: [
       "--index-url https://download.pytorch.org/whl/cu130",
-      "torch==2.9.1+cu130",
-      CUDA_130_TORCH_HASH,
-      "torchvision==0.24.1+cu130",
-      CUDA_130_TORCHVISION_HASH,
-      "huggingface-hub==1.29.0",
-      "transformers==5.13.1",
-      "tokenizers==0.23.0rc0",
+      "torch==2.14.1+cu130",
+      "sha256:e25757e423be3c107a36d7495fa5aeb021b9ab506457cd7c7e068505f0283ae0",
+      "torchvision==0.29.1+cu130",
+      "sha256:cfaecff5634e92989938b3da084e3f624d5ce8179446f42abf50c425cadd8a63",
+      "huggingface-hub==1.33.0",
+      "transformers==5.18.0",
+      "tokenizers==0.23.2",
     ],
     forbidden: [
       "paddleocr==",
@@ -192,9 +188,9 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
     required: [
       "torch @ https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torch-2.9.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl",
       "torchvision @ https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torchvision-0.24.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl",
-      "huggingface-hub==1.29.0",
-      "transformers==5.13.1",
-      "tokenizers==0.23.0rc0",
+      "huggingface-hub==1.33.0",
+      "transformers==5.18.0",
+      "tokenizers==0.23.2",
     ],
     forbidden: [
       "paddleocr==",

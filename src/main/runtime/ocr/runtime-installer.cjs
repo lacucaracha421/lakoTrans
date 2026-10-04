@@ -5,6 +5,7 @@
 
 const { mkdir } = require("node:fs/promises");
 const path = require("node:path");
+const { isHayaiOcrPipeline } = require("./engine-profile.cjs");
 const { runtimeOverrideEnv } = require("./host-services.cjs");
 const { clampProgressRatio } = require("../simple-page-progress.cjs");
 const {
@@ -105,7 +106,11 @@ async function createInstallContext(
 async function upgradeOcrBuildTools(pythonPath, options, context) {
   context.monitor.setStep("pip/build 도구 업데이트", 0.04, 0.1);
   await runCommand(
-    buildOcrPipBuildToolUpgradeCommand(pythonPath, context.pipProgressArgs),
+    buildOcrPipBuildToolUpgradeCommand(
+      pythonPath,
+      context.pipProgressArgs,
+      options,
+    ),
     {
       timeoutMs: 300000,
       env: context.pipBuildEnv,
@@ -198,8 +203,12 @@ function resolvePipInstallTimeout(options) {
   );
 }
 
-/** @param {string} pythonPath @param {string[]} [pipProgressArgs] @returns {CommandSpec} */
-function buildOcrPipBuildToolUpgradeCommand(pythonPath, pipProgressArgs = []) {
+/** @param {string} pythonPath @param {string[]} [pipProgressArgs] @param {RuntimeOptions} [options] @returns {CommandSpec} */
+function buildOcrPipBuildToolUpgradeCommand(
+  pythonPath,
+  pipProgressArgs = [],
+  options = {},
+) {
   return {
     executable: pythonPath,
     args: [
@@ -211,7 +220,12 @@ function buildOcrPipBuildToolUpgradeCommand(pythonPath, pipProgressArgs = []) {
       "--only-binary=:all:",
       "--no-deps",
       "--requirement",
-      path.join(__dirname, "requirements-build-tools.lock"),
+      path.join(
+        __dirname,
+        isHayaiOcrPipeline(options)
+          ? "requirements-hayai-build-tools.lock"
+          : "requirements-build-tools.lock",
+      ),
     ],
   };
 }

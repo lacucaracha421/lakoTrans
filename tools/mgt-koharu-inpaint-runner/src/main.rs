@@ -24,8 +24,8 @@ use tracing_subscriber::{EnvFilter, fmt};
 use runner_runtime_policy::{CudaRuntimeProbe, decide_cuda_runtime_probe};
 
 const ZLUDA_RELEASE_BASE_URL: &str = "https://github.com/vosen/ZLUDA/releases/download";
-const ZLUDA_RELEASE_TAG: &str = "v6-preview.65";
-const ZLUDA_ASSET_NAME: &str = "zluda-windows-5c75a54.zip";
+const ZLUDA_RELEASE_TAG: &str = "v6";
+const ZLUDA_ASSET_NAME: &str = "zluda-windows-3fe1206.zip";
 const ZLUDA_DLLS: &[&str] = &[
     "nvcuda.dll",
     "nvcudart_hybrid64.dll",

@@ -161,6 +161,19 @@ describeWindows(
       ]);
     });
 
+    it("uses separate current build tools for Hayai without changing the Paddle lock", () => {
+      expect(
+        buildOcrPipBuildToolUpgradeCommand("python", [], {
+          ocrPipeline: "hayai",
+        }).args.at(-1),
+      ).toMatch(/requirements-hayai-build-tools\.lock$/);
+      expect(
+        buildOcrPipBuildToolUpgradeCommand("python", [], {
+          ocrPipeline: "paddle-legacy",
+        }).args.at(-1),
+      ).toMatch(/requirements-build-tools\.lock$/);
+    });
+
     it("installs built-in Windows OCR runtimes from hash-complete locks", () => {
       const cpuBatches = resolveIntegrityPinnedOcrInstallBatches(
         resolveOcrPipInstallBatches({ ocrDevice: "cpu" }),

@@ -61,9 +61,9 @@ const DEFAULT_OCR_AMD_TRANSFORMERS_PACKAGES = [
   "safetensors>=0.6.2",
 ];
 const DEFAULT_HAYAI_OCR_PACKAGES = [
-  "transformers==5.13.1",
-  "safetensors>=0.6.2",
-  "tokenizers==0.23.0rc0",
+  "transformers==5.18.0",
+  "safetensors==0.8.0",
+  "tokenizers==0.23.2",
 ];
 const OCR_INSTALL_MARKER_FILE = "install-complete.json";
 const MAX_LOG_PREVIEW_LENGTH = 8000;

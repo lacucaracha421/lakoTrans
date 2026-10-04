@@ -252,163 +252,191 @@ describeWindows("OCR runtime boundary behavior", () => {
     expect(error.step).toBe("pip-install");
   });
 
-  it("downloads, extracts, and initializes managed Python on first use", async () => {
-    const managedPath =
-      require.resolve("../src/main/runtime/ocr/managed-python.cjs");
-    const hostPath =
-      require.resolve("../src/main/runtime/ocr/host-services.cjs");
-    const downloadPath =
-      require.resolve("../src/main/runtime/simple-page-download-utils.cjs");
-    const shellPath =
-      require.resolve("../src/main/runtime/simple-page-shell-utils.cjs");
-    const affectedPaths = [managedPath, hostPath, downloadPath, shellPath];
-    for (const modulePath of affectedPaths) require(modulePath);
-    const originalEntries = new Map(
-      affectedPaths.map((modulePath) => [
-        modulePath,
-        require.cache[modulePath],
-      ]),
-    );
-    const actualHost = require(hostPath) as Record<string, unknown>;
-    const actualDownload = require(downloadPath) as Record<string, unknown>;
-    const actualShell = require(shellPath) as Record<string, unknown>;
-    const root = mkdtempSync(join(tmpdir(), "ocr-managed-python-"));
-    const pythonDir = join(root, "bootstrap-python", "python-3.12.7");
-    const downloads: Array<{
-      file: string;
-      url: string;
-      progressTitle?: string;
-    }> = [];
-    const commands: CommandSpec[] = [];
-    const progressEvents: Array<{ title: string; detail: string }> = [];
-    const platformDescriptor = Object.getOwnPropertyDescriptor(
-      process,
-      "platform",
-    );
-
-    try {
-      Object.defineProperty(process, "platform", {
-        configurable: true,
-        value: "win32",
-      });
-      replaceCachedExports(hostPath, {
-        ...actualHost,
-        runtimeOverrideEnv: () => undefined,
-        emitRuntimeProgress(
-          _options: unknown,
-          _phase: string,
-          title: string,
-          detail: string,
-        ) {
-          progressEvents.push({ title, detail });
-        },
-      });
-      replaceCachedExports(downloadPath, {
-        ...actualDownload,
-        async probeContentLength() {
-          return 128;
-        },
-        async downloadHfFileWithProgress(task: {
-          destination: string;
-          file: string;
-          progressTitle?: string;
-          url: string;
-        }) {
-          downloads.push({
-            file: task.file,
-            url: task.url,
-            progressTitle: task.progressTitle,
-          });
-          mkdirSync(dirname(task.destination), { recursive: true });
-          if (task.file.endsWith(".zip")) {
-            await writeManagedPythonFixtureZip(task.destination);
-          } else {
-            writeFileSync(task.destination, task.file);
-          }
-        },
-      });
-      replaceCachedExports(shellPath, {
-        ...actualShell,
-        async runCommand(command: CommandSpec) {
-          commands.push(command);
-        },
-      });
-      delete require.cache[managedPath];
-      const managed = require(managedPath) as {
-        ensureManagedBootstrapPython: (
-          options: Record<string, unknown>,
-          runtimeDir: string,
-        ) => Promise<string>;
-      };
-
-      await expect(
-        managed.ensureManagedBootstrapPython({}, root),
-      ).resolves.toBe(join(pythonDir, "python.exe"));
-      const packageDir = join(root, "python-packages-cpu");
-      const preparation =
-        require("../src/main/runtime/ocr/runtime-preparation.cjs") as {
-          ensureEmbeddedPythonPackagePath: (
-            pythonPath: string,
-            packageDir: string,
-            runtimeDir: string,
-          ) => void;
-        };
-      preparation.ensureEmbeddedPythonPackagePath(
-        join(pythonDir, "python.exe"),
-        packageDir,
-        root,
-      );
-      expect(readFileSync(join(pythonDir, "python312._pth"), "utf8")).toContain(
-        packageDir,
-      );
-
-      await expect(
-        managed.ensureManagedBootstrapPython({}, root),
-      ).resolves.toBe(join(pythonDir, "python.exe"));
-      expect(
-        readFileSync(join(pythonDir, "python312._pth"), "utf8"),
-      ).not.toContain(packageDir);
-      expect(downloads).toEqual([
-        {
-          file: "python-3.12.7-embed-amd64.zip",
-          url: "https://www.python.org/ftp/python/3.12.7/python-3.12.7-embed-amd64.zip",
-          progressTitle: "Paddle OCR Python 다운로드 중",
-        },
-        {
-          file: "get-pip.py",
-          url: "https://bootstrap.pypa.io/get-pip.py",
-          progressTitle: "Paddle OCR pip 다운로드 중",
-        },
-      ]);
-      expect(commands).toHaveLength(1);
-      expect(commands[0]?.executable).toMatch(
-        /[\\/]\.s-[a-f0-9]{16}[\\/]python\.exe$/,
-      );
-      expect(commands[0]?.args).toEqual([
-        join(root, ".downloads", "python", "get-pip.py"),
-        "--no-warn-script-location",
-        "--no-setuptools",
-        "--no-wheel",
-      ]);
-      expect(progressEvents.map((event) => event.title)).toEqual(
-        expect.arrayContaining([
-          "Paddle OCR Python 준비 중",
-          "Paddle OCR Python 압축 해제 중",
-          "Paddle OCR pip 설치 중",
-          "Paddle OCR Python 준비 완료",
+  it.each([
+    { options: {}, version: "3.12.7", label: "Paddle OCR" },
+    {
+      options: { ocrPipeline: "hayai", ocrDevice: "cpu" },
+      version: "3.14.8",
+      label: "HayaiOCR",
+    },
+    {
+      options: {
+        ocrPipeline: "hayai",
+        ocrDevice: "gpu",
+        ocrGpuBackend: "cuda",
+      },
+      version: "3.14.8",
+      label: "HayaiOCR",
+    },
+    {
+      options: {
+        ocrPipeline: "hayai",
+        ocrDevice: "gpu",
+        ocrGpuBackend: "rocm-transformers",
+      },
+      version: "3.12.7",
+      label: "HayaiOCR",
+    },
+  ])(
+    "downloads and reuses the correct bootstrap: $label $version $options",
+    async ({ options, version, label }) => {
+      const managedPath =
+        require.resolve("../src/main/runtime/ocr/managed-python.cjs");
+      const hostPath =
+        require.resolve("../src/main/runtime/ocr/host-services.cjs");
+      const downloadPath =
+        require.resolve("../src/main/runtime/simple-page-download-utils.cjs");
+      const shellPath =
+        require.resolve("../src/main/runtime/simple-page-shell-utils.cjs");
+      const affectedPaths = [managedPath, hostPath, downloadPath, shellPath];
+      for (const modulePath of affectedPaths) require(modulePath);
+      const originalEntries = new Map(
+        affectedPaths.map((modulePath) => [
+          modulePath,
+          require.cache[modulePath],
         ]),
       );
-    } finally {
-      if (platformDescriptor) {
-        Object.defineProperty(process, "platform", platformDescriptor);
+      const actualHost = require(hostPath) as Record<string, unknown>;
+      const actualDownload = require(downloadPath) as Record<string, unknown>;
+      const actualShell = require(shellPath) as Record<string, unknown>;
+      const root = mkdtempSync(join(tmpdir(), "ocr-managed-python-"));
+      const pythonDir = join(root, "bootstrap-python", `python-${version}`);
+      const downloads: Array<{
+        file: string;
+        url: string;
+        progressTitle?: string;
+      }> = [];
+      const commands: CommandSpec[] = [];
+      const progressEvents: Array<{ title: string; detail: string }> = [];
+      const platformDescriptor = Object.getOwnPropertyDescriptor(
+        process,
+        "platform",
+      );
+
+      try {
+        Object.defineProperty(process, "platform", {
+          configurable: true,
+          value: "win32",
+        });
+        replaceCachedExports(hostPath, {
+          ...actualHost,
+          runtimeOverrideEnv: () => undefined,
+          emitRuntimeProgress(
+            _options: unknown,
+            _phase: string,
+            title: string,
+            detail: string,
+          ) {
+            progressEvents.push({ title, detail });
+          },
+        });
+        replaceCachedExports(downloadPath, {
+          ...actualDownload,
+          async probeContentLength() {
+            return 128;
+          },
+          async downloadHfFileWithProgress(task: {
+            destination: string;
+            file: string;
+            progressTitle?: string;
+            url: string;
+          }) {
+            downloads.push({
+              file: task.file,
+              url: task.url,
+              progressTitle: task.progressTitle,
+            });
+            mkdirSync(dirname(task.destination), { recursive: true });
+            if (task.file.endsWith(".zip")) {
+              await writeManagedPythonFixtureZip(task.destination);
+            } else {
+              writeFileSync(task.destination, task.file);
+            }
+          },
+        });
+        replaceCachedExports(shellPath, {
+          ...actualShell,
+          async runCommand(command: CommandSpec) {
+            commands.push(command);
+          },
+        });
+        delete require.cache[managedPath];
+        const managed = require(managedPath) as {
+          ensureManagedBootstrapPython: (
+            options: Record<string, unknown>,
+            runtimeDir: string,
+          ) => Promise<string>;
+        };
+
+        await expect(
+          managed.ensureManagedBootstrapPython(options, root),
+        ).resolves.toBe(join(pythonDir, "python.exe"));
+        const packageDir = join(root, "python-packages-cpu");
+        const preparation =
+          require("../src/main/runtime/ocr/runtime-preparation.cjs") as {
+            ensureEmbeddedPythonPackagePath: (
+              pythonPath: string,
+              packageDir: string,
+              runtimeDir: string,
+            ) => void;
+          };
+        preparation.ensureEmbeddedPythonPackagePath(
+          join(pythonDir, "python.exe"),
+          packageDir,
+          root,
+        );
+        expect(
+          readFileSync(join(pythonDir, "python312._pth"), "utf8"),
+        ).toContain(packageDir);
+
+        await expect(
+          managed.ensureManagedBootstrapPython(options, root),
+        ).resolves.toBe(join(pythonDir, "python.exe"));
+        expect(
+          readFileSync(join(pythonDir, "python312._pth"), "utf8"),
+        ).not.toContain(packageDir);
+        expect(downloads).toEqual([
+          {
+            file: `python-${version}-embed-amd64.zip`,
+            url: `https://www.python.org/ftp/python/${version}/python-${version}-embed-amd64.zip`,
+            progressTitle: `${label} Python 다운로드 중`,
+          },
+          {
+            file: "get-pip.py",
+            url: "https://bootstrap.pypa.io/get-pip.py",
+            progressTitle: `${label} pip 다운로드 중`,
+          },
+        ]);
+        expect(commands).toHaveLength(1);
+        expect(commands[0]?.executable).toMatch(
+          /[\\/]\.s-[a-f0-9]{16}[\\/]python\.exe$/,
+        );
+        expect(commands[0]?.args).toEqual([
+          join(root, ".downloads", "python", "get-pip.py"),
+          "--no-warn-script-location",
+          "--no-setuptools",
+          "--no-wheel",
+        ]);
+        expect(progressEvents.map((event) => event.title)).toEqual(
+          expect.arrayContaining([
+            `${label} Python 준비 중`,
+            `${label} Python 압축 해제 중`,
+            `${label} pip 설치 중`,
+            `${label} Python 준비 완료`,
+          ]),
+        );
+      } finally {
+        if (platformDescriptor) {
+          Object.defineProperty(process, "platform", platformDescriptor);
+        }
+        for (const [modulePath, entry] of originalEntries) {
+          if (entry) require.cache[modulePath] = entry;
+          else delete require.cache[modulePath];
+        }
+        rmSync(root, { recursive: true, force: true });
       }
-      for (const [modulePath, entry] of originalEntries) {
-        if (entry) require.cache[modulePath] = entry;
-        else delete require.cache[modulePath];
-      }
-      rmSync(root, { recursive: true, force: true });
-    }
-  });
+    },
+  );
 
   it.each([
     "broken-venv",

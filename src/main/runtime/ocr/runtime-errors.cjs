@@ -72,12 +72,12 @@ function resolveImportPreflightFailure(importMessage, options) {
 function buildOcrBackendPackageIdentityFailureMessage(importMessage, options) {
   const expected = !isOcrGpuRequested(options)
     ? isHayaiOcrPipeline(options)
-      ? "CPU PyTorch 2.9.1"
+      ? "CPU PyTorch 2.14.1"
       : "CPU PaddlePaddle"
     : isRocmGpu(options)
       ? "PyTorch 2.9.1+rocm7.2.1"
       : isOcrCudaTorchRuntime(options)
-        ? `PyTorch 2.9.1+${resolveOcrTorchCudaTag(options)}`
+        ? `PyTorch ${isHayaiOcrPipeline(options) ? "2.14.1" : "2.9.1"}+${resolveOcrTorchCudaTag(options)}`
         : `CUDA ${resolveOcrGpuCudaTag(options)} PaddlePaddle GPU`;
   return `OCR 장치와 다른 백엔드 패키지가 설치되어 실행을 중단했습니다. 필요 패키지: ${expected}. 잘못된 런타임은 재사용하지 않고 자동 재설치 대상으로 처리합니다. detail=${truncateText(importMessage, 1200)}`;
 }

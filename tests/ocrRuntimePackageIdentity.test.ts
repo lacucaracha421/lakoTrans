@@ -62,8 +62,8 @@ describe("OCR runtime package identity contracts", () => {
     ]) {
       const lock = readFileSync(join(lockRoot, fileName), "utf8");
       expect(lock).not.toMatch(/^paddle(?:ocr|paddle|x)?==/m);
-      expect(lock).toContain("transformers==5.13.1");
-      expect(lock).toContain("huggingface-hub==1.29.0");
+      expect(lock).toContain("transformers==5.18.0");
+      expect(lock).toContain("huggingface-hub==1.33.0");
     }
   });
 

@@ -12,6 +12,7 @@ const {
 const { join } = require("node:path");
 const { spawn, spawnSync } = require("node:child_process");
 const { ensureElectronExecutable } = require("./electron-executable.cjs");
+const { prepareFfmpegRuntime } = require("./prepare-ffmpeg-runtime.cjs");
 const {
   resolveMissingMacInpaintingRunners,
 } = require("./mac-inpainting-runners.cjs");
@@ -430,6 +431,7 @@ process.on("exit", releaseDevLock);
 
 (async () => {
   acquireDevLock();
+  await prepareFfmpegRuntime({ root });
   prepareMacInpaintingRunners();
   const runtimeOutputDir = join(root, "out", "app-runtime");
   runDevBuildStep(

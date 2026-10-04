@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   build_verify:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 360
     permissions:
       contents: read
@@ -227,7 +227,7 @@ jobs:
   publish:
     needs: build_verify
     if: ${{ inputs.publish_release && needs.build_verify.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment: release
     permissions:
       contents: write

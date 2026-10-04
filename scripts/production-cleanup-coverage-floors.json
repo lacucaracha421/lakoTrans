@@ -5342,6 +5342,28 @@
         "pct": 0
       }
     },
+    "src/main/runtime/assets/ffmpeg-path.cjs": {
+      "lines": {
+        "covered": 20,
+        "total": 21,
+        "pct": 95.23
+      },
+      "statements": {
+        "covered": 21,
+        "total": 22,
+        "pct": 95.45
+      },
+      "functions": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 15,
+        "total": 23,
+        "pct": 65.21
+      }
+    },
     "src/main/runtime/assets/image-source-assets.cjs": {
       "lines": {
         "covered": 50,

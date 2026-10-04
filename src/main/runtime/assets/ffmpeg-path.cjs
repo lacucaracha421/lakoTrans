@@ -50,15 +50,11 @@ function resolveFfmpegPath(options = {}) {
 
 /** @returns {string | null} */
 function resolveDevelopmentFfmpegPath() {
-  try {
-    const ffmpegPath = /** @type {unknown} */ (require("ffmpeg-static"));
-    return isExistingFilePath(ffmpegPath)
-      ? /** @type {string} */ (ffmpegPath)
-      : null;
-  } catch (_error) {
-    // error-policy-allow: packaged apps use the verified bundled tools directory.
-    return null;
-  }
+  return (
+    bundledFfmpegCandidates(path.join(process.cwd(), "tools")).find(
+      isExistingFilePath,
+    ) ?? null
+  );
 }
 
 /** @param {unknown} candidate */

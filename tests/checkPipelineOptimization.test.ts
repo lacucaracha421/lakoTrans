@@ -76,7 +76,7 @@ const compileElectron =
   require("../scripts/compile-electron.cjs") as CompileElectronModule;
 
 describe("check DAG", () => {
-  it("keeps all 26 gates and their production ordering constraints", () => {
+  it("keeps all 27 gates and their production ordering constraints", () => {
     const stages = check.createStages();
     expect(stages.map((stage) => stage.id)).toEqual([
       "private-workspace",
@@ -97,6 +97,7 @@ describe("check DAG", () => {
       "deadcode",
       "deadcode-exports",
       "prepare-electron",
+      "prepare-ffmpeg",
       "prepare-import-source-runner",
       "test-coverage",
       "production-cleanup-coverage",
@@ -117,7 +118,7 @@ describe("check DAG", () => {
       ),
     ).toBe(false);
 
-    const preflight = stages.slice(1, 19);
+    const preflight = stages.slice(1, 20);
     expect(
       preflight.every(
         (stage) =>
@@ -126,18 +127,18 @@ describe("check DAG", () => {
             JSON.stringify(["private-workspace"]),
       ),
     ).toBe(true);
-    expect(stages[19]).toMatchObject({
+    expect(stages[20]).toMatchObject({
       id: "test-coverage",
       executionClass: "exclusive",
       dependsOn: preflight.map((stage) => stage.id),
     });
-    expect(stages[20].dependsOn).toEqual(["test-coverage"]);
-    expect(stages[21]).toMatchObject({
+    expect(stages[21].dependsOn).toEqual(["test-coverage"]);
+    expect(stages[22]).toMatchObject({
       id: "build",
       dependsOn: ["production-cleanup-coverage"],
     });
     expect(
-      stages.slice(22).every((stage) => stage.dependsOn[0] === "build"),
+      stages.slice(23).every((stage) => stage.dependsOn[0] === "build"),
     ).toBe(true);
   });
 

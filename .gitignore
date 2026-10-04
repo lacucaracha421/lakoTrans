@@ -95,3 +95,9 @@ mcp-private/
 /migration-ui.json
 /manual-redaction-drafts/
 /manual-redaction-workspaces.json
+
+# App-local FFmpeg is fetched and SHA-256 verified from the runtime manifest.
+/tools/ffmpeg/ffmpeg.exe
+/tools/ffmpeg/ffmpeg
+/tools/ffmpeg/*.tmp
+/tools/ffmpeg/ffmpeg-runtime.json

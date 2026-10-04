@@ -167,9 +167,10 @@ function encodeSourceTile(
 }
 
 function resolveTestFfmpegPath(): string {
-  const ffmpegPath: unknown = require("ffmpeg-static");
+  const ffmpegPath: unknown =
+    require("../src/main/runtime/assets/ffmpeg-path.cjs").resolveDevelopmentFfmpegPath();
   if (typeof ffmpegPath !== "string" || ffmpegPath.length < 1) {
-    throw new Error("ffmpeg-static is unavailable for the stitch test.");
+    throw new Error("Run npm run prepare:ffmpeg before the stitch test.");
   }
   return ffmpegPath;
 }

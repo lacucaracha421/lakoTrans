@@ -133,12 +133,10 @@ if (!thinInstaller && existsSync(join(__dirname, "tools", "python"))) {
   });
 }
 
-if (existsSync(join(__dirname, "tools", "ffmpeg", "ffmpeg.exe"))) {
-  windowsExtraResources.push({
-    from: "tools/ffmpeg",
-    to: "tools/ffmpeg",
-  });
-}
+windowsExtraResources.push({
+  from: "tools/ffmpeg",
+  to: "tools/ffmpeg",
+});
 
 const fluxKleinRunnerPath = join(
   __dirname,
@@ -215,6 +213,11 @@ if (isMacBuild) {
  */
 function verifyBuildRuntimeReady(context) {
   if (!isMacBuild && context.electronPlatformName === "win32") {
+    if (!existsSync(join(__dirname, "tools", "ffmpeg", "ffmpeg.exe"))) {
+      throw new Error(
+        "Missing app-local FFmpeg. Run npm run prepare:ffmpeg before packaging.",
+      );
+    }
     if (!existsSync(importSourceRunnerPath)) {
       throw new Error(
         `Missing ${importSourceRunnerPath}. Run npm run build:import-source-runner before packaging.`,

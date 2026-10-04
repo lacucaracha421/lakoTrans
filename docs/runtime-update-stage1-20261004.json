@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-04",
+  "scope": "Update stage 1: app-bundled FFmpeg and ZLUDA, GitHub CI environments",
+  "userConstraints": {
+    "paddleOcr": "Excluded from updates; keep PaddleOCR, PaddlePaddle, dedicated locks and managed Python unchanged pending later removal.",
+    "localDevelopmentEnvironment": "Do not upgrade or install global Node/npm/Python/Git/gh/uv/CMake/Visual Studio/CUDA/HIP. Existing project portable tools may run checks.",
+    "ci": "GitHub-hosted CI environments may be updated."
+  },
+  "ffmpeg": {
+    "previous": {
+      "windowsBundled": "6.0-essentials_build-www.gyan.dev",
+      "npmFallback": "ffmpeg-static 5.3.0 / binary 6.1.1"
+    },
+    "version": "9.0.2",
+    "platforms": {
+      "win32-x64": {
+        "archive": "ffmpeg-9.0.2-essentials_build.zip",
+        "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+        "bytes": 114768076,
+        "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+        "entry": "ffmpeg-9.0.2-essentials_build/bin/ffmpeg.exe",
+        "binary": "ffmpeg.exe",
+        "binaryBytes": 105423872,
+        "binarySha256": "3256173f3f8bffd7df12227c68adf68025edb1832273a9530688a7bb1ed8edec"
+      },
+      "darwin-arm64": {
+        "archive": "ffmpeg-macos-arm64-9.0.2.zip",
+        "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffmpeg.zip",
+        "bytes": 28395699,
+        "sha256": "c8ed4c4e6978a03c485edbfe4e0a5dc2380f8a30bba5150531b31b094492d924",
+        "entry": "ffmpeg",
+        "binary": "ffmpeg",
+        "binaryBytes": 66332880,
+        "binarySha256": "2e11c6f90993cdb79fff84d3f90044d28316b310e75b3e030cfc9a54f2c9d384"
+      }
+    },
+    "preparation": "scripts/prepare-ffmpeg-runtime.cjs",
+    "consumers": [
+      "scripts/dev.cjs",
+      "scripts/build.cjs",
+      "scripts/check.cjs",
+      "scripts/prepare-mac-runtime.cjs",
+      "electron-builder.config.cjs"
+    ],
+    "distribution": "Original upstream release archives, exact archive and executable hashes. Generated app-local binary excluded from Git; included in packaged resources. No custom asset release was published.",
+    "verification": {
+      "windowsColdInstall": "passed",
+      "macColdInstall": "passed",
+      "archiveAndBinaryHashes": "passed",
+      "cacheReuseWithoutNetwork": "passed on both platforms",
+      "windowsVersionExecution": "9.0.2 passed",
+      "windowsWebpToPng": "passed through production image runtime",
+      "windowsTileExport": "PNG pixel parity, JPEG/WebP tests passed",
+      "macArchitecture": "arm64 Mach-O; dependencies restricted to system libraries",
+      "macExecution": "not run on this Windows host; check/packaging CI executes the native version and image tests",
+      "macMinimumOS": "12.0.0; within app minimum macOS 14"
+    }
+  },
+  "zluda": {
+    "previous": "v6-preview.65",
+    "version": "v6",
+    "releaseUrl": "https://github.com/vosen/ZLUDA/releases/tag/v6",
+    "source": {
+      "url": "https://github.com/vosen/ZLUDA/releases/download/v6/zluda-windows-3fe1206.zip",
+      "fileName": "zluda-windows-3fe1206.zip",
+      "bytes": 35506692,
+      "sha256": "fda8891c6fdfaba438f2eb0f9d749ffa2c1fddbdf225be2301f0d7a25e37208a",
+      "dlls": {
+        "nvcuda.dll": {
+          "bytes": 68483072,
+          "sha256": "682c3e7a1fc4a89168fa8276d2423815f3a00a012f6432d0878ca9c94567079e"
+        },
+        "nvcudart_hybrid64.dll": {
+          "bytes": 1066704,
+          "sha256": "bf430d65b863c49bab525001a0712992d17f52f4b5a205536160a337cf8b22b3"
+        },
+        "cublas64_13.dll": {
+          "bytes": 251392,
+          "sha256": "caafbbf1944a34fca511743b7c77f842bda290da7adb6d98b81792481288f835"
+        },
+        "cublasLt64_13.dll": {
+          "bytes": 223232,
+          "sha256": "2f991ec05fcbb1b505592cac5f96e5220fa822e6b105b6bc4cb85d21ed422902"
+        },
+        "cufft64_12.dll": {
+          "bytes": 104960,
+          "sha256": "ccaf424e5953d3031d9c8942808f56ec5ea0938f456f11720b4f55e3051c5e72"
+        },
+        "cudnn64_9.dll": {
+          "bytes": 269312,
+          "sha256": "61e202a1c2044c55c1c373291b98d44da61df4702fc77222ea888937596c0503"
+        }
+      }
+    },
+    "verification": {
+      "coldInstall": "passed using production download and extraction functions with real remote HTTP",
+      "cacheReuse": "passed with network disabled",
+      "dllHashes": "all 6 matched",
+      "amdInference": "not run: host GPU is NVIDIA RTX 4090"
+    }
+  },
+  "ci": {
+    "macos": "macos-15 -> macos-26",
+    "linux": "ubuntu-latest -> ubuntu-26.04",
+    "generalWindowsPython": "3.12 -> 3.14.8",
+    "preserved": "macOS font reference smoke remains Python 3.12 + pinned torch/pillow; app-managed Python and Paddle locks remain unchanged.",
+    "remoteExecution": "not dispatched"
+  },
+  "coverage": {
+    "newlyTouchedFile": "src/main/runtime/assets/ffmpeg-path.cjs",
+    "baselineSource": ".tmp/production-cleanup-coverage-baseline-node22.json",
+    "baselineSha256": "a0e1199f46a80734d228ff1772b99d1fde2f700321346da77abf9c29795e4c0a",
+    "policy": "Added existing sealed baseline metrics; no existing floors lowered."
+  },
+  "validation": {
+    "focused": "7 files: 72 passed, 1 skipped",
+    "initialFullCheck": "10100 passed, 8 skipped; missing coverage scope entry and unrelated 15-second native restoration timeout detected",
+    "repair": "Added sealed FFmpeg baseline and scope count. Native restoration passed in isolated rerun. Final full check uses 4 workers to reduce filesystem contention.",
+    "finalFullCheck": {
+      "status": "passed",
+      "stages": 27,
+      "passed": 10102,
+      "failed": 0,
+      "skipped": 8,
+      "workers": 4,
+      "wallMs": 700871,
+      "completedAt": "2026-10-04T07:35:52.396Z",
+      "log": ".tmp/runtime-update-stage1/check-final.log",
+      "timingSha256": "6094b956f4b944d61f718ed0acad4e5a5893fc2d9a99bd3f2f5bf1d66ecc14cc"
+    }
+  },
+  "rollback": {
+    "ffmpeg": "Revert this change as a unit to restore ffmpeg-static, the tracked Windows executable, and former preparation paths.",
+    "zluda": "Revert koharuZludaManifest.ts to the previous archive and DLL hashes; existing validation will repair the cache.",
+    "ci": "Revert workflow runner/Python fields."
+  }
+}

@@ -1,4 +1,4 @@
-// Exact non-trace DLLs from the runner's pinned v6-preview.65 release.
+// Exact non-trace DLLs from the runner's pinned v6 release.
 // Do not flatten zluda/trace/ over these libraries.
 export type KoharuZludaSource = {
   url: string;
@@ -9,40 +9,40 @@ export type KoharuZludaSource = {
 };
 
 export const KOHARU_ZLUDA_SOURCE: KoharuZludaSource = {
-  url: "https://github.com/vosen/ZLUDA/releases/download/v6-preview.65/zluda-windows-5c75a54.zip",
-  fileName: "zluda-windows-5c75a54.zip",
-  bytes: 32_880_554,
-  sha256: "4a8d04f51a642f358b561482f39cd706639c4329fb685e0156884dee46a43ec1",
+  url: "https://github.com/vosen/ZLUDA/releases/download/v6/zluda-windows-3fe1206.zip",
+  fileName: "zluda-windows-3fe1206.zip",
+  bytes: 35_506_692,
+  sha256: "fda8891c6fdfaba438f2eb0f9d749ffa2c1fddbdf225be2301f0d7a25e37208a",
   dlls: {
     "nvcuda.dll": {
-      bytes: 59_158_528,
+      bytes: 68483072,
       sha256:
-        "02777ca5a104dded12df9cb2819337abbd1c2da95651a5bd6ff94da6ffd4ca93",
+        "682c3e7a1fc4a89168fa8276d2423815f3a00a012f6432d0878ca9c94567079e",
     },
     "nvcudart_hybrid64.dll": {
-      bytes: 1_066_704,
+      bytes: 1066704,
       sha256:
         "bf430d65b863c49bab525001a0712992d17f52f4b5a205536160a337cf8b22b3",
     },
     "cublas64_13.dll": {
-      bytes: 264_704,
+      bytes: 251392,
       sha256:
-        "d755998a322630fada67e1030b20061413233be27fa0d3946391f9f77a102f05",
+        "caafbbf1944a34fca511743b7c77f842bda290da7adb6d98b81792481288f835",
     },
     "cublasLt64_13.dll": {
-      bytes: 228_352,
+      bytes: 223232,
       sha256:
-        "3a91b2f6fb7579424bf593e16d596952a0558c55f816831ac20471ec9f3e0e2d",
+        "2f991ec05fcbb1b505592cac5f96e5220fa822e6b105b6bc4cb85d21ed422902",
     },
     "cufft64_12.dll": {
-      bytes: 104_960,
+      bytes: 104960,
       sha256:
-        "a9f7cfb391133a09a9522d1a1d595b03b674ea858b40288f6d6e4c7e204ea7a8",
+        "ccaf424e5953d3031d9c8942808f56ec5ea0938f456f11720b4f55e3051c5e72",
     },
     "cudnn64_9.dll": {
-      bytes: 274_432,
+      bytes: 269312,
       sha256:
-        "18747587894a4489d13a153506d6825b8b8c369158468a618951cfd5cc856243",
+        "61e202a1c2044c55c1c373291b98d44da61df4702fc77222ea888937596c0503",
     },
   },
 };

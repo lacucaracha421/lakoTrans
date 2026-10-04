@@ -22,6 +22,7 @@ const path = require("node:path");
 const { pipeline } = require("node:stream/promises");
 const tar = require("tar");
 const { MAC_RUNTIME_MANIFEST } = require("./mac-runtime-manifest.cjs");
+const { prepareFfmpegRuntime } = require("./prepare-ffmpeg-runtime.cjs");
 
 const root = path.join(__dirname, "..");
 const stagingRoot = path.join(root, ".tmp", "mac-runtime");
@@ -515,17 +516,14 @@ async function removeWindowsRuntimeFiles(currentDir) {
 }
 
 async function stageFfmpeg() {
-  const ffmpegPath = require("ffmpeg-static");
-  if (typeof ffmpegPath !== "string" || !existsSync(ffmpegPath)) {
-    throw new Error("ffmpeg-static did not provide a macOS executable");
-  }
+  const ffmpegPath = await prepareFfmpegRuntime({ root });
   assertArm64MachO(ffmpegPath);
   const targetDir = path.join(stagingTools, "ffmpeg");
   await mkdir(targetDir, { recursive: true });
   await cp(ffmpegPath, path.join(targetDir, "ffmpeg"));
   await chmod(path.join(targetDir, "ffmpeg"), 0o755);
   const packageDir = path.dirname(ffmpegPath);
-  for (const fileName of ["LICENSE", "README.md"]) {
+  for (const fileName of ["LICENSE", "README.txt", "ffmpeg-runtime.json"]) {
     const source = path.join(packageDir, fileName);
     if (existsSync(source)) {
       await cp(source, path.join(targetDir, fileName));

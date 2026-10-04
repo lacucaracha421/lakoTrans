@@ -147,6 +147,7 @@ function createPreflightStages(privateWorkspaceId, cold) {
       "--no-config-hints",
     ),
     stage("prepare-electron", nodeBin("electron", "install.js")),
+    stage("prepare-ffmpeg", join(__dirname, "prepare-ffmpeg-runtime.cjs")),
     stage(
       "prepare-import-source-runner",
       join(__dirname, "prepare-import-source-runner.cjs"),

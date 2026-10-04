@@ -118,6 +118,7 @@ function removePath(targetPath) {
 // Refuse a redirected output root before compile-electron or any recursive
 // cleanup can touch generated directories.
 assertRealGeneratedPath(root, join(root, "out"));
+run(process.execPath, [join(__dirname, "prepare-ffmpeg-runtime.cjs")]);
 
 if (skipTypecheck) {
   console.log("> reusing the successful general and Electron check typechecks");

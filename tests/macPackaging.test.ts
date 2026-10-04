@@ -255,7 +255,9 @@ describe("Apple Silicon Alpha packaging", () => {
     };
 
     expect(packageJson.devDependencies.electron).toBe("44.5.1");
-    expect(packageJson.devDependencies["ffmpeg-static"]).toBe("5.3.0");
+    expect(packageJson.scripts["prepare:ffmpeg"]).toBe(
+      "node scripts/prepare-ffmpeg-runtime.cjs",
+    );
     expect(packageJson.dependencies.tar).toBe("^7.5.22");
     expect(packageJson.scripts["dist:mac:alpha"]).toBe(
       "node scripts/dist-mac-alpha.cjs",
@@ -985,7 +987,7 @@ describe("Apple Silicon Alpha packaging", () => {
       "utf8",
     );
 
-    expect(workflow).toContain("runs-on: macos-15");
+    expect(workflow).toContain("runs-on: macos-26");
     expect(workflow).not.toContain("macos-latest");
     expect(workflow).toContain("MAC_CSC_LINK");
     expect(workflow).toContain("APPLE_API_KEY_P8_B64");
@@ -1010,7 +1012,7 @@ describe("Apple Silicon Alpha packaging", () => {
     expect(workflow).not.toContain('echo "CSC_LINK=$CSC_LINK"');
     expect(workflow).not.toContain('echo "CSC_KEY_PASSWORD=$CSC_KEY_PASSWORD"');
     expect(checks).toContain("macos-arm64-check:");
-    expect(checks).toContain("runs-on: macos-15");
+    expect(checks).toContain("runs-on: macos-26");
   });
 
   it("strictly verifies stable macOS artifacts before attaching them to the existing release", () => {
@@ -1019,7 +1021,7 @@ describe("Apple Silicon Alpha packaging", () => {
       "utf8",
     );
 
-    expect(workflow).toContain("runs-on: macos-15");
+    expect(workflow).toContain("runs-on: macos-26");
     expect(workflow).toContain("npm run check");
     expect(workflow).toContain("npm run verify:hf-assets");
     expect(workflow).toContain("npm run dist:mac");

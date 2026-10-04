@@ -24,6 +24,7 @@ import {
 } from "./webImportUrlPolicy";
 
 const DOWNLOAD_CONCURRENCY = 6;
+const DOWNLOAD_IDLE_TIMEOUT_MS = 15_000;
 
 export type WebImportFetchSession = {
   fetch: (url: string, init?: RequestInit) => Promise<Response>;
@@ -116,6 +117,9 @@ export async function downloadDiscoveredWebImages({
           session,
           signal,
           staged,
+        }).finally(() => {
+          completed += 1;
+          onProgress(completed, candidates.length);
         }),
       ),
     );
@@ -124,7 +128,6 @@ export async function downloadDiscoveredWebImages({
       return attempt.value;
     });
     for (const attempt of attempts) {
-      completed += 1;
       if (attempt.status === "skipped") {
         skipped[attempt.reason] += 1;
         continue;
@@ -164,7 +167,6 @@ export async function downloadDiscoveredWebImages({
         pageIndex: accepted.length,
       });
     }
-    onProgress(completed, candidates.length);
     if (timedOut || staged.exhausted) {
       truncated = true;
       break;
@@ -196,8 +198,9 @@ async function downloadCandidate({
   const partialPath = join(directory, `.${randomUUID()}.part`);
   let reservedBytes = 0;
   let response: Response | undefined;
+  const stalled = new AbortController();
   const deadline = createLinkedDeadlineController(
-    signal,
+    AbortSignal.any([signal, stalled.signal]),
     Math.max(1, deadlineAt - Date.now()),
     "Web import image",
   );
@@ -209,11 +212,13 @@ async function downloadCandidate({
     const sourceUrl = await waitForDownloadOperation(
       assertPublicWebImportUrl(candidate.url, dnsLookup),
       deadline.signal,
+      stalled,
     );
     response = await fetchWebImage({
       pageUrl,
       session,
       signal: deadline.signal,
+      stalled,
       url: sourceUrl.href,
     });
     if (!response.ok) {
@@ -222,6 +227,7 @@ async function downloadCandidate({
     await waitForDownloadOperation(
       assertPublicWebImportUrl(response.url || sourceUrl.href, dnsLookup),
       deadline.signal,
+      stalled,
     );
     const contentType =
       response.headers.get("content-type")?.toLowerCase() ?? "";
@@ -243,6 +249,7 @@ async function downloadCandidate({
       partialPath,
       response,
       signal: deadline.signal,
+      stalled,
       staged,
     });
     reservedBytes = streamed.byteLength;
@@ -304,11 +311,13 @@ async function fetchWebImage({
   pageUrl,
   session,
   signal,
+  stalled,
   url,
 }: {
   pageUrl: string;
   session: WebImportFetchSession;
   signal: AbortSignal;
+  stalled: AbortController;
   url: string;
 }): Promise<Response> {
   throwIfAborted(signal);
@@ -324,13 +333,22 @@ async function fetchWebImage({
       signal,
     }),
     signal,
+    stalled,
   );
 }
 
 async function waitForDownloadOperation<T>(
   operation: Promise<T>,
   signal: AbortSignal,
+  stalled: AbortController,
 ): Promise<T> {
+  // Bound inactivity, not total transfer time: each received chunk starts a
+  // fresh wait so large images can keep downloading within the scan deadline.
+  const idleTimer = setTimeout(
+    () =>
+      stalled.abort(new Error("Web image download stopped making progress.")),
+    DOWNLOAD_IDLE_TIMEOUT_MS,
+  );
   let onAbort: (() => void) | undefined;
   const aborted = new Promise<never>((_resolve, reject) => {
     onAbort = () => reject(signal.reason);
@@ -340,6 +358,7 @@ async function waitForDownloadOperation<T>(
   try {
     return await Promise.race([operation, aborted]);
   } finally {
+    clearTimeout(idleTimer);
     if (onAbort) signal.removeEventListener("abort", onAbort);
   }
 }
@@ -361,12 +380,14 @@ async function streamResponseToFile({
   partialPath,
   response,
   signal,
+  stalled,
   staged,
 }: {
   deadlineAt: number;
   partialPath: string;
   response: Response;
   signal: AbortSignal;
+  stalled: AbortController;
   staged: StagedByteBudget;
 }): Promise<{ byteLength: number; sha256: string }> {
   if (!response.body) {
@@ -382,7 +403,11 @@ async function streamResponseToFile({
       if (Date.now() >= deadlineAt) {
         throw new DownloadDeadlineError();
       }
-      const chunk = await waitForDownloadOperation(reader.read(), signal);
+      const chunk = await waitForDownloadOperation(
+        reader.read(),
+        signal,
+        stalled,
+      );
       throwIfAborted(signal);
       if (chunk.done) {
         break;

@@ -108,6 +108,114 @@ describe("web import download fixture", () => {
     expect(progress).toHaveBeenLastCalledWith(5, 5);
   });
 
+  it.each(["headers", "body"] as const)(
+    "continues past six completed images when the next batch stalls at %s",
+    async (stallAt) => {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+      let stalledSignal: AbortSignal | null | undefined;
+      const progress = vi.fn();
+      const requested: number[] = [];
+      const session: WebImportFetchSession = {
+        fetch: async (url, init) => {
+          const index = Number(new URL(url).pathname.slice(1));
+          requested.push(index);
+          if (index === 6) {
+            stalledSignal = init?.signal;
+            if (stallAt === "headers")
+              return new Promise<Response>(() => undefined);
+            return new Response(
+              new ReadableStream<Uint8Array>({
+                start(controller) {
+                  controller.enqueue(makePngHeader(26, 30));
+                },
+              }),
+            );
+          }
+          return new Response(new Uint8Array(makePngHeader(20 + index, 30)));
+        },
+      };
+      const download = downloadDiscoveredWebImages({
+        candidates: Array.from({ length: 14 }, (_, index) =>
+          discovered(`https://cdn.example/${index}`, index),
+        ),
+        deadlineAt: Date.now() + 90_000,
+        directory,
+        dnsLookup: async () => [{ address: "93.184.216.34", family: 4 }],
+        pageUrl: "https://page.example/chapter/1",
+        session,
+        signal: new AbortController().signal,
+        onProgress: progress,
+      });
+      await allowDownloadCleanup(download);
+      const progressBeforeTimeout = progress.mock.lastCall;
+      const requestsBeforeTimeout = [...requested];
+      await vi.advanceTimersByTimeAsync(15_000);
+      await allowDownloadCleanup(download);
+      const abortedAfterIdle = stalledSignal?.aborted;
+      // Release the old implementation at its total deadline before asserting.
+      if (!abortedAfterIdle) await vi.advanceTimersByTimeAsync(75_000);
+      const result = await download;
+      expect(progressBeforeTimeout).toEqual([11, 14]);
+      expect(requestsBeforeTimeout).toHaveLength(12);
+      expect(abortedAfterIdle).toBe(true);
+      expect(requested).toHaveLength(14);
+      expect(result.candidates.map((candidate) => candidate.width)).toEqual(
+        Array.from({ length: 14 }, (_, index) => 20 + index).filter(
+          (width) => width !== 26,
+        ),
+      );
+      expect(result).toMatchObject({
+        skipped: { failed: 1 },
+        truncated: false,
+        timedOut: false,
+      });
+      expect(progress).toHaveBeenLastCalledWith(14, 14);
+      expect(downloadIo.opened).toBe(downloadIo.closed);
+      expect(
+        (await readdir(directory)).some((name) => name.endsWith(".part")),
+      ).toBe(false);
+    },
+  );
+
+  it("keeps a slow image when chunks continue arriving within the idle limit", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    let bodyController!: ReadableStreamDefaultController<Uint8Array>;
+    let fetchSignal: AbortSignal | null | undefined;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        bodyController = controller;
+        controller.enqueue(makePngHeader(20, 30));
+      },
+    });
+    const download = downloadDiscoveredWebImages({
+      candidates: [discovered("https://cdn.example/slow.png", 0)],
+      deadlineAt: Date.now() + 90_000,
+      directory,
+      dnsLookup: async () => [{ address: "93.184.216.34", family: 4 }],
+      pageUrl: "https://page.example/chapter/1",
+      session: {
+        fetch: async (_url, init) => {
+          fetchSignal = init?.signal;
+          return new Response(body);
+        },
+      },
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    });
+    await allowDownloadCleanup(download);
+    for (let chunk = 0; chunk < 3; chunk += 1) {
+      await vi.advanceTimersByTimeAsync(10_000);
+      bodyController.enqueue(new Uint8Array([chunk]));
+      await allowDownloadCleanup(download);
+    }
+    bodyController.close();
+    const result = await download;
+    expect(fetchSignal?.aborted).toBe(false);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0].byteSize).toBe(27);
+    expect(result).toMatchObject({ timedOut: false, truncated: false });
+  });
+
   it.each(["cancel", "deadline"] as const)(
     "interrupts a stalled response body on %s and closes its staged file",
     async (stop) => {

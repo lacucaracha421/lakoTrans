@@ -100,7 +100,7 @@ const bridgeTemplate = `(() => {
     email: "reader@example.com",
     planType: "plus",
     requiresOpenaiAuth: true,
-    appServerVersion: "0.156.1",
+    appServerVersion: "0.160.0",
     models: codexModels,
   };
   let codexAccount = signedInCodexAccount;

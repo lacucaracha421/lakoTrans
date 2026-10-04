@@ -69,3 +69,14 @@ production ImageGen 요청도 PNG 694,324 bytes, 1254×1254로 성공했다.
 Windows에서 실제 실행 파일의 `codex-cli 0.156.1` 출력과 격리된 App Server의
 `initialize`·`account/read` 응답을 확인했다. 실행기·클라이언트·설치 설정 테스트
 43개가 통과했다. 이번 확인에는 실제 번역·이미지 생성 요청을 포함하지 않았다.
+
+## 2026-10-04 최신 정식 실행기 업데이트
+
+내장 Codex를 npm `latest`의 정식 버전 `0.160.0`으로 갱신했다. npm 의존성과
+6개 플랫폼 lock 항목, 앱과 패키징의 버전 검사, QA 브리지와 테스트를 함께 맞췄다.
+공식 릴리스는 [0.160.0](https://github.com/openai/codex/releases/tag/rust-v0.160.0)이다.
+
+Windows에서 `codex-cli 0.160.0`과 격리된 App Server의 `initialize`·`account/read`
+응답을 확인했다. 공식 native 배포는 기존과 동일한 45개 파일 구조를 유지한다.
+Codex 및 설치 구성 테스트 47개 파일의 512개 테스트와 빌드가 통과했다.
+실제 계정의 번역·이미지 생성 요청과 macOS 실행 검증은 이번 확인에 포함하지 않았다.

@@ -84,7 +84,7 @@
     "check:koharu-cuda-runner": "node scripts/prepare-koharu-cuda-runner.cjs --check"
   },
   "dependencies": {
-    "@openai/codex": "0.156.1",
+    "@openai/codex": "0.160.0",
     "ag-psd": "^31.0.2",
     "google-auth-library": "^11.1.0",
     "i18next": "^26.4.2",

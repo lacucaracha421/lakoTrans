@@ -80,7 +80,14 @@ export function buildKoharuTypographyCompositeMask(options: {
   for (const detection of detections) {
     const mask = detection.mask;
     if (!mask) continue;
-    rasterizeInstanceMaskInto(raw, bounds, detection.box, mask, options);
+    rasterizeInstanceMaskInto(
+      raw,
+      bounds,
+      detection.box,
+      mask,
+      options,
+      options.ownedRegionMask ? undefined : associationRect,
+    );
   }
   if (!raw.some(Boolean)) return null;
 
@@ -214,6 +221,7 @@ function rasterizeInstanceMaskInto(
   detectionBox: readonly [number, number, number, number],
   mask: NonNullable<KoharuTypographySegmentation["detections"][number]["mask"]>,
   imageSize: { width: number; height: number },
+  clipRect: PixelRect = { x: 0, y: 0, w: imageSize.width, h: imageSize.height },
 ): void {
   const detectionBounds = boxToRect(detectionBox);
   if (!detectionBounds) return;
@@ -223,10 +231,21 @@ function rasterizeInstanceMaskInto(
     imageSize.height,
     2,
   );
-  const left = Math.max(bounds.x, sampleBounds.x);
-  const top = Math.max(bounds.y, sampleBounds.y);
-  const right = Math.min(bounds.x + bounds.w, sampleBounds.x + sampleBounds.w);
-  const bottom = Math.min(bounds.y + bounds.h, sampleBounds.y + sampleBounds.h);
+  // A single detector instance may contain several separate SFX blocks.
+  // Only the selected source region may claim it; detected balloon ownership
+  // supplies its own hard constraint and may legitimately span two lobes.
+  const left = Math.max(bounds.x, sampleBounds.x, clipRect.x);
+  const top = Math.max(bounds.y, sampleBounds.y, clipRect.y);
+  const right = Math.min(
+    bounds.x + bounds.w,
+    sampleBounds.x + sampleBounds.w,
+    clipRect.x + clipRect.w,
+  );
+  const bottom = Math.min(
+    bounds.y + bounds.h,
+    sampleBounds.y + sampleBounds.h,
+    clipRect.y + clipRect.h,
+  );
   for (let y = top; y < bottom; y += 1) {
     const maskY = ((y + 0.5) / imageSize.height) * mask.height - 0.5;
     for (let x = left; x < right; x += 1) {

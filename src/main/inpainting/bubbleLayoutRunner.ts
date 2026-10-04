@@ -47,6 +47,8 @@ export type BubbleLayoutRunnerRequest = {
   sharedOwnershipGapPx?: number;
   /** Return job-local text/SFX masks for the inpainting mask prepass. */
   includeTypographySegmentation?: boolean;
+  /** Do not cut render-only gutters through a transient source erase mask. */
+  sourceEraseMask?: boolean;
   signal: AbortSignal;
 };
 
@@ -124,6 +126,7 @@ export async function runBubbleLayoutPostprocess({
   config,
   failureMode = "required",
   includeTypographySegmentation = false,
+  sourceEraseMask,
   page,
   runner,
   signal,
@@ -134,6 +137,7 @@ export async function runBubbleLayoutPostprocess({
   config: BubbleLayoutPostprocessConfig;
   failureMode?: "best-effort" | "required";
   includeTypographySegmentation?: boolean;
+  sourceEraseMask?: boolean;
   page: MangaPage;
   runner: BubbleLayoutRunner;
   signal: AbortSignal;
@@ -159,6 +163,7 @@ export async function runBubbleLayoutPostprocess({
       paddingRatio: resolveBubbleLayoutPaddingRatio(config.paddingRatio),
       sharedOwnershipGapPx: config.sharedOwnershipGapPx,
       includeTypographySegmentation,
+      sourceEraseMask,
       signal,
     });
   } catch (error) {

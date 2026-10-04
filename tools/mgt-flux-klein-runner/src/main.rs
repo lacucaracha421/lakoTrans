@@ -63,6 +63,7 @@ enum WorkerRequest {
         strength: Option<f64>,
         max_pixels: Option<u32>,
         mask_padding: Option<u8>,
+        speech_bubble: Option<bool>,
     },
     #[serde(rename = "shutdown")]
     Shutdown,
@@ -206,6 +207,7 @@ fn run_worker(model: &Flux2Klein, cli: &Cli) -> Result<()> {
                 strength,
                 max_pixels,
                 mask_padding,
+                speech_bubble,
             } => {
                 let started = Instant::now();
                 let num_inference_steps = steps.unwrap_or(cli.steps);
@@ -220,6 +222,7 @@ fn run_worker(model: &Flux2Klein, cli: &Cli) -> Result<()> {
                             num_inference_steps,
                             strength,
                             max_pixels,
+                            speech_bubble: speech_bubble.unwrap_or(false),
                         },
                     )
                 } else {
@@ -233,6 +236,7 @@ fn run_worker(model: &Flux2Klein, cli: &Cli) -> Result<()> {
                             strength,
                             max_pixels,
                             mask_padding: mask_padding.unwrap_or(cli.mask_padding),
+                            speech_bubble: speech_bubble.unwrap_or(false),
                         },
                     )
                 };

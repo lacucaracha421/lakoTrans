@@ -12,14 +12,22 @@ export function buildExclusivePaddedWindowMasks(
   pageWidth: number,
   pageHeight: number,
   paddingPx: number,
+  priorityMasks: InpaintingWindowMask[] = windowMasks,
 ): ExclusiveInpaintingWindowMasks[] {
   if (windowMasks.length >= 0xffff) {
     throw new Error("Too many block-owned inpainting masks.");
   }
-  for (const windowMask of windowMasks) {
+  if (priorityMasks.length !== windowMasks.length)
+    throw new Error("Inpainting priority mask count does not match windows.");
+  for (const windowMask of [...windowMasks, ...priorityMasks]) {
     validateWindowMask(windowMask, pageWidth, pageHeight);
   }
   const owners = new Uint16Array(pageWidth * pageHeight);
+  // Reserve actual write cores before broad model-conditioning masks. A
+  // previous context rectangle must not steal a later block's source glyphs.
+  for (const [index, priorityMask] of priorityMasks.entries()) {
+    assignUnownedPixels(owners, priorityMask, pageWidth, index + 1);
+  }
   for (const [index, windowMask] of windowMasks.entries()) {
     assignUnownedPixels(owners, windowMask, pageWidth, index + 1);
   }

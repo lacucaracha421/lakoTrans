@@ -6,6 +6,7 @@ export type FluxWorkerRequest = {
   strength: number;
   maxPixels: number;
   maskPadding: number;
+  speechBubble?: boolean;
 };
 
 export type FluxWorkerBackend =

@@ -6,6 +6,40 @@ import {
 import type { KoharuInstanceMask } from "../src/main/bubbleLayout/contracts";
 
 describe("Koharu bubble mask refinement", () => {
+  it("fills enclosed source-ink holes only for erasure and preserves an exterior notch", () => {
+    const mask = filledMask(80, 80, 1);
+    for (let y = 36; y < 44; y += 1)
+      for (let x = 36; x < 44; x += 1) mask.logits[y * 80 + x] = -1;
+    for (let y = 0; y < 25; y += 1)
+      for (let x = 12; x < 18; x += 1) mask.logits[y * 80 + x] = -1;
+    const input = {
+      mask,
+      imageWidth: 80,
+      imageHeight: 80,
+      bubbleBox: { x: 0, y: 0, w: 80, h: 80 },
+      promptBoxes: [{ x: 25, y: 25, w: 30, h: 30 }],
+      fontSizePx: 12,
+      outlineWidthPx: 1,
+      policy: "balanced" as const,
+    };
+    const render = refineKoharuBubbleMask(input);
+    const erased = refineKoharuBubbleMask({ ...input, sourceEraseMask: true });
+    const contains = (result: typeof render, x: number, y: number) =>
+      result?.regions.some(
+        ({ bounds, width, mask: data }) =>
+          x >= bounds.x &&
+          x < bounds.x + bounds.w &&
+          y >= bounds.y &&
+          y < bounds.y + bounds.h &&
+          data[(y - bounds.y) * width + x - bounds.x] === 1,
+      );
+    expect(contains(render, 40, 40)).toBe(false);
+    expect(contains(erased, 40, 40)).toBe(true);
+    expect(contains(erased, 15, 15)).toBe(false);
+    expect(erased?.regions[0].bounds).toEqual(render?.regions[0].bounds);
+    expect(refineKoharuBubbleMask(input)).toEqual(render);
+    expect(mask.logits[40 * 80 + 40]).toBe(-1);
+  });
   it("uses the Koharu instance mask as the only balloon geometry", () => {
     const result = refineKoharuBubbleMask({
       mask: filledMask(16, 16, 1),

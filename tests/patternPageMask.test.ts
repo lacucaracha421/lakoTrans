@@ -561,8 +561,21 @@ describe("pattern page text masks", () => {
     expect(context.inpaintWindowMasks).toHaveLength(1);
     expect(context.inpaintWindowConstraints).toHaveLength(1);
     expect(context.inpaintWindowGroupIds).toEqual([["shared-1"]]);
+    expect(context.inpaintSpeechBubbleWindows).toEqual([true]);
     expect(context.pageMask[40 * width + 20]).toBe(1);
     expect(context.pageMask[40 * width + 80]).toBe(1);
+
+    // Persisted layout alone must not imply a speech bubble. The live prepass
+    // authorizes left only, so the other window remains an artwork edit.
+    const mixed = buildPatternPageMask({
+      page,
+      bitmap: Buffer.alloc(width * height * 4, 255),
+      width,
+      height,
+      mode: "flux-region",
+      bubbleLayoutConstraintBlockIds: [left.id],
+    });
+    expect(mixed.inpaintSpeechBubbleWindows).toEqual([true, false]);
   });
 
   it("erases detected source glyphs across a shared bubble split without filling unrelated space", () => {

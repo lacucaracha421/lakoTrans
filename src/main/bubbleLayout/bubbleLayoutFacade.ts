@@ -65,6 +65,7 @@ async function runProductionBubbleLayout(
         policy: request.policy,
         paddingRatio: request.paddingRatio,
         sharedOwnershipGapPx: request.sharedOwnershipGapPx,
+        sourceEraseMask: request.sourceEraseMask,
         pageRevision,
       }),
       ...(request.includeTypographySegmentation

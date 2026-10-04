@@ -27,6 +27,7 @@ type FluxWorkerRequestSummary = {
   strength: number;
   maxPixels: number;
   maskPadding: number;
+  speechBubble?: boolean;
 };
 
 export type FluxWorkerDiagnostics = {
@@ -53,6 +54,7 @@ type FluxWorkerCommand = {
   strength: number;
   max_pixels: number;
   mask_padding: number;
+  speech_bubble?: boolean;
 };
 
 export class FluxWorker {
@@ -119,6 +121,7 @@ export class FluxWorker {
         strength: request.strength,
         max_pixels: request.maxPixels,
         mask_padding: request.maskPadding,
+        speech_bubble: request.speechBubble,
       },
       signal,
     );
@@ -181,6 +184,7 @@ function summarizeFluxWorkerRequest(
     strength: request.strength,
     maxPixels: request.maxPixels,
     maskPadding: request.maskPadding,
+    speechBubble: request.speechBubble,
   };
 }
 

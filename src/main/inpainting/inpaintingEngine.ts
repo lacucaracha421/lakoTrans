@@ -49,6 +49,8 @@ type InpaintRunOptions = {
   maxPixels?: number;
   bubbleMask?: Uint8Array;
   windowMasks?: InpaintingWindowMask[];
+  /** Job-local bubble detection, aligned with processing windows; not a write mask. */
+  speechBubbleWindows?: boolean[];
   /** Fully opaque output cores; windowMasks remain the broader model masks. */
   compositeMasks?: InpaintingWindowMask[];
   /** Per-window outward feather widths in source-page pixels. */

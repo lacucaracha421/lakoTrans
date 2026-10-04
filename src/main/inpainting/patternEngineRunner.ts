@@ -32,6 +32,9 @@ export async function runPatternInpaintingEngine(options: {
   const composite = flux || typographyComposite;
   const owned = flux || codex;
   const constrained = constrainedFlux || typographyComposite;
+  const bubbleOptions = flux
+    ? { speechBubbleWindows: options.maskContext.inpaintSpeechBubbleWindows }
+    : { bubbleMask: new Uint8Array(options.width * options.height) };
   await options.engine.inpaint(
     options.bitmap,
     options.width,
@@ -55,9 +58,7 @@ export async function runPatternInpaintingEngine(options: {
       contextPx: FLUX_INPAINT_CONTEXT_PX,
       maskPaddingPx: FLUX_INPAINT_MASK_PADDING_PX,
       maxPixels: FLUX_INPAINT_MAX_PIXELS,
-      bubbleMask: flux
-        ? undefined
-        : new Uint8Array(options.width * options.height),
+      ...bubbleOptions,
       windowMasks: owned ? options.maskContext.inpaintWindowMasks : undefined,
       compositeMasks: composite
         ? options.maskContext.inpaintCompositeMasks

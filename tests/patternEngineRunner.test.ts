@@ -31,6 +31,7 @@ describe("runPatternInpaintingEngine", () => {
       context.inpaintCompositeFeatherPx = [0, 0];
       context.inpaintWindowConstraints = [null, null];
       context.inpaintWindowGroupIds = [[], []];
+      context.inpaintSpeechBubbleWindows = [true, false];
 
       const decodeFallback = async () => null;
       await runPatternInpaintingEngine({
@@ -62,6 +63,9 @@ describe("runPatternInpaintingEngine", () => {
         model === "codex" ? undefined : masks,
       );
       expect(runOptions.compositeConstraints).toBeUndefined();
+      expect(runOptions.speechBubbleWindows).toEqual(
+        model === "flux-klein" ? [true, false] : undefined,
+      );
     },
   );
 });

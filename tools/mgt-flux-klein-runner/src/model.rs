@@ -7,7 +7,13 @@ use koharu_diffusion::{
 use runner_image_processing::{flux::*, inpainting};
 use std::{path::PathBuf, sync::Mutex};
 
-const PROMPT: &str = "Clean manga inpainting after lettering removal. The masked area is filled only by the surrounding artwork: blank speech-bubble surface, continuous screentone, paper grain, panel borders, color palette, and line art matching neighboring pixels. Preserve the source page's original color or grayscale style and keep unmasked pixels unchanged.";
+// Klein is an instruction-based editor. Describing an already-clean page made
+// it retain lettering or recolor bubble interiors after the SDCPP migration.
+// Keep both the edit and the existing-bubble preservation instruction explicit.
+const PROMPT: &str = "Remove all text and sound effects, including large bold black katakana lettering. Preserve the existing speech bubbles and the original artwork.";
+// Emphasizing large SFX inside a detected balloon can invent panel lines. The
+// app's bubble detector supplies this hint independently of the write mask.
+const BUBBLE_PROMPT: &str = "Remove all text and sound effects, preserving the existing speech bubbles and the original artwork.";
 
 pub struct Flux2KleinPaths {
     pub transformer_gguf: PathBuf,
@@ -20,12 +26,14 @@ pub struct Flux2InpaintOptions {
     pub strength: f64,
     pub max_pixels: u32,
     pub mask_padding: u8,
+    pub speech_bubble: bool,
 }
 
 pub struct Flux2ImageToImageOptions {
     pub num_inference_steps: usize,
     pub strength: f64,
     pub max_pixels: u32,
+    pub speech_bubble: bool,
 }
 
 pub struct Flux2Klein {
@@ -90,7 +98,13 @@ impl Flux2Klein {
             let image_crop = image.crop_imm(bounds.x, bounds.y, bounds.width, bounds.height);
             let mask_crop = mask.crop_imm(bounds.x, bounds.y, bounds.width, bounds.height);
             let generated = self.inpaint_full_frame(&image_crop, &mask_crop, options)?;
-            return composite_inpaint_crop(image, &generated, &mask_crop, bounds);
+            // The app owns the constrained typography core and outer feather.
+            // Applying the model mask here restores source glyph fragments in
+            // that feather. Return the whole candidate crop, including context;
+            // only the app's final composite may change the page's pixels.
+            let mut output = image.clone();
+            image::imageops::replace(&mut output, &generated, bounds.x as i64, bounds.y as i64);
+            return Ok(output);
         }
         self.inpaint_full_frame(image, mask, options)
     }
@@ -115,7 +129,11 @@ impl Flux2Klein {
             mask_image: Some(native_mask),
             width: size.width as i32,
             height: size.height as i32,
-            ..generation_params(options.num_inference_steps, options.strength)?
+            ..generation_params(
+                options.num_inference_steps,
+                options.strength,
+                options.speech_bubble,
+            )?
         })?;
         let mut output = resize_back_if_needed(generated, size);
         if image.color().has_alpha() {
@@ -142,7 +160,11 @@ impl Flux2Klein {
             reference_images: vec![rgb],
             width: size.width as i32,
             height: size.height as i32,
-            ..generation_params(options.num_inference_steps, options.strength)?
+            ..generation_params(
+                options.num_inference_steps,
+                options.strength,
+                options.speech_bubble,
+            )?
         })?;
         let output = resize_back_if_needed(generated, size);
         if !image.color().has_alpha() {
@@ -167,14 +189,18 @@ impl Flux2Klein {
     }
 }
 
-fn generation_params(steps: usize, strength: f64) -> Result<ImageGenerationParams> {
+fn generation_params(
+    steps: usize,
+    strength: f64,
+    speech_bubble: bool,
+) -> Result<ImageGenerationParams> {
     ensure!(
         steps > 0 && steps <= i32::MAX as usize,
         "invalid FLUX step count"
     );
     ensure!(strength.is_finite(), "invalid FLUX strength");
     Ok(ImageGenerationParams {
-        prompt: PROMPT.into(),
+        prompt: if speech_bubble { BUBBLE_PROMPT } else { PROMPT }.into(),
         reference_image_args: Some("resize_before_vae=0".into()),
         sample: SampleParams {
             guidance: GuidanceParams {
@@ -187,7 +213,9 @@ fn generation_params(steps: usize, strength: f64) -> Result<ImageGenerationParam
             ..SampleParams::default()
         },
         strength: native_strength(steps, strength),
-        seed: -1,
+        // Repeated runs of the same crop must not randomly introduce a different
+        // bubble fill. Quality comparisons and retries start from the source.
+        seed: 42,
         batch_count: 1,
         ..ImageGenerationParams::default()
     })
@@ -223,10 +251,26 @@ mod tests {
         }
     }
     #[test]
+    fn bubble_hint_only_changes_the_edit_instruction() {
+        let bubble = generation_params(4, 1.0, true).unwrap();
+        let artwork = generation_params(4, 1.0, false).unwrap();
+        assert_eq!(bubble.prompt, BUBBLE_PROMPT);
+        assert_eq!(artwork.prompt, PROMPT);
+        assert_eq!(bubble.seed, artwork.seed);
+        assert_eq!(bubble.strength, artwork.strength);
+        assert_eq!(bubble.sample.sample_steps, artwork.sample.sample_steps);
+    }
+    #[test]
     fn rejects_nonfinite_strength_and_invalid_steps() {
-        assert!(generation_params(0, 1.0).is_err());
-        assert!(generation_params(4, f64::NAN).is_err());
-        assert!(generation_params(4, f64::INFINITY).is_err());
-        assert_eq!(generation_params(4, 1.0).unwrap().sample.sample_steps, 4);
+        assert!(generation_params(0, 1.0, false).is_err());
+        assert!(generation_params(4, f64::NAN, false).is_err());
+        assert!(generation_params(4, f64::INFINITY, false).is_err());
+        assert_eq!(
+            generation_params(4, 1.0, false)
+                .unwrap()
+                .sample
+                .sample_steps,
+            4
+        );
     }
 }

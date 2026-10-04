@@ -71,6 +71,7 @@ export async function runFluxInpaint(
           width,
           height,
           options.maskPaddingPx,
+          runOptions.compositeMasks,
         )
       : undefined;
   const compositeMasks = runOptions.compositeMasks
@@ -215,6 +216,7 @@ async function processFluxWindow(
             )
           : options.maxPixels,
         maskPadding: FLUX_RUNNER_MASK_PADDING_PX,
+        speechBubble: runOptions.speechBubbleWindows?.[index],
       },
       runOptions.signal,
     );

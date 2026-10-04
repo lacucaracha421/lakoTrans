@@ -5,6 +5,7 @@ type FluxMaskOptions = {
   compositeFeatherPx?: number[];
   compositeMasks?: InpaintingWindowMask[];
   windowMasks?: InpaintingWindowMask[];
+  speechBubbleWindows?: boolean[];
 };
 
 export function assertFluxMaskContracts(options: {
@@ -13,18 +14,18 @@ export function assertFluxMaskContracts(options: {
   windowCount: number;
 }): void {
   const { isolateWindowMasks, runOptions, windowCount } = options;
-  if (
-    isolateWindowMasks &&
-    runOptions.windowMasks &&
-    runOptions.windowMasks.length !== windowCount
-  ) {
-    throw new Error("Block-owned mask count does not match Flux window count.");
-  }
-  if (
-    runOptions.compositeMasks &&
-    runOptions.compositeMasks.length !== windowCount
-  ) {
-    throw new Error("Composite mask count does not match Flux window count.");
+  const alignedMetadata = [
+    [
+      isolateWindowMasks ? runOptions.windowMasks : undefined,
+      "Block-owned mask",
+    ],
+    [runOptions.compositeMasks, "Composite mask"],
+    [runOptions.speechBubbleWindows, "Speech bubble hint"],
+  ] as const;
+  for (const [values, label] of alignedMetadata) {
+    if (values && values.length !== windowCount) {
+      throw new Error(`${label} count does not match Flux window count.`);
+    }
   }
   if (!runOptions.compositeConstraints) return;
   if (

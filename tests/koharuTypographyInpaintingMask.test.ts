@@ -14,6 +14,31 @@ import type { MangaPage } from "../src/shared/libraryTypes";
 import type { TranslationBlock } from "../src/shared/textTypes";
 
 describe("Koharu typography inpainting masks", () => {
+  it("does not claim a distant SFX when one detector instance spans both blocks", () => {
+    const page = { ...makePage(), width: 200, height: 200 };
+    const detection = makeFilledDetection("onomatopoeia", 1, [20, 40, 170, 80]);
+    const result = buildKoharuTypographyCompositeMask({
+      block: page.blocks[0] as TranslationBlock,
+      featherPx: 8,
+      height: 200,
+      width: 200,
+      page,
+      segmentation: {
+        imageWidth: 200,
+        imageHeight: 200,
+        detections: [detection],
+      },
+      sourceRect: { x: 20, y: 40, w: 30, h: 40 },
+    });
+    const mask = requireValue(result, "selected SFX mask");
+    const core = expandWindowMaskToPage(mask.core, 200, 200);
+    const envelope = expandWindowMaskToPage(mask.featherEnvelope, 200, 200);
+    expect(core[60 * 200 + 35]).toBe(1);
+    expect(envelope[60 * 200 + 150]).toBe(0);
+    expect(
+      mask.featherEnvelope.bounds.x + mask.featherEnvelope.bounds.w,
+    ).toBeLessThan(100);
+  });
   it("keeps a nearby excluded detection outside all selected-block Flux masks", () => {
     const page = { ...makePage(), width: 100, height: 100 };
     page.blocks[0] = {

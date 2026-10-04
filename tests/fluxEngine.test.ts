@@ -22,6 +22,57 @@ afterEach(() => {
 });
 
 describe("Flux inpainting engine change detection", () => {
+  it("rejects mismatched or out-of-page priority cores before assigning ownership", async () => {
+    const { buildExclusivePaddedWindowMasks } =
+      await import("../src/main/inpainting/inpaintingWindowMask");
+    const mask = {
+      bounds: { x: 0, y: 0, w: 2, h: 2 },
+      data: new Uint8Array(4).fill(1),
+    };
+    expect(() => buildExclusivePaddedWindowMasks([mask], 4, 4, 1, [])).toThrow(
+      "priority mask count",
+    );
+    expect(() =>
+      buildExclusivePaddedWindowMasks([mask], 4, 4, 1, [
+        { ...mask, bounds: { x: 3, y: 0, w: 2, h: 2 } },
+      ]),
+    ).toThrow("Invalid block-owned inpainting mask bounds");
+    expect(() =>
+      buildExclusivePaddedWindowMasks(Array(0xffff).fill(mask), 4, 4, 1),
+    ).toThrow("Too many block-owned inpainting masks");
+  });
+  it("rejects misaligned bubble hints before processing any crop", async () => {
+    const { assertFluxMaskContracts } =
+      await import("../src/main/inpainting/fluxMaskContracts");
+    expect(() =>
+      assertFluxMaskContracts({
+        isolateWindowMasks: false,
+        runOptions: { speechBubbleWindows: [true] },
+        windowCount: 2,
+      }),
+    ).toThrow("Speech bubble hint count does not match Flux window count.");
+    expect(() =>
+      assertFluxMaskContracts({
+        isolateWindowMasks: true,
+        runOptions: { windowMasks: [] },
+        windowCount: 2,
+      }),
+    ).toThrow("Block-owned mask count does not match Flux window count.");
+    expect(() =>
+      assertFluxMaskContracts({
+        isolateWindowMasks: false,
+        runOptions: { compositeMasks: [] },
+        windowCount: 2,
+      }),
+    ).toThrow("Composite mask count does not match Flux window count.");
+    expect(() =>
+      assertFluxMaskContracts({
+        isolateWindowMasks: false,
+        runOptions: { windowMasks: [] },
+        windowCount: 2,
+      }),
+    ).not.toThrow();
+  });
   it("caps context at 96px only for Metal and keeps CUDA context intact", async () => {
     const runFluxInpaint = vi.fn().mockResolvedValue(undefined);
     vi.doMock("electron", () => ({ nativeImage: createFakeNativeImage() }));
@@ -244,7 +295,7 @@ describe("Flux inpainting engine change detection", () => {
   });
 
   it.each(["metal-native", "cuda-native"] as const)(
-    "keeps overlapping %s windows scoped to their block-owned masks",
+    "reserves each %s write core before overlapping model context can steal it",
     async (backend) => {
       vi.doMock("electron", () => ({ nativeImage: createFakeNativeImage() }));
 
@@ -300,7 +351,18 @@ describe("Flux inpainting engine change detection", () => {
           featherPx: 0,
           maskPaddingPx: 16,
           maxPixels: 256 * 256,
-          windowMasks: ownedMasks,
+          windowMasks: [
+            {
+              bounds: { x: 32, y: 16, w: 48, h: 32 },
+              data: new Uint8Array(48 * 32).fill(1),
+            },
+            {
+              bounds: { x: 48, y: 16, w: 48, h: 32 },
+              data: new Uint8Array(48 * 32).fill(1),
+            },
+          ],
+          compositeMasks: ownedMasks,
+          speechBubbleWindows: [true, false],
           ...(backend === "cuda-native"
             ? { compositeConstraints: ownedMasks }
             : {}),
@@ -310,8 +372,13 @@ describe("Flux inpainting engine change detection", () => {
 
       const requests = JSON.parse(readFileSync(capturePath, "utf8")) as Array<{
         activePixels: string[];
+        speechBubble: boolean;
       }>;
       expect(requests).toHaveLength(2);
+      expect(requests.map((request) => request.speechBubble)).toEqual([
+        true,
+        false,
+      ]);
       expect(requests[0].activePixels).toContain("48,32");
       expect(requests[1].activePixels).toContain("64,32");
       expect(requests.every((request) => request.activePixels.length > 1)).toBe(
@@ -598,7 +665,7 @@ rl.on("line", (line) => {
   const requests = fs.existsSync(${JSON.stringify(capturePath)})
     ? JSON.parse(fs.readFileSync(${JSON.stringify(capturePath)}, "utf8"))
     : [];
-  requests.push({ activePixels });
+  requests.push({ activePixels, speechBubble: request.speech_bubble });
   fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify(requests));
   fs.copyFileSync(request.input, request.output);
   process.stdout.write(JSON.stringify({ id: request.id, ok: true }) + "\\n");

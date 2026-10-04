@@ -195,6 +195,7 @@ export async function runBubbleLayoutMaskPrepass({
     },
     failureMode: "best-effort",
     includeTypographySegmentation: true,
+    sourceEraseMask: true,
     page: maskBaselinePage,
     runner,
     signal,

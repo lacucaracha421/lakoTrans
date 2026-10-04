@@ -10,6 +10,7 @@ export type PatternMaskContext = {
   inpaintCompositeFeatherPx: number[];
   inpaintWindowConstraints: Array<InpaintingWindowMask | null>;
   inpaintWindowGroupIds: string[][];
+  inpaintSpeechBubbleWindows: boolean[];
   usesKoharuTypographyComposite: boolean;
   validationWindowMasks: InpaintingWindowMask[];
   validationBlockIds: string[];
@@ -38,6 +39,7 @@ export function createEmptyPatternMaskContext(
     inpaintCompositeFeatherPx: [],
     inpaintWindowConstraints: [],
     inpaintWindowGroupIds: [],
+    inpaintSpeechBubbleWindows: [],
     usesKoharuTypographyComposite: false,
     validationWindowMasks: [],
     validationBlockIds: [],

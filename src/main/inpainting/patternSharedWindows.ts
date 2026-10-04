@@ -9,6 +9,7 @@ type SharedConstrainedWindowContext = {
   inpaintCompositeFeatherPx: number[];
   inpaintWindowConstraints: Array<InpaintingWindowMask | null>;
   inpaintWindowGroupIds: string[][];
+  inpaintSpeechBubbleWindows: boolean[];
 };
 
 type SharedWindowEntry = {
@@ -18,6 +19,7 @@ type SharedWindowEntry = {
   groupIds: string[];
   mask: InpaintingWindowMask;
   window: PixelRect;
+  speechBubble: boolean;
 };
 
 export function coalesceSharedConstrainedWindows(
@@ -30,6 +32,7 @@ export function coalesceSharedConstrainedWindows(
   const compositeFeatherPx: number[] = [];
   const constraints: Array<InpaintingWindowMask | null> = [];
   const groupIds: string[][] = [];
+  const speechBubbleWindows: boolean[] = [];
   const outputIndexByRoot = new Map<number, number>();
   for (let index = 0; index < context.inpaintWindows.length; index += 1) {
     const entry = readSharedWindowEntry(context, index);
@@ -43,9 +46,11 @@ export function coalesceSharedConstrainedWindows(
       compositeFeatherPx.push(entry.featherPx);
       constraints.push(entry.constraint);
       groupIds.push(entry.groupIds);
+      speechBubbleWindows.push(entry.speechBubble);
       continue;
     }
     const existingWindow = windows[outputIndex] as PixelRect;
+    speechBubbleWindows[outputIndex] &&= entry.speechBubble;
     const existingMask = masks[outputIndex] as InpaintingWindowMask;
     windows[outputIndex] = unionRects(existingWindow, entry.window);
     masks[outputIndex] = unionWindowMasks(existingMask, entry.mask);
@@ -71,6 +76,7 @@ export function coalesceSharedConstrainedWindows(
   context.inpaintCompositeFeatherPx = compositeFeatherPx;
   context.inpaintWindowConstraints = constraints;
   context.inpaintWindowGroupIds = groupIds;
+  context.inpaintSpeechBubbleWindows = speechBubbleWindows;
 }
 
 function readSharedWindowEntry(
@@ -91,6 +97,7 @@ function readSharedWindowEntry(
     groupIds: [...(context.inpaintWindowGroupIds[index] ?? [])],
     mask,
     window,
+    speechBubble: context.inpaintSpeechBubbleWindows[index] === true,
   };
 }
 

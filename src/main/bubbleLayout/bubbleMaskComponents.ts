@@ -9,6 +9,27 @@ type Component = {
   bottom: number;
 };
 
+/** Fill detector holes surrounded by the balloon, never exterior concavities. */
+export function fillEnclosedMaskHoles(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+): Uint8Array {
+  const background = Uint8Array.from(mask, (value) => (value ? 0 : 1));
+  const filled = mask.slice();
+  for (const component of findComponents(background, width, height)) {
+    if (
+      component.left === 0 ||
+      component.top === 0 ||
+      component.right === width - 1 ||
+      component.bottom === height - 1
+    )
+      continue;
+    for (const pixel of component.pixels) filled[pixel] = 1;
+  }
+  return filled;
+}
+
 export function extractPromptedMaskRegions(options: {
   mask: Uint8Array;
   width: number;

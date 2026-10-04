@@ -11,6 +11,7 @@ export type FluxInpaintRunOptions = {
   maskPaddingPx?: number;
   maxPixels?: number;
   windowMasks?: InpaintingWindowMask[];
+  speechBubbleWindows?: boolean[];
   compositeMasks?: InpaintingWindowMask[];
   compositeFeatherPx?: number[];
   compositeConstraints?: Array<InpaintingWindowMask | null>;

@@ -27,6 +27,8 @@ export type BubbleShapeProfileInput = {
   sourceImageRevision: string;
   insetPx: number;
   regionGapPx: number;
+  /** Transient inpainting only; rendering still separates same-block lobes. */
+  sourceEraseMask?: boolean;
   paddingRatio?: number;
 };
 
@@ -44,10 +46,9 @@ export function buildBubbleShapeProfile(
   input: BubbleShapeProfileInput,
 ): BubbleShapeProfileResult | null {
   if (input.regions.length === 0) return null;
-  let ordered = partitionSameBlockBubbleRegions(
-    orderBubbleRegions(input.regions, input.sourceDirection),
-    input.regionGapPx,
-  );
+  let ordered = orderBubbleRegions(input.regions, input.sourceDirection);
+  if (!input.sourceEraseMask)
+    ordered = partitionSameBlockBubbleRegions(ordered, input.regionGapPx);
   if (ordered.length === 0) return null;
   let profile = buildProfileData(ordered, input.renderDirection);
   if (!profile) return null;

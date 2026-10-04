@@ -52,6 +52,7 @@ export function processDetectedBubbleLayouts(options: {
   policy: BubbleLayoutPolicy;
   paddingRatio?: number;
   sharedOwnershipGapPx?: number;
+  sourceEraseMask?: boolean;
   pageRevision: string;
   repairOriginalTextInk?: boolean;
 }): BubbleLayoutBlockPatch[] {
@@ -144,6 +145,7 @@ function processBlock(
       block,
     ),
     insetPx,
+    sourceEraseMask: options.sourceEraseMask,
     regionGapPx: resolveBubblePartitionGapPx(
       options.imageWidth,
       options.imageHeight,
@@ -187,6 +189,7 @@ function refineCandidateRegions(
     fontSizePx: block.fontSizePx,
     outlineWidthPx,
     policy: options.policy,
+    sourceEraseMask: options.sourceEraseMask,
   });
   if (refined) {
     const regions = clipRegionsToOwnershipPartition(

@@ -8,6 +8,9 @@ import { openChapter, updatePagesAfterInpainting } from "../library";
 import { getAppSettings } from "../settingsStore";
 import type { ImageDecodeFallback } from "../regionCrop";
 import { throwIfAborted } from "../pipeline/failure";
+import { createProductionBubbleLayoutRunner } from "../bubbleLayout/bubbleLayoutFacade";
+import { applyInpaintingLayoutStates } from "../inpainting/inpaintingLayoutState";
+import { runBubbleLayoutMaskPrepass } from "./bubbleLayoutJob";
 
 export type TargetedSoundEffectInpaintingResult = {
   changedPageIds: string[];
@@ -21,6 +24,7 @@ export type SoundEffectInpaintingDependencies = {
   openChapter: typeof openChapter;
   inpaintPage: typeof inpaintPatternPage;
   updatePages: typeof updatePagesAfterInpainting;
+  createBubbleLayoutRunner: typeof createProductionBubbleLayoutRunner;
 };
 
 const productionDependencies: SoundEffectInpaintingDependencies = {
@@ -30,6 +34,7 @@ const productionDependencies: SoundEffectInpaintingDependencies = {
   openChapter,
   inpaintPage: inpaintPatternPage,
   updatePages: updatePagesAfterInpainting,
+  createBubbleLayoutRunner: createProductionBubbleLayoutRunner,
 };
 
 type InpaintingEngineLease = Awaited<
@@ -124,6 +129,13 @@ async function inpaintChapterTargets({
     return { changedPageIds: [], warnings: [chapter.warning] };
   }
   const pages = new Map(chapter.value.pages.map((page) => [page.id, page]));
+  const runner =
+    engineLease.engine.model === "flux-klein"
+      ? dependencies.createBubbleLayoutRunner({
+          dataRoot: dependencies.getAppPaths().dataRoot,
+          decodeFallback,
+        })
+      : undefined;
   const outcomes: PageInpaintingOutcome[] = [];
   for (const target of createdBlocksByPage) {
     throwIfAborted(signal);
@@ -133,6 +145,7 @@ async function inpaintChapterTargets({
         dependencies,
         engineLease,
         page: pages.get(target.pageId),
+        runner,
         signal,
         target,
       }),
@@ -163,6 +176,7 @@ async function inpaintPageTarget({
   dependencies,
   engineLease,
   page,
+  runner,
   signal,
   target,
 }: {
@@ -170,14 +184,14 @@ async function inpaintPageTarget({
   dependencies: SoundEffectInpaintingDependencies;
   engineLease: InpaintingEngineLease;
   page: MangaPage | undefined;
+  runner?: ReturnType<typeof createProductionBubbleLayoutRunner>;
   signal: AbortSignal;
   target: { pageId: string; blockIds: string[] };
 }): Promise<PageInpaintingOutcome> {
-  if (!page) {
+  if (!page)
     return {
       warnings: [`${target.pageId}: 인페인팅 대상 페이지를 찾지 못했습니다.`],
     };
-  }
   const existingIds = new Set(page.blocks.map((block) => block.id));
   const requestedIds = [...new Set(target.blockIds)];
   const selectedIds = requestedIds.filter((blockId) =>
@@ -191,23 +205,44 @@ async function inpaintPageTarget({
     );
   if (selectedIds.length === 0) return { warnings };
   try {
-    const result = await dependencies.inpaintPage(page, {
+    const prepared = runner
+      ? await runBubbleLayoutMaskPrepass({
+          blockIds: selectedIds,
+          config: { policy: "balanced", overwriteManual: false },
+          page,
+          runner,
+          signal,
+        })
+      : undefined;
+    const result = await dependencies.inpaintPage(prepared?.page ?? page, {
       blockIds: selectedIds,
       signal,
       decodeFallback,
       inpaintingEngine: engineLease.engine,
       preserveExistingInpainting: true,
+      ...(prepared
+        ? {
+            bubbleLayoutConstraintBlockIds:
+              prepared.bubbleLayoutConstraintBlockIds,
+            sharedInpaintGroupIdsByBlock: prepared.sharedInpaintGroupIdsByBlock,
+            typographySegmentation: prepared.typographySegmentation,
+          }
+        : {}),
     });
     const erased = new Set(result.erasedBlockIds ?? []);
     warnings.push(
       ...buildIncompleteInpaintingWarnings(page, selectedIds, erased),
     );
-    return erased.size > 0
-      ? {
-          page: mergeTargetedInpaintingCompletion(result.page, erased),
-          warnings,
-        }
-      : { warnings };
+    if (erased.size === 0) return { warnings };
+    return {
+      page: mergeTargetedInpaintingCompletion(
+        prepared?.restoreLayout
+          ? applyInpaintingLayoutStates(result.page, prepared.restoreLayout)
+          : result.page,
+        erased,
+      ),
+      warnings,
+    };
   } catch (error) {
     throwIfAborted(signal);
     warnings.push(

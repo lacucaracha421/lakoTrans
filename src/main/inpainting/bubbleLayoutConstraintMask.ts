@@ -18,6 +18,7 @@ export function buildBubbleLayoutConstraintMask(
   page: Pick<MangaPage, "width" | "height">,
   imageWidth: number,
   imageHeight: number,
+  sourceEraseMask = false,
 ): InpaintingWindowMask | null {
   if (!isUsableBubbleLayout(block.bubbleLayout)) return null;
   const renderBbox = resolveBlockRenderBboxInPixels(
@@ -28,17 +29,18 @@ export function buildBubbleLayoutConstraintMask(
   );
   const bounds = clampPixelBounds(renderBbox, imageWidth, imageHeight);
   if (!bounds) return null;
-  const layout =
-    resolveDisjointBubbleLayout(block.bubbleLayout, {
-      blockExtentPx:
-        block.bubbleLayout.direction === "horizontal"
-          ? renderBbox.h
-          : renderBbox.w,
-      inlineExtentPx:
-        block.bubbleLayout.direction === "horizontal"
-          ? renderBbox.w
-          : renderBbox.h,
-    }) ?? block.bubbleLayout;
+  const layout = sourceEraseMask
+    ? block.bubbleLayout
+    : (resolveDisjointBubbleLayout(block.bubbleLayout, {
+        blockExtentPx:
+          block.bubbleLayout.direction === "horizontal"
+            ? renderBbox.h
+            : renderBbox.w,
+        inlineExtentPx:
+          block.bubbleLayout.direction === "horizontal"
+            ? renderBbox.w
+            : renderBbox.h,
+      }) ?? block.bubbleLayout);
   const data = new Uint8Array(bounds.w * bounds.h);
   for (const region of layout.regions) {
     for (const span of region.spans) {

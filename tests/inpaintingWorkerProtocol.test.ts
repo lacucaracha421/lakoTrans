@@ -31,6 +31,15 @@ input.on("line", (line) => {
     }) + "\n");
     return;
   }
+  if (mode.startsWith("bubble-hint-")) {
+    const expected = mode === "bubble-hint-true";
+    process.stdout.write(JSON.stringify({
+      id: request.id,
+      ok: request.speech_bubble === expected,
+      error: "bubble hint did not survive the JSON-lines boundary",
+    }) + "\n");
+    return;
+  }
   if (mode === "failure") {
     process.stdout.write(JSON.stringify({
       id: request.id,
@@ -137,6 +146,15 @@ afterEach(async () => {
 });
 
 describe("inpainting worker JSON-lines protocol", () => {
+  it.each([true, false])(
+    "preserves the per-crop bubble hint %s",
+    async (speechBubble) => {
+      const worker = createFluxWorker(`bubble-hint-${speechBubble}`);
+      await expect(
+        worker.inpaint({ ...FLUX_REQUEST, speechBubble }),
+      ).resolves.toBeUndefined();
+    },
+  );
   it.each([
     "cuda-native",
     "zluda-native",

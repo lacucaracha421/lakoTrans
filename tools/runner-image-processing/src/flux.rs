@@ -78,7 +78,10 @@ pub fn resize_back_if_needed(image: RgbImage, size: PreparedSize) -> DynamicImag
     DynamicImage::ImageRgb8(out)
 }
 
-const INPAINT_CROP_CONTEXT: u32 = 64;
+// Real-page Klein QA: 64px hallucinated strokes in wide bubbles, while 128px
+// and the full app crop copied panel borders into small bubbles. Keep 96px of
+// local artwork context; this does not enlarge the caller's composite mask.
+const INPAINT_CROP_CONTEXT: u32 = 96;
 #[derive(Debug, Clone, Copy)]
 pub struct CropBounds {
     pub x: u32,
@@ -214,7 +217,7 @@ mod tests {
         let bounds = inpaint_crop_bounds(&original, &mask, 0).unwrap();
         assert_eq!(
             (bounds.x, bounds.y, bounds.width, bounds.height),
-            (48, 48, 144, 144)
+            (16, 16, 208, 208)
         );
         let generated = DynamicImage::ImageRgb8(RgbImage::from_pixel(
             bounds.width,

@@ -145,6 +145,7 @@ function mergePatternBlock(
   );
   context.inpaintWindowConstraints.push(null);
   context.inpaintWindowGroupIds.push([]);
+  context.inpaintSpeechBubbleWindows.push(false);
   if (detection.usedOtsu) context.otsuBlocks += 1;
   context.blocksErased += 1;
 }
@@ -165,6 +166,7 @@ function mergeFluxRegionMask(
         options.page,
         options.width,
         options.height,
+        true,
       )
     : null;
   // A usable green region is authoritative. Do not union the OCR rectangle:
@@ -219,6 +221,9 @@ function mergeFluxRegionMask(
   // no-green fallback intentionally preserves the legacy OCR-region feather.
   context.inpaintWindowConstraints.push(plan.constraint);
   context.inpaintWindowGroupIds.push(bubbleMask ? sharedGroupIds : []);
+  // Only the job-local bubble prepass supplies this semantic hint. A typography
+  // feather constraint by itself can also describe lettering over artwork.
+  context.inpaintSpeechBubbleWindows.push(bubbleMask !== null);
   if (usedOtsu) context.otsuBlocks += 1;
   context.blocksErased += 1;
 }

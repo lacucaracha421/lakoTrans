@@ -26,7 +26,7 @@ import {
 import type { FluxAssetProgress } from "./types";
 import {
   isTruthyEnv,
-  resolveBundledSm75AliasSource,
+  resolveBundledNativeRunnerSource,
 } from "./runnerSourceHelpers";
 
 type LocalFluxRunnerSource = {
@@ -125,17 +125,13 @@ function resolveFluxRunnerSource(
     if (!dirName) {
       return null;
     }
-    const localSource = findLocalFluxRunnerSource(dirName);
-    if (localSource) {
-      return localSource;
-    }
-    const sm75AliasSource = resolveBundledSm75AliasSource(
+    const nativeSource = resolveBundledNativeRunnerSource(
       normalized,
       dirName,
       findLocalFluxRunnerSource(FLUX_RUNNER_DIR),
     );
-    if (sm75AliasSource) {
-      return sm75AliasSource;
+    if (nativeSource) {
+      return nativeSource;
     }
     return resolveRemoteFluxRunnerSource(normalized, dirName);
   }

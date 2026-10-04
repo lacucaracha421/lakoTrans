@@ -1,5 +1,3 @@
-import { mkdir } from "node:fs/promises";
-import { basename, delimiter, dirname, join } from "node:path";
 import type {
   FluxWorkerBackend,
   FluxWorkerLaunchSpec,
@@ -8,249 +6,113 @@ import {
   logInpaintingRuntimeInfo,
   logInpaintingRuntimeWarn,
 } from "../inpaintingRuntimeLogger";
-import { FLUX_CUDA_RUNTIME_DIR } from "./constants";
 import type { FluxAssetProgress, FluxRuntimeBackend } from "./types";
-import { ensureFluxCudaRuntime } from "./cudaRuntime";
 import { ensureManagedFluxCpuRunner } from "./cpuRunner";
 import { ensureManagedFluxRunner } from "./runner";
-import { ensureFluxZludaSupportRuntime } from "./zludaRuntime";
 import { ensureFluxPythonRuntime } from "./pythonRuntime";
-import {
-  buildWindowsHipSdkProbeLogDetail,
-  discoverWindowsHipSdk,
-  formatWindowsHipSdkProbeError,
-} from "./hipSdk";
+import { prepareNativeInferenceLaunch } from "../../runtimeSupport/nativeInferenceLaunch";
+import type { NativeInferenceBackend } from "../../runtimeSupport/nativeInferencePlan";
+
+const NATIVE_BACKENDS: Partial<
+  Record<FluxWorkerBackend, { backend: NativeInferenceBackend; label: string }>
+> = {
+  "cpu-native": {
+    backend: "cpu",
+    label: "Flux Klein CPU (매우 느린 호환 모드)",
+  },
+  "cuda-native": { backend: "cuda", label: "Flux Klein CUDA" },
+  "rocm-native": { backend: "rocm", label: "Flux Klein ROCm" },
+  "metal-native": { backend: "metal", label: "Flux Klein Metal" },
+};
 
 type EnsureFluxWorkerLaunchOptions = {
   runtimeDir: string;
   modelDir: string;
   backend: FluxRuntimeBackend;
+  computeGpuIndex?: number;
   nvidiaComputeCapability?: number | null;
   sm75Fp16Enabled?: boolean;
   signal?: AbortSignal;
   onProgress?: (progress: FluxAssetProgress) => void;
 };
 
-async function ensureMgtFluxKleinRuntime(options: {
-  runtimeDir: string;
-  nvidiaComputeCapability?: number | null;
-  signal?: AbortSignal;
-  onProgress?: (progress: FluxAssetProgress) => void;
-}): Promise<string> {
-  await mkdir(options.runtimeDir, { recursive: true });
-  const runtimePath = await ensureManagedFluxRunner(options);
-  await ensureFluxCudaRuntime(options);
-  const runtimeLabel = formatRuntimePathLabel(runtimePath);
-  options.onProgress?.({
-    progressText: "Flux 런타임 캐시 사용",
-    detail: runtimeLabel,
-    progressMode: "log-only",
-    installLogLine: `MGT Flux Klein 런타임을 사용합니다: ${runtimeLabel}`,
-  });
-  return runtimePath;
-}
-
 export async function ensureFluxWorkerLaunch(
   options: EnsureFluxWorkerLaunchOptions,
 ): Promise<FluxWorkerLaunchSpec> {
   const backend = resolveFluxWorkerBackend(options.backend);
-  if (backend === "metal-native") {
-    return ensureFluxMetalWorkerLaunch(options);
-  }
-  if (backend === "cuda-native") {
-    const runtimePath = await ensureMgtFluxKleinRuntime(options);
-    const cudaRuntimeDir = join(options.runtimeDir, FLUX_CUDA_RUNTIME_DIR);
-    logFluxRuntimeSelected({
-      backend,
-      nvidiaComputeCapability: options.nvidiaComputeCapability,
-      sm75Fp16Enabled: options.sm75Fp16Enabled === true,
-      runtimePath,
-      cudaRuntimeDir,
-    });
-    return {
-      backend,
-      executable: runtimePath,
-      runtimePath,
-      label: "Flux Klein CUDA",
-      args: ["--cuda-runtime-dir", cudaRuntimeDir],
-      ...(options.sm75Fp16Enabled ? { env: { MGT_FLUX_SM75_FP16: "1" } } : {}),
-    };
-  }
-  if (backend === "zluda-native") {
-    return ensureFluxZludaWorkerLaunch(options);
-  }
-  if (backend === "cpu-native") {
-    if (shouldUseLegacyFluxDiffusersCpu()) {
-      logInpaintingRuntimeWarn(
-        "Legacy Flux Diffusers CPU diagnostic override enabled",
-        {
-          environmentVariable: "MGT_FLUX_LEGACY_DIFFUSERS_CPU",
-        },
-      );
-      const launch = await ensureFluxPythonRuntime({
-        ...options,
-        backend: "python-cpu",
-      });
-      logFluxRuntimeSelected({
-        backend: launch.backend,
-        nvidiaComputeCapability: options.nvidiaComputeCapability,
-        runtimePath: launch.runtimePath,
-        executable: launch.executable,
-      });
-      return launch;
-    }
-    return ensureFluxCpuWorkerLaunch(options);
-  }
-  if (backend === "python-rocm" || backend === "python-cpu") {
-    const launch = await ensureFluxPythonRuntime({ ...options, backend });
-    logFluxRuntimeSelected({
-      backend,
-      nvidiaComputeCapability: options.nvidiaComputeCapability,
-      runtimePath: launch.runtimePath,
-      executable: launch.executable,
-    });
-    return launch;
-  }
-  throw new Error(`지원하지 않는 Flux 런타임입니다: ${backend}`);
-}
-
-async function ensureFluxCpuWorkerLaunch(
-  options: EnsureFluxWorkerLaunchOptions,
-): Promise<FluxWorkerLaunchSpec> {
-  await mkdir(options.runtimeDir, { recursive: true });
-  const runtimePath = await ensureManagedFluxCpuRunner(options);
-  options.onProgress?.({
-    progressText: "Flux CPU 호환 런타임 준비 완료",
-    detail: formatRuntimePathLabel(runtimePath),
-    progressMode: "log-only",
-    installLogLine:
-      "CPU-only Flux Klein 네이티브 런타임을 사용합니다. GPU 가속 없이 실행되므로 페이지당 처리 시간이 매우 길 수 있습니다.",
-  });
-  logFluxRuntimeSelected({
-    backend: "cpu-native",
-    nvidiaComputeCapability: options.nvidiaComputeCapability,
-    runtimePath,
-  });
-  return {
-    backend: "cpu-native",
-    executable: runtimePath,
-    runtimePath,
-    label: "Flux Klein CPU (매우 느린 호환 모드)",
-    args: [],
-  };
-}
-
-async function ensureFluxZludaWorkerLaunch(
-  options: EnsureFluxWorkerLaunchOptions,
-): Promise<FluxWorkerLaunchSpec> {
-  const hipSdkProbe = await discoverWindowsHipSdk();
-  const hipSdkLogDetail = buildWindowsHipSdkProbeLogDetail(hipSdkProbe);
   if (
-    !hipSdkProbe.sdk ||
-    !hipSdkLogDetail.sdk ||
-    !hipSdkLogDetail.sdk.selectedBinMatchesKoharuLayout ||
-    !hipSdkLogDetail.sdk.koharuHipRuntimeAvailable
+    backend === "python-cpu" ||
+    (backend === "cpu-native" && shouldUseLegacyFluxDiffusersCpu())
   ) {
-    logInpaintingRuntimeWarn("AMD HIP SDK probe failed", hipSdkLogDetail);
-    throw formatWindowsHipSdkProbeError({ ...hipSdkProbe, sdk: null });
+    logInpaintingRuntimeWarn(
+      "Legacy Flux Diffusers CPU diagnostic override enabled",
+      {
+        environmentVariable: "MGT_FLUX_LEGACY_DIFFUSERS_CPU",
+      },
+    );
+    return ensureFluxPythonRuntime({ ...options, backend: "python-cpu" });
   }
-  logInpaintingRuntimeInfo("AMD HIP SDK probe succeeded", hipSdkLogDetail);
-  const hipSdk = hipSdkProbe.sdk;
-  await mkdir(options.runtimeDir, { recursive: true });
-  const runtimePath = await ensureManagedFluxRunner(options);
-  const cudaRuntimeDir = await ensureFluxZludaSupportRuntime(options);
-  const zludaRuntimeRoot = join(options.runtimeDir, "koharu-zluda");
-  options.onProgress?.({
-    progressText: "Flux ZLUDA 런타임 준비 중",
-    detail: "Koharu/Candle ZLUDA",
-    progressMode: "log-only",
-    installLogLine:
-      "AMD GPU에서는 NVIDIA와 같은 Flux Klein 실행기를 ZLUDA/HIP 경로로 실행하고, 필요한 CUDA 보조 DLL만 함께 준비합니다.",
-  });
-  options.onProgress?.({
-    progressText: "AMD HIP SDK 확인 완료",
-    detail: hipSdk.version
-      ? `ROCm ${hipSdk.version} · ${hipSdk.rootDir}`
-      : hipSdk.rootDir,
-    progressMode: "log-only",
-    installLogLine: `AMD HIP SDK를 확인했습니다 (${hipSdk.source}): ${hipSdk.runtimeDllPath}`,
-  });
-  logFluxRuntimeSelected({
-    backend: "zluda-native",
-    nvidiaComputeCapability: options.nvidiaComputeCapability,
-    runtimePath,
-    cudaRuntimeDir,
-    zludaRuntimeRoot,
-  });
-  return {
-    backend: "zluda-native",
-    executable: runtimePath,
-    runtimePath,
-    label: "Flux Klein ZLUDA",
-    args: [
-      "--require-zluda",
-      "--zluda-runtime-root",
-      zludaRuntimeRoot,
-      "--cuda-runtime-dir",
-      cudaRuntimeDir,
-    ],
-    env: {
-      HIP_PATH: hipSdk.rootDir,
-      KOHARU_DATA_ROOT: zludaRuntimeRoot,
-      PATH: [hipSdk.binDir, process.env.PATH].filter(Boolean).join(delimiter),
-      ROCM_PATH: hipSdk.rootDir,
-    },
-  };
-}
-
-async function ensureFluxMetalWorkerLaunch(
-  options: EnsureFluxWorkerLaunchOptions,
-): Promise<FluxWorkerLaunchSpec> {
-  if (process.platform !== "darwin" || process.arch !== "arm64") {
+  if (
+    backend === "metal-native" &&
+    (process.platform !== "darwin" || process.arch !== "arm64")
+  ) {
     throw new Error(
       "Flux Metal 런타임은 Apple Silicon(macOS arm64)에서만 사용할 수 있습니다.",
     );
   }
-  await mkdir(options.runtimeDir, { recursive: true });
-  const runtimePath = await ensureManagedFluxRunner(options);
-  logFluxRuntimeSelected({
-    backend: "metal-native",
-    nvidiaComputeCapability: null,
-    runtimePath,
+  const executable =
+    backend === "cpu-native" && process.platform === "win32"
+      ? await ensureManagedFluxCpuRunner(options)
+      : await ensureManagedFluxRunner(options);
+  const selection = NATIVE_BACKENDS[backend];
+  if (!selection) throw new Error(`Unsupported native backend: ${backend}`);
+  const native = await prepareNativeInferenceLaunch({
+    ...options,
+    executable,
+    engine: "diffusion",
+    backend: selection.backend,
+  });
+  const label = selection.label;
+  options.onProgress?.({
+    progressText: "Flux 네이티브 런타임 준비 완료",
+    detail: label,
+    progressMode: "log-only",
+    installLogLine: label + " · Koharu 0.83.5 / stable-diffusion.cpp",
+  });
+  logInpaintingRuntimeInfo("Flux runtime selected", {
+    backend,
+    runtimePath: native.executable,
+    nativeManifest: native.manifest,
   });
   return {
-    backend: "metal-native",
-    executable: runtimePath,
-    runtimePath,
-    label: "Flux Klein Metal",
-    args: ["--require-metal"],
+    backend,
+    executable: native.executable,
+    runtimePath: native.executable,
+    label,
+    args: [
+      "--native-runtime",
+      native.manifest,
+      ...(backend === "metal-native" ? ["--require-metal"] : []),
+    ],
+    env: native.env,
   };
-}
-
-function logFluxRuntimeSelected(detail: {
-  backend: FluxWorkerBackend;
-  cudaRuntimeDir?: string;
-  executable?: string;
-  nvidiaComputeCapability?: number | null;
-  sm75Fp16Enabled?: boolean;
-  runtimePath: string;
-  zludaRuntimeRoot?: string;
-}): void {
-  logInpaintingRuntimeInfo("Flux runtime selected", detail);
 }
 
 export function resolveFluxWorkerBackend(
   backend: FluxRuntimeBackend,
 ): FluxWorkerBackend {
-  if (backend === "python-cpu" || backend === "cpu-native") {
+  if (
+    backend === "python-cpu" ||
+    backend === "cpu-native" ||
+    backend === "metal-native"
+  )
     return backend;
-  }
-  if (backend === "metal-native") {
-    return backend;
-  }
-  if (backend === "zluda-native" || backend === "python-rocm") {
-    return "zluda-native";
-  }
+  if (
+    backend === "rocm-native" ||
+    backend === "zluda-native" ||
+    backend === "python-rocm"
+  )
+    return "rocm-native";
   return "cuda-native";
 }
 
@@ -260,8 +122,4 @@ export function shouldUseLegacyFluxDiffusersCpu(
   return /^(1|true|yes|on)$/i.test(
     String(env.MGT_FLUX_LEGACY_DIFFUSERS_CPU ?? "").trim(),
   );
-}
-
-function formatRuntimePathLabel(runtimePath: string): string {
-  return `${basename(dirname(runtimePath))}/${basename(runtimePath)}`;
 }

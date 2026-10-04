@@ -44,7 +44,6 @@ function createCommandRunner(options = {}) {
         ...environment,
         CARGO_INCREMENTAL: "0",
         CANDLE_METAL_XCODE: "1",
-        LLAMA_CPP_TAG: environment.LLAMA_CPP_TAG || "b-mgt-unused",
       },
       ...(runOptions.captureOutput
         ? {

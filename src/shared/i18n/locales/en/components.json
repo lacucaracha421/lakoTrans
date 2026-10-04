@@ -1938,13 +1938,13 @@
           "label": "SM75 CUDA",
           "description": "An FP16 CUDA compatibility path for RTX 20-series GPUs (SM 7.5)."
         },
-        "zluda": {
-          "label": "AMD ZLUDA",
-          "description": "Runs Flux through ZLUDA on AMD GPUs. Requires the AMD HIP SDK."
-        },
         "cpu": {
           "label": "CPU",
           "description": "CPU-only native Flux without Python or Diffusers. This compatibility mode can take many minutes per page; LaMa or AOT is recommended for practical CPU inpainting."
+        },
+        "rocm": {
+          "label": "AMD ROCm",
+          "description": "Runs the native ROCm 10 engine on AMD GPUs. The app prepares the required runtime automatically."
         }
       },
       "inpaintingModels": {
@@ -2215,8 +2215,8 @@
       "fluxLowMemoryOverride": "Allow risky Flux runs with {{available}} unified memory",
       "sm75FluxWarningTitle": "RTX 20-series only",
       "sm75FluxWarningDetail": "Behavior or output may differ slightly from the standard NVIDIA CUDA backend.",
-      "fluxAmdUnsupportedTitle": "AMD GPU not officially supported",
-      "fluxAmdUnsupportedDetail": "{{gpu}} is not listed in AMD's current Windows HIP SDK support matrix. You can still try ZLUDA experimentally, but it may fail at runtime.",
+      "fluxAmdUnsupportedTitle": "AMD GPU runtime compatibility needs verification",
+      "fluxAmdUnsupportedDetail": "A matching ROCm runtime could not be confirmed for {{gpu}}. GPU compatibility is checked again at launch.",
       "fluxAmdUseCpu": "Switch to CPU backend",
       "downloadHipSdk": "Download AMD HIP SDK",
       "openLinkFailed": "Could not open the link. Check your default browser.",
@@ -2225,9 +2225,9 @@
       "fluxRequirements": {
         "cuda-native": "Requires NVIDIA GPU other than SM75",
         "cuda-sm75-experimental": "RTX 20 / GTX 16 (SM75) only",
-        "zluda-native": "Requires AMD GPU",
         "cpu-native": "No GPU needed · Slow",
-        "metal-native": "Requires Apple Silicon"
+        "metal-native": "Requires Apple Silicon",
+        "rocm-native": "Requires AMD GPU"
       },
       "ocrRequirements": {
         "cuda": "Requires NVIDIA GPU",

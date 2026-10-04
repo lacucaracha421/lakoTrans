@@ -6,10 +6,7 @@ import type {
   InpaintingModel,
 } from "../../../../shared/settingsTypes";
 import { FLUX_BACKEND_OPTIONS } from "../settingsOptions";
-import {
-  AmdHipSdkDownloadButton,
-  FluxHardwareContextNote,
-} from "./HardwareContextNotes";
+import { FluxHardwareContextNote } from "./HardwareContextNotes";
 import { Button } from "../ui/Button";
 
 type FluxBackendSettingsProps = {
@@ -90,9 +87,6 @@ export function FluxBackendSettings({
         supportsFluxZluda={supportsFluxZluda}
         usesAmdHardware={usesAmdHardware}
       />
-      {inpaintingModel === "flux-klein" && fluxBackend === "zluda-native" ? (
-        <AmdHipSdkDownloadButton />
-      ) : null}
       <FluxHardwareContextNote usesAppleHardware={usesAppleHardware} />
     </div>
   );
@@ -156,7 +150,7 @@ function UnsupportedAmdFluxWarning({
           gpu: detectedGpuName || t("settings.hardware.detectedUnknown"),
         })}
       </span>
-      {fluxBackend === "zluda-native" ? (
+      {fluxBackend === "rocm-native" ? (
         <div className="hardware-runtime-warning-action">
           <Button
             size="sm"

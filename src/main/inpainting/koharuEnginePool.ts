@@ -199,8 +199,8 @@ export async function resolveKoharuBackendCandidates(
   if (requested === "cuda-native") {
     return ["cuda-native", "cpu"];
   }
-  if (requested === "zluda-native") {
-    return ["zluda-native", "cpu"];
+  if (["zluda-native", "rocm-native"].includes(requested)) {
+    return ["rocm-native", "cpu"];
   }
   if (requested === "metal-native") {
     return ["metal-native", "cpu"];
@@ -212,7 +212,7 @@ export async function resolveKoharuBackendCandidates(
 
   const gpu = await detectGpu();
   if (gpu?.vendor === "amd") {
-    return ["zluda-native", "cpu"];
+    return ["rocm-native", "cpu"];
   }
   if (gpu?.vendor === "nvidia") {
     return ["cuda-native", "cpu"];

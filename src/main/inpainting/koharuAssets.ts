@@ -1,19 +1,16 @@
-import { ensureKoharuZludaRuntime } from "./koharuZludaRuntime";
+import { prepareNativeInferenceLaunch } from "../runtimeSupport/nativeInferenceLaunch";
 import { mkdir } from "node:fs/promises";
-import { basename, delimiter, join } from "node:path";
+import { basename, join } from "node:path";
 import type {
   InpaintingModel,
   KoharuInpaintingBackend,
 } from "../../shared/inpaintingSettingsTypes";
-import { FLUX_CUDA_RUNTIME_DIR } from "./fluxAssets/constants";
-import { ensureFluxCudaRuntime } from "./fluxAssets/cudaRuntime";
 import {
   ensureRemoteFile,
   hfResolveUrl,
 } from "../runtimeSupport/modelDownloads";
 import { createCombinedDownloadProgress } from "./fluxAssets/progress";
 import { MAX_REMOTE_SUPPORT_ASSET_BYTES } from "../runtimeSupport/downloadBudgets";
-import { ensureFluxZludaSupportRuntime } from "./fluxAssets/zludaRuntime";
 import { tMain } from "./localization";
 import { logInpaintingRuntimeInfo } from "./inpaintingRuntimeLogger";
 import type { InpaintingRuntimeProgress } from "./inpaintingEngine";
@@ -51,6 +48,7 @@ export type KoharuModelFiles =
 type KoharuWorkerLaunchOptions = {
   runtimeDir: string;
   cudaRuntimeDir?: string;
+  computeGpuIndex?: number;
   model: Exclude<InpaintingModel, "flux-klein">;
   modelFiles: KoharuModelFiles;
   backend: KoharuInpaintingBackend;
@@ -141,7 +139,24 @@ export async function ensureKoharuWorkerLaunch(
   assertKoharuBackendPlatform(options.backend);
   await mkdir(options.runtimeDir, { recursive: true });
   const managedRunner = await ensureManagedKoharuRunner(options);
-  const runtimePath = managedRunner.path;
+  const backend =
+    options.backend === "zluda-native" ? "rocm-native" : options.backend;
+  if (backend === "auto")
+    throw new Error("Koharu backend must be resolved before installation");
+  const native = await prepareNativeInferenceLaunch({
+    ...options,
+    executable: managedRunner.path,
+    engine: "torch",
+    backend:
+      backend === "cpu"
+        ? "cpu"
+        : backend === "cuda-native"
+          ? "cuda"
+          : backend === "rocm-native"
+            ? "rocm"
+            : "metal",
+  });
+  const runtimePath = native.executable;
   reportKoharuExecutablePreparing(options, managedRunner.sourcePath);
   const args = [
     "--model",
@@ -149,61 +164,31 @@ export async function ensureKoharuWorkerLaunch(
     "--weights",
     options.modelFiles.weightsPath,
     "--backend",
-    options.backend,
+    backend,
+    "--native-runtime",
+    native.manifest,
   ];
   if (options.modelFiles.configPath) {
     args.push("--config", options.modelFiles.configPath);
   }
 
   const env: NodeJS.ProcessEnv = {
+    ...native.env,
     KOHARU_DATA_ROOT: join(options.runtimeDir, "koharu-data"),
   };
-  let cudaRuntimeRoot: string | undefined;
-  let cudaRuntimeDir: string | undefined;
-  let zludaRuntimeRoot: string | undefined;
-  if (options.backend === "cuda-native") {
-    cudaRuntimeRoot = options.cudaRuntimeDir ?? options.runtimeDir;
-    await ensureFluxCudaRuntime({
-      runtimeDir: cudaRuntimeRoot,
-      signal: options.signal,
-      onProgress: options.onProgress,
-    });
-    cudaRuntimeDir = join(cudaRuntimeRoot, FLUX_CUDA_RUNTIME_DIR);
-    args.push("--cuda-runtime-dir", cudaRuntimeDir);
-    env.PATH = prependPathEntry(env.PATH, cudaRuntimeDir);
-  } else if (options.backend === "zluda-native") {
-    cudaRuntimeDir = await ensureFluxZludaSupportRuntime(options);
-    zludaRuntimeRoot = join(options.runtimeDir, "koharu-zluda");
-    await ensureKoharuZludaRuntime({
-      runtimeRoot: zludaRuntimeRoot,
-      signal: options.signal,
-      onProgress: options.onProgress,
-    });
-    args.push(
-      "--require-zluda",
-      "--zluda-runtime-root",
-      zludaRuntimeRoot,
-      "--cuda-runtime-dir",
-      cudaRuntimeDir,
-    );
-    env.KOHARU_DATA_ROOT = zludaRuntimeRoot;
-  }
 
   reportKoharuReady(options, runtimePath);
   logInpaintingRuntimeInfo("Koharu runtime selected", {
     model: options.model,
-    backend: options.backend,
+    backend,
     computePolicy: describeKoharuComputePolicy(options.backend),
     runtimePath,
-    cudaRuntimeRoot,
     weightsPath: options.modelFiles.weightsPath,
     configPath: options.modelFiles.configPath ?? null,
-    cudaRuntimeDir,
-    zludaRuntimeRoot,
   });
 
   return {
-    backend: options.backend,
+    backend,
     executable: runtimePath,
     runtimePath,
     label: `Koharu ${options.model}`,
@@ -259,11 +244,4 @@ function describeKoharuComputePolicy(
     return "Auto";
   }
   return backend === "cpu" ? "CpuOnly" : "PreferGpu";
-}
-
-function prependPathEntry(
-  currentPath: string | undefined,
-  entry: string,
-): string {
-  return [entry, currentPath].filter(Boolean).join(delimiter);
 }

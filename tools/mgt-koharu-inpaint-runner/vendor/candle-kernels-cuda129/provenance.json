@@ -2,7 +2,7 @@
   "crate": "candle-kernels",
   "version": "0.11.0",
   "source": "https://crates.io/crates/candle-kernels/0.11.0",
-  "patch": "Only declare pre-sm80 __hmax_nan/__hmin_nan fallbacks when CUDA is older than 12.9. CUDA 12.9 already declares them.",
+  "patch": "Only declare pre-sm80 __hmax_nan/__hmin_nan fallbacks when CUDA is older than 12.9. CUDA 12.9 already declares them. Replace __FILE__ in NO_DEVICE_CODE diagnostics with a stable source label so native objects do not disclose build-machine paths; track that header as a build input.",
   "validation": "CUDA 12.9 sm75 compilation and actual RTX 4090 AnimeText inference passed. GPU dtype is F32 because portable sm75 kernels do not implement BF16.",
   "licenses": ["LICENSE-MIT", "LICENSE-APACHE"]
 }

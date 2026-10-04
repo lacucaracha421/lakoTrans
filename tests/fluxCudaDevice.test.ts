@@ -26,6 +26,15 @@ const LAUNCH: FluxWorkerLaunchSpec = {
 };
 
 describe("Flux physical CUDA device binding", () => {
+  it("loads the pinned native runtime ahead of inherited CUDA directories", () => {
+    const env = buildFluxWorkerEnv({
+      ...LAUNCH,
+      args: ["--native-runtime", "runtime.json"],
+      env: { PATH: "managed-native-runtime" },
+    });
+    expect(env.PATH?.startsWith("managed-native-runtime")).toBe(true);
+    expect(env.PATH).not.toContain("cuda12.9");
+  });
   it("binds an automatic mixed-generation selection to the GPU owning the SM target", async () => {
     const cudaDevice = await resolveFluxCudaDevice(
       "cuda-native",

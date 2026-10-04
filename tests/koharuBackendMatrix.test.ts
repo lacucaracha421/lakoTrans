@@ -102,7 +102,11 @@ describe("Koharu backend contracts across GPU vendors and generations", () => {
       }));
       expect(
         await resolveKoharuBackendCandidates("auto", detectGpu, "win32"),
-      ).toEqual(backend === "cpu" ? ["cpu"] : [backend, "cpu"]);
+      ).toEqual(
+        backend === "cpu"
+          ? ["cpu"]
+          : [backend === "zluda-native" ? "rocm-native" : backend, "cpu"],
+      );
       expect(detectGpu).toHaveBeenCalledOnce();
     },
   );
@@ -127,7 +131,11 @@ describe("Koharu backend contracts across GPU vendors and generations", () => {
       const detectGpu = vi.fn(async () => null);
       expect(
         await resolveKoharuBackendCandidates(backend, detectGpu, "win32"),
-      ).toEqual(backend === "cpu" ? ["cpu"] : [backend, "cpu"]);
+      ).toEqual(
+        backend === "cpu"
+          ? ["cpu"]
+          : [backend === "zluda-native" ? "rocm-native" : backend, "cpu"],
+      );
       expect(detectGpu).not.toHaveBeenCalled();
     },
   );

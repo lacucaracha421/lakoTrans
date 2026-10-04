@@ -44,6 +44,7 @@ export async function prepareFluxWorkerLaunch(
     runtimeDir: options.runtimeDir,
     modelDir: options.modelDir,
     backend,
+    computeGpuIndex: options.computeGpuIndex,
     nvidiaComputeCapability:
       cudaDevice?.computeCapability ?? options.nvidiaComputeCapability,
     sm75Fp16Enabled: options.sm75Fp16Enabled,

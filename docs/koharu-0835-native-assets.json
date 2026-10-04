@@ -1,0 +1,220 @@
+{
+  "schema": 1,
+  "tag": "koharu-native-0.83.5-win-x64-r1",
+  "sourceCommit": "223cbdaeaabaf021739d128ee5364b186b51d19f",
+  "provenance": {
+    "koharu": "52bb4f55e2266f72c1523562a583c827ec191ceb",
+    "diffusion": "b68d58624d227682eb4b95ef8bcf569cd1311eb5",
+    "diffusionBuild": "scripts/build-native-diffusion-cpu.ps1; VS2022 x64, GGML_NATIVE=OFF, AVX2=ON, AVX512=OFF, AVX_VNNI=OFF, no CUDA/Vulkan dependency",
+    "cmake": {
+      "version": "4.4.3",
+      "url": "https://files.pythonhosted.org/packages/90/8c/e872d51e4cc7cd3fc159bd273baf5faab2de5a4f290e2728d14d551e0029/cmake-4.4.3-py3-none-win_amd64.whl",
+      "sha256": "708ad6b662ee89d3eb2eac02a1afba20ca653139cbe769fed046124d0c6bc050"
+    },
+    "libclang": {
+      "url": "https://files.pythonhosted.org/packages/0b/2d/3f480b1e1d31eb3d6de5e3ef641954e5c67430d5ac93b7fa7e07589576c7/libclang-18.1.1-py2.py3-none-win_amd64.whl",
+      "sha256": "4dd2d3b82fab35e2bf9ca717d7b63ac990a3519c7e312f19fa8e86dcc712f7fb",
+      "version": "18.1.1"
+    },
+    "msvcRedistributable": {
+      "url": "https://aka.ms/vc14/vc_redist.x64.exe",
+      "version": "14.51.36247.0",
+      "signature": "Microsoft Corporation, Valid",
+      "bytes": 18731856,
+      "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c",
+      "cabinets": [
+        {
+          "offset": 479744,
+          "size": 140070
+        },
+        {
+          "offset": 630000,
+          "size": 18091661
+        }
+      ]
+    },
+    "validation": [
+      {
+        "model": "lama-manga",
+        "backend": "cpu",
+        "ok": true
+      },
+      {
+        "model": "aot-inpainting",
+        "backend": "cpu",
+        "ok": true
+      },
+      {
+        "model": "flux-klein",
+        "backend": "cpu",
+        "ok": true
+      },
+      {
+        "model": "lama-manga",
+        "backend": "cuda",
+        "ok": true
+      },
+      {
+        "model": "aot-inpainting",
+        "backend": "cuda",
+        "ok": true
+      },
+      {
+        "model": "flux-klein",
+        "backend": "cuda",
+        "ok": true
+      }
+    ],
+    "windowsUnicodePaths": "UTF-8 activeCodePage process manifest; all six real-worker smokes used Korean absolute paths"
+  },
+  "assets": [
+    {
+      "name": "mgt-flux-klein-native-0.83.5-win-x64.zip",
+      "bytes": 3243118,
+      "sha256": "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+      "files": [
+        {
+          "name": "LICENSE-GPL",
+          "bytes": 35145,
+          "sha256": "c85052e14a10f60d36f63362e3ed5de573aaf1f687da513768b85ef4c1f1a0a6"
+        },
+        {
+          "name": "LICENSE-KOHARU-APACHE",
+          "bytes": 11558,
+          "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+        },
+        {
+          "name": "LICENSE-KOHARU-MIT",
+          "bytes": 1121,
+          "sha256": "a92cc3408cc6d9c5d17f417ac5c424d6c8148b2512f86d95fa7acf3c9e132547"
+        },
+        {
+          "name": "mgt-flux-klein.exe",
+          "bytes": 8439808,
+          "sha256": "219fbf182c85d8f7fed27dd87d1ae49028e66c36af28f9848055ab4025bbba27"
+        },
+        {
+          "name": "NOTICE.txt",
+          "bytes": 696,
+          "sha256": "c1b13af41e43a220ca01756e794be939ea985d25d5d9328c7b4e2d3163d20838"
+        }
+      ]
+    },
+    {
+      "name": "mgt-flux-klein-cpu-0.83.5-win-x64.zip",
+      "bytes": 3244240,
+      "sha256": "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e",
+      "files": [
+        {
+          "name": "LICENSE-GPL",
+          "bytes": 35145,
+          "sha256": "c85052e14a10f60d36f63362e3ed5de573aaf1f687da513768b85ef4c1f1a0a6"
+        },
+        {
+          "name": "LICENSE-KOHARU-APACHE",
+          "bytes": 11558,
+          "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+        },
+        {
+          "name": "LICENSE-KOHARU-MIT",
+          "bytes": 1121,
+          "sha256": "a92cc3408cc6d9c5d17f417ac5c424d6c8148b2512f86d95fa7acf3c9e132547"
+        },
+        {
+          "name": "mgt-flux-klein-cpu.exe",
+          "bytes": 8440832,
+          "sha256": "69cf265709f7093c4cf463dbb6ac15e299631e976254b6ab137f341cd020e773"
+        },
+        {
+          "name": "NOTICE.txt",
+          "bytes": 696,
+          "sha256": "c1b13af41e43a220ca01756e794be939ea985d25d5d9328c7b4e2d3163d20838"
+        }
+      ]
+    },
+    {
+      "name": "stable-diffusion-master-853-cpu-win-x64.zip",
+      "bytes": 22590910,
+      "sha256": "91ecf36a94007c17c8cd997b7c3d71c893b92ca6d1249e4c5a36f710c2f3fad3",
+      "files": [
+        {
+          "name": "LICENSE",
+          "bytes": 1082,
+          "sha256": "4e76049398df734a97db46f3bd4b5cbc460cb5f6bfaf737cdc3d6fbb8ab3de27"
+        },
+        {
+          "name": "LICENSE-GGML",
+          "bytes": 1099,
+          "sha256": "bcd8ec749126d45cb06737d0690295d73df4b6e7e194205bcf91190368f27285"
+        },
+        {
+          "name": "NOTICE.txt",
+          "bytes": 696,
+          "sha256": "c1b13af41e43a220ca01756e794be939ea985d25d5d9328c7b4e2d3163d20838"
+        },
+        {
+          "name": "stable-diffusion.dll",
+          "bytes": 54632448,
+          "sha256": "72652a1f9569b9ed7e4d164eb2b34dbeec7c0148570ccf82cbc7ef0da300828c"
+        }
+      ]
+    },
+    {
+      "name": "msvc-14.51.36247-native-win-x64.zip",
+      "bytes": 631189,
+      "sha256": "5dd740b84a0d315852b1e3e64c041a551b3adff3d0696c59354ffe7b7ca7f5cc",
+      "files": [
+        {
+          "name": "msvcp140_1.dll",
+          "bytes": 35768,
+          "sha256": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982"
+        },
+        {
+          "name": "msvcp140_2.dll",
+          "bytes": 274872,
+          "sha256": "d50d7883f20d1dc6191768d3746f52dd9cac89c346ffaed5be1f110c2f34a838"
+        },
+        {
+          "name": "msvcp140_atomic_wait.dll",
+          "bytes": 57792,
+          "sha256": "3d0cbfaa1bf3eecf5a3f4491d2960ee803cb994f30292c6adc4a07c498f60e2b"
+        },
+        {
+          "name": "msvcp140_codecvt_ids.dll",
+          "bytes": 31160,
+          "sha256": "8a65c7596ef2e6938731f5a1058e7e40145b6d97967cc649231a076b9a608d78"
+        },
+        {
+          "name": "msvcp140.dll",
+          "bytes": 643512,
+          "sha256": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca"
+        },
+        {
+          "name": "NOTICE.txt",
+          "bytes": 696,
+          "sha256": "c1b13af41e43a220ca01756e794be939ea985d25d5d9328c7b4e2d3163d20838"
+        },
+        {
+          "name": "vcomp140.dll",
+          "bytes": 212920,
+          "sha256": "95d4ce4a6802d1e18b5e0e1722cc30ea72ca7e033f83828f05c0b7b993fe7cbf"
+        },
+        {
+          "name": "vcruntime140_1.dll",
+          "bytes": 50112,
+          "sha256": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
+        },
+        {
+          "name": "vcruntime140_threads.dll",
+          "bytes": 38840,
+          "sha256": "40f39e8cee5f5a531b4010e18b807e8fe265b908dc58f959ecb7ebc6ea6cb11a"
+        },
+        {
+          "name": "vcruntime140.dll",
+          "bytes": 178616,
+          "sha256": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7"
+        }
+      ]
+    }
+  ]
+}

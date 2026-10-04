@@ -16,58 +16,60 @@ export const FLUX_VAE_REPO = "black-forest-labs/FLUX.2-small-decoder";
 
 export const FLUX_VAE_REVISION = "a3efc24f613ef42d9428af62fdbd6f5fd8856c4a";
 
-export const FLUX_VAE_FILE = "diffusion_pytorch_model.safetensors";
+export const FLUX_VAE_FILE = "full_encoder_small_decoder.safetensors";
 
 export const FLUX_VAE_SHA256 =
-  "d8d52ba036475f5fb07c8b435e176d3d97ebfa82f0d1a1c317f9cc1e25bd013b";
+  "ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62";
 
 export const FLUX_RUNNER_DIR = "mgt-flux-klein";
 
-const FLUX_CPU_RUNNER_CACHE_VERSION = "r1";
+const FLUX_CPU_RUNNER_CACHE_VERSION = "koharu-0.83.5-r1";
 export const FLUX_CPU_RUNNER_DIR = `mgt-flux-klein-cpu-${FLUX_CPU_RUNNER_CACHE_VERSION}`;
 export const FLUX_CPU_RUNTIME_EXECUTABLE = "mgt-flux-klein-cpu.exe";
 
-export const FLUX_CPU_RUNNER_RELEASE_TAG = "flux-runners-cpu-win-x64-r1";
-export const FLUX_CPU_RUNNER_ASSET_FILE = "mgt-flux-klein-cpu-win-x64.zip";
+export const FLUX_CPU_RUNNER_RELEASE_TAG = "koharu-native-0.83.5-win-x64-r1";
+export const FLUX_CPU_RUNNER_ASSET_FILE =
+  "mgt-flux-klein-cpu-0.83.5-win-x64.zip";
 export const FLUX_CPU_RUNNER_BASE_URL = `https://github.com/ucx0204/CarrotMangaTranslator/releases/download/${FLUX_CPU_RUNNER_RELEASE_TAG}`;
 export const FLUX_CPU_RUNNER_ARCHIVE_SHA256 =
-  "4eed6d48de73e4f7c9d3fb646cf99fa5147dcf145789ec864a6db2b25a413e87";
-export const FLUX_CPU_RUNNER_ARCHIVE_BYTES = 22_500_917;
+  "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e";
+export const FLUX_CPU_RUNNER_ARCHIVE_BYTES = 3244240;
 export const FLUX_CPU_RUNNER_EXECUTABLE_SHA256 =
-  "1ef326ed2335409844acb6c1d70f19758f57c2e666c5d91b07314557815d5818";
-export const FLUX_CPU_RUNNER_EXECUTABLE_BYTES = 36_676_608;
+  "69cf265709f7093c4cf463dbb6ac15e299631e976254b6ab137f341cd020e773";
+export const FLUX_CPU_RUNNER_EXECUTABLE_BYTES = 8440832;
 export const FLUX_CPU_RUNNER_MARKER = ".mgt-flux-cpu-runner.json";
 
-const FLUX_NVIDIA_RUNNER_RELEASE_TAG = "flux-runners-cuda12.9-r3";
+const FLUX_NVIDIA_RUNNER_RELEASE_TAG = "koharu-native-0.83.5-win-x64-r1";
 
 export const FLUX_NVIDIA_RUNNER_BASE_URL = `https://github.com/ucx0204/CarrotMangaTranslator/releases/download/${FLUX_NVIDIA_RUNNER_RELEASE_TAG}`;
 
 export const FLUX_NVIDIA_RUNNER_MARKER = ".mgt-flux-runner.json";
 
+// GPU kernels now live in the native runtime; all supported GPUs share one runner.
 export const FLUX_NVIDIA_RUNNER_ASSETS = {
   "75": {
-    fileName: "mgt-flux-klein-sm75-cuda12.9-win-x64.zip",
-    sha256: "2ea7520e65e165cbc6d1b68f078621cbf850d231ff0295b8355a97c3884d132c",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
   "80": {
-    fileName: "mgt-flux-klein-sm80-cuda12.9-win-x64.zip",
-    sha256: "6e48bcf36c27fd1c61b92d76533b3763ffa530f647d68a36960b992c65e49d2b",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
   "86": {
-    fileName: "mgt-flux-klein-sm86-cuda12.9-win-x64.zip",
-    sha256: "5139be04ecf1c9c5d8659a0fcce869a4176a6403a3a401e6130e44e29268f29f",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
   "89": {
-    fileName: "mgt-flux-klein-sm89-cuda12.9-win-x64.zip",
-    sha256: "37b54975db701869ebfddec2d0b94fca3c87291bddcda932f4e864e3782672d3",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
   "90": {
-    fileName: "mgt-flux-klein-sm90-cuda12.9-win-x64.zip",
-    sha256: "b54467516d7f132986c2d6ce9e33c045941facfe27705ce280d61e8792d562c2",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
   "120": {
-    fileName: "mgt-flux-klein-sm120-cuda12.9-win-x64.zip",
-    sha256: "dd55fa4adeca466da0c99febab1e98acfe9d68199e331fe3561dc2d72bfa10e2",
+    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
+    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
   },
 } as const;
 
@@ -141,6 +143,11 @@ export const FLUX_SDCPP_VAE_FILE = "full_encoder_small_decoder.safetensors";
 export const FLUX_SDCPP_LLM_REPO = "unsloth/Qwen3-4B-GGUF";
 
 export const FLUX_SDCPP_LLM_FILE = "Qwen3-4B-Q4_K_M.gguf";
+
+export const FLUX_SDCPP_LLM_REVISION =
+  "22c9fc8a8c7700b76a1789366280a6a5a1ad1120";
+export const FLUX_SDCPP_LLM_SHA256 =
+  "f6f851777709861056efcdad3af01da38b31223a3ba26e61a4f8bf3a2195813a";
 
 export const FLUX_ROCM_WINDOWS_VERSION = "7.2.1";
 

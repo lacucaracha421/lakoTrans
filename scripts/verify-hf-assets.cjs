@@ -139,12 +139,14 @@ const assets = [
     fluxConstants,
     "FLUX_VAE_REPO",
     "FLUX_SDCPP_VAE_FILE",
+    "FLUX_VAE_REVISION",
   ),
   sourceAsset(
     "Flux SDCPP LLM",
     fluxConstants,
     "FLUX_SDCPP_LLM_REPO",
     "FLUX_SDCPP_LLM_FILE",
+    "FLUX_SDCPP_LLM_REVISION",
   ),
   sourceAsset(
     "AOT config",

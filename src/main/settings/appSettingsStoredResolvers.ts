@@ -89,6 +89,7 @@ export function resolveStoredLlamaRocmTarget(
 }
 
 const NVIDIA_INCOMPATIBLE_FLUX_BACKENDS = new Set([
+  "rocm-native",
   "zluda-native",
   "zluda",
   "python-rocm",
@@ -143,7 +144,9 @@ export function resolveStoredKoharuInpaintingBackend(
   );
   if (
     process.platform === "darwin" &&
-    (requested === "cuda-native" || requested === "zluda-native")
+    (requested === "cuda-native" ||
+      requested === "zluda-native" ||
+      requested === "rocm-native")
   ) {
     return "auto";
   }
@@ -158,7 +161,7 @@ function resolveAmdStoredFluxBackend(
     return requested;
   }
   const defaultBackend = defaults.inpainting?.fluxBackend;
-  return defaultBackend === "cpu-native" ? "cpu-native" : "zluda-native";
+  return defaultBackend === "cpu-native" ? "cpu-native" : "rocm-native";
 }
 
 function resolveNvidiaStoredFluxBackend(

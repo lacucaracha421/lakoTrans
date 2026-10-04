@@ -10,6 +10,7 @@ export type FluxWorkerRequest = {
 
 export type FluxWorkerBackend =
   | "cuda-native"
+  | "rocm-native"
   | "zluda-native"
   | "metal-native"
   | "cpu-native"

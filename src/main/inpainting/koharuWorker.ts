@@ -158,7 +158,9 @@ export function buildKoharuWorkerEnv(
     ...launch.env,
     PATH: [
       launch.env?.PATH,
-      buildRuntimePathEnv(launch.executable, backend),
+      launch.args.includes("--native-runtime")
+        ? undefined
+        : buildRuntimePathEnv(launch.executable, backend),
       dirname(launch.executable),
       process.env.PATH,
     ]

@@ -7,6 +7,7 @@ fn main() -> Result<()> {
     println!("cargo::rerun-if-changed=src/compatibility.cuh");
     println!("cargo::rerun-if-changed=src/cuda_utils.cuh");
     println!("cargo::rerun-if-changed=src/binary_op_macros.cuh");
+    println!("cargo::rerun-if-changed=src/mmq_gguf/mmq_common.cuh");
 
     // Build for PTX
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -22,6 +23,7 @@ fn main() -> Result<()> {
     bindings.write(&ptx_path)?;
 
     let mut moe_builder = KernelBuilder::default()
+        .watch(["src/mmq_gguf/mmq_common.cuh"])
         .source_files(vec![
             "src/moe/moe_gguf.cu",
             "src/moe/moe_wmma.cu",

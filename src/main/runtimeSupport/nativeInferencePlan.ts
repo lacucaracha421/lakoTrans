@@ -1,0 +1,198 @@
+import catalog from "../runtime/native-inference-manifest.json";
+
+export type NativeInferenceEngine = "torch" | "diffusion" | "rocm-probe";
+export type NativeInferenceBackend = "cpu" | "cuda" | "rocm" | "metal";
+export type NativeInferencePackage = {
+  id: string;
+  url: string;
+  sha256: string;
+  bytes: number;
+  format: "zip" | "tar";
+  preservePaths: boolean;
+  only?: string[];
+};
+
+const CUDA_PACKAGES = [
+  "nvidia-cuda-runtime",
+  "nvidia-nvjitlink",
+  "nvidia-cuda-nvrtc",
+  "nvidia-cublas",
+  "nvidia-cufft",
+  "nvidia-curand",
+  "nvidia-cusparse",
+  "nvidia-cusolver",
+  "nvidia-cudnn-cu13",
+];
+const CUDA_LIBRARIES = [
+  "cudart64_13.dll",
+  "nvJitLink_130_0.dll",
+  "nvrtc-builtins64_133.dll",
+  "nvrtc64_130_0.dll",
+  "cublasLt64_13.dll",
+  "cublas64_13.dll",
+  "cufft64_12.dll",
+  "curand64_10.dll",
+  "cusparse64_12.dll",
+  "cusolver64_12.dll",
+  "cudnn64_9.dll",
+];
+const ROCM_CORE_LIBRARIES = [
+  "amd_comgr.dll",
+  "rocm_kpack.dll",
+  "rocm-openblas.dll",
+  "amdhip64_7.dll",
+  "hiprtc-builtins0715.dll",
+  "hiprtc0715.dll",
+].map((name) => `_rocm_sdk_core/bin/${name}`);
+const ROCM_LIBRARIES = [
+  "rocrand.dll",
+  "hiprand.dll",
+  "origami.dll",
+  "libhipblaslt.dll",
+  "rocblas.dll",
+  "hipblas.dll",
+  "rocfft.dll",
+  "hipfft.dll",
+  "rocsolver.dll",
+  "hipsolver.dll",
+  "rocsparse.dll",
+  "hipsparse.dll",
+  "MIOpen.dll",
+].map((name) => `_rocm_sdk_libraries/bin/${name}`);
+
+type PlanOptions = {
+  engine: NativeInferenceEngine;
+  backend: NativeInferenceBackend;
+  platform: NodeJS.Platform;
+  arch: string;
+  rocmTarget?: string;
+};
+type Plan = {
+  version: string;
+  packages: NativeInferencePackage[];
+  libraries: string[];
+  pathDirectories: string[];
+};
+
+function addPackage(plan: Plan, id: string, only?: string[]): void {
+  const value = (
+    catalog.packages as Record<string, Omit<NativeInferencePackage, "id">>
+  )[id];
+  if (!value) throw new Error(`지원하지 않는 네이티브 런타임 패키지: ${id}`);
+  plan.packages.push({ ...value, id, only });
+}
+
+export function nativeInferencePlan(options: PlanOptions): Plan {
+  const { engine, backend, platform, arch, rocmTarget } = options;
+  if (
+    engine === "rocm-probe" &&
+    `${platform}/${arch}/${backend}` !== "win32/x64/rocm"
+  ) {
+    throw new Error("ROCm probe requires Windows x64 and the ROCm backend");
+  }
+  const plan: Plan = {
+    version: `${catalog.version}-${platform}-${arch}-${backend}-${engine}-${rocmTarget ?? "generic"}`,
+    packages: [],
+    libraries: [],
+    pathDirectories: ["."],
+  };
+  if (
+    platform === "darwin" &&
+    arch === "arm64" &&
+    (backend === "metal" || backend === "cpu")
+  ) {
+    addPackage(plan, `${engine}-darwin-metal`);
+    plan.libraries.push(
+      ...(engine === "torch"
+        ? [
+            "libtorch.dylib",
+            "libtorch_global_deps.dylib",
+            "libtorch_cpu.dylib",
+            "libc10.dylib",
+            "libkoharu-torch.dylib",
+          ]
+        : ["libstable-diffusion.dylib"]),
+    );
+  } else if (platform === "win32" && arch === "x64" && backend !== "metal") {
+    addWindowsRuntime(plan, options);
+  } else {
+    throw new Error(
+      `지원하지 않는 네이티브 런타임: ${platform}/${arch}/${backend}`,
+    );
+  }
+  return plan;
+}
+
+function addWindowsRuntime(plan: Plan, options: PlanOptions): void {
+  const { engine, backend } = options;
+  addPackage(plan, "msvc-win32");
+  plan.libraries.push(
+    "vcruntime140.dll",
+    "vcruntime140_1.dll",
+    "vcruntime140_threads.dll",
+    "msvcp140.dll",
+    "msvcp140_1.dll",
+    "msvcp140_2.dll",
+    "msvcp140_atomic_wait.dll",
+    "msvcp140_codecvt_ids.dll",
+    "vcomp140.dll",
+  );
+  if (engine === "rocm-probe") {
+    addPackage(plan, "rocm-core");
+    plan.libraries.push(...ROCM_CORE_LIBRARIES);
+    plan.pathDirectories.push("_rocm_sdk_core/bin");
+    plan.version = `${catalog.version}-win32-x64-rocm-probe`;
+    return;
+  }
+  if (engine === "torch") {
+    addPackage(
+      plan,
+      "torch-win32-cpu",
+      backend === "cpu" ? undefined : ["libiomp5md.dll"],
+    );
+    plan.libraries.push("libiomp5md.dll");
+  }
+  addWindowsAccelerator(plan, options);
+  if (!(engine === "torch" && backend === "cpu"))
+    addPackage(plan, `${engine}-win32-${backend}`);
+  if (engine === "diffusion") plan.libraries.push("stable-diffusion.dll");
+  else addTorchLibraries(plan, backend);
+}
+
+function addWindowsAccelerator(
+  plan: Plan,
+  { backend, rocmTarget }: PlanOptions,
+): void {
+  if (backend === "cuda") {
+    for (const id of CUDA_PACKAGES) addPackage(plan, id);
+    plan.libraries.push(...CUDA_LIBRARIES);
+  } else if (backend === "rocm") {
+    if (!rocmTarget || !/^gfx[0-9a-f]+$/.test(rocmTarget))
+      throw new Error(
+        "ROCm 런타임에는 선택한 GPU의 정확한 gfx 대상이 필요합니다.",
+      );
+    for (const id of [
+      "rocm-core",
+      "rocm-libraries",
+      `rocm-device-${rocmTarget}`,
+    ])
+      addPackage(plan, id);
+    plan.libraries.push(...ROCM_CORE_LIBRARIES, ...ROCM_LIBRARIES);
+    plan.pathDirectories.push("_rocm_sdk_core/bin", "_rocm_sdk_libraries/bin");
+  }
+}
+
+function addTorchLibraries(plan: Plan, backend: NativeInferenceBackend): void {
+  plan.libraries.push("c10.dll");
+  if (backend !== "cpu")
+    plan.libraries.push(
+      backend === "cuda" ? "c10_cuda.dll" : "c10_hip.dll",
+      "caffe2_nvrtc.dll",
+    );
+  plan.libraries.push("torch_global_deps.dll", "torch_cpu.dll");
+  if (backend !== "cpu")
+    plan.libraries.push(
+      backend === "cuda" ? "torch_cuda.dll" : "torch_hip.dll",
+    );
+  plan.libraries.push("torch.dll", "koharu-torch.dll");
+}

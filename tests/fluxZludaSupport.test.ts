@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { resolveWindowsHipSdkGpuSupport } from "../src/main/settings/fluxZludaSupport";
+import { resolveNativeRocmGpuSupport } from "../src/main/settings/fluxZludaSupport";
 
-describe("Windows HIP SDK GPU support classification", () => {
+describe("Native ROCm package availability", () => {
   it.each([
     ["AMD Radeon RX 7900 XTX", undefined],
     ["AMD Radeon RX 7600", undefined],
@@ -10,18 +10,21 @@ describe("Windows HIP SDK GPU support classification", () => {
     ["AMD Ryzen AI Max+ 395", undefined],
     ["Unknown AMD adapter", "gfx1102"],
     ["Unknown AMD adapter", "gfx1150"],
-  ])("marks %s (%s) as officially supported", (name, rocmArch) => {
-    expect(
-      resolveWindowsHipSdkGpuSupport({
-        name,
-        memoryMb: 12_288,
-        rtxGeneration: null,
-        computeCapability: null,
-        vendor: "amd",
-        rocmArch,
-      }),
-    ).toBe(true);
-  });
+  ])(
+    "marks %s (%s) as covered by a native device package",
+    (name, rocmArch) => {
+      expect(
+        resolveNativeRocmGpuSupport({
+          name,
+          memoryMb: 12_288,
+          rtxGeneration: null,
+          computeCapability: null,
+          vendor: "amd",
+          rocmArch,
+        }),
+      ).toBe(true);
+    },
+  );
 
   it.each([
     ["AMD Radeon RX 6700 XT", undefined],
@@ -30,22 +33,25 @@ describe("Windows HIP SDK GPU support classification", () => {
     ["AMD Radeon PRO W6800", undefined],
     ["AMD Radeon 780M", "gfx1103"],
     ["AMD Radeon RX 7700S", undefined],
-  ])("marks %s (%s) as officially unsupported", (name, rocmArch) => {
-    expect(
-      resolveWindowsHipSdkGpuSupport({
-        name,
-        memoryMb: 12_288,
-        rtxGeneration: null,
-        computeCapability: null,
-        vendor: "amd",
-        rocmArch,
-      }),
-    ).toBe(false);
-  });
+  ])(
+    "marks %s (%s) as covered after the native ROCm migration",
+    (name, rocmArch) => {
+      expect(
+        resolveNativeRocmGpuSupport({
+          name,
+          memoryMb: 12_288,
+          rtxGeneration: null,
+          computeCapability: null,
+          vendor: "amd",
+          rocmArch,
+        }),
+      ).toBe(true);
+    },
+  );
 
   it("leaves unidentifiable adapters unknown instead of showing a false warning", () => {
     expect(
-      resolveWindowsHipSdkGpuSupport({
+      resolveNativeRocmGpuSupport({
         name: "AMD Radeon Graphics",
         memoryMb: null,
         rtxGeneration: null,
@@ -54,7 +60,7 @@ describe("Windows HIP SDK GPU support classification", () => {
       }),
     ).toBeUndefined();
     expect(
-      resolveWindowsHipSdkGpuSupport({
+      resolveNativeRocmGpuSupport({
         name: "NVIDIA GeForce RTX 4090",
         memoryMb: 24_576,
         rtxGeneration: 40,

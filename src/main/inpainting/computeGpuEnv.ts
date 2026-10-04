@@ -42,6 +42,7 @@ function resolveGpuIsolationKey(
   if (
     backend === "rocm-transformers" ||
     backend === "python-rocm" ||
+    backend === "rocm-native" ||
     backend === "zluda-native"
   ) {
     return platform === "win32"

@@ -16,6 +16,10 @@ import {
   FLUX_VAE_REPO,
   FLUX_VAE_REVISION,
   FLUX_VAE_SHA256,
+  FLUX_SDCPP_LLM_FILE,
+  FLUX_SDCPP_LLM_REPO,
+  FLUX_SDCPP_LLM_REVISION,
+  FLUX_SDCPP_LLM_SHA256,
 } from "./inpainting/fluxAssets/constants";
 import {
   ensureRemoteFile,
@@ -62,12 +66,13 @@ export async function prepareFluxInpaintingEngine(
   const launch = await prepareFluxWorkerLaunch(options);
   let modelPath: string | undefined;
   let vaePath: string | undefined;
+  let textEncoderPath: string | undefined;
   if (usesManagedFluxModelAssets(launch.backend)) {
     const download = createCombinedDownloadProgress(
       options.onProgress,
       tMain("inpainting.assets.fluxModel"),
     );
-    [modelPath, vaePath] = await Promise.all([
+    [modelPath, vaePath, textEncoderPath] = await Promise.all([
       ensureRemoteFile({
         ...options,
         onProgress: download.forFile(),
@@ -90,6 +95,19 @@ export async function prepareFluxInpaintingEngine(
         expectedSha256: FLUX_VAE_SHA256,
         maximumBytes: MAX_REMOTE_SUPPORT_ASSET_BYTES,
       }),
+      ensureRemoteFile({
+        ...options,
+        onProgress: download.forFile(),
+        fileName: FLUX_SDCPP_LLM_FILE,
+        label: "Qwen3 4B text encoder",
+        url: hfResolveUrl(
+          FLUX_SDCPP_LLM_REPO,
+          FLUX_SDCPP_LLM_FILE,
+          FLUX_SDCPP_LLM_REVISION,
+        ),
+        expectedSha256: FLUX_SDCPP_LLM_SHA256,
+        maximumBytes: MAX_REMOTE_SUPPORT_ASSET_BYTES,
+      }),
     ]);
     launch.args = [
       ...launch.args,
@@ -97,6 +115,8 @@ export async function prepareFluxInpaintingEngine(
       modelPath,
       "--vae-path",
       vaePath,
+      "--text-encoder-path",
+      textEncoderPath,
       "--steps",
       "4",
       "--strength",
@@ -130,9 +150,13 @@ function reportFluxEngineReady(
 }
 
 function usesManagedFluxModelAssets(backend: string): boolean {
-  return ["cuda-native", "zluda-native", "metal-native", "cpu-native"].includes(
-    backend,
-  );
+  return [
+    "cuda-native",
+    "rocm-native",
+    "zluda-native",
+    "metal-native",
+    "cpu-native",
+  ].includes(backend);
 }
 
 export async function applyInpaintingRetouch(

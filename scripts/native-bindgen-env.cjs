@@ -4,7 +4,8 @@ const { dirname, join } = require("node:path");
 const { execFileSync } = require("node:child_process");
 
 /** Use an existing or explicitly isolated libclang; never install a system tool.
- * @param {NodeJS.ProcessEnv} [environment] */
+ * @param {NodeJS.ProcessEnv} [environment]
+ * @returns {NodeJS.ProcessEnv} */
 function nativeBindgenEnv(environment = process.env) {
   if (environment.LIBCLANG_PATH) return { ...environment };
   let directory;

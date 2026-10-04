@@ -339,8 +339,8 @@ export function resolveCompatibleFluxBackend(
     return usesSm75Hardware ? "cuda-sm75-experimental" : "cuda-native";
   }
   if (!usesAmdHardware) return backend;
-  if (backend === "cpu-native" || backend === "zluda-native") return backend;
-  return initialBackend === "cpu-native" ? "cpu-native" : "zluda-native";
+  if (backend === "cpu-native" || backend === "rocm-native") return backend;
+  return initialBackend === "cpu-native" ? "cpu-native" : "rocm-native";
 }
 
 function isNvidiaCudaFluxBackend(backend: FluxBackend): boolean {
@@ -357,7 +357,7 @@ export function isFluxBackendIncompatible(
   }
   if (runtime.usesAmdHardware) return isNvidiaCudaFluxBackend(backend);
   if (runtime.usesNvidiaHardware) {
-    if (backend === "zluda-native") return true;
+    if (backend === "rocm-native") return true;
     if (backend === "cuda-native") return runtime.usesSm75Hardware;
     if (backend === "cuda-sm75-experimental") {
       return !runtime.usesSm75Hardware;

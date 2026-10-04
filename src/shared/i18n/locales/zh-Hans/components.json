@@ -1938,13 +1938,13 @@
           "label": "SM75 CUDA",
           "description": "面向 RTX 20 系列（SM 7.5）的 FP16 CUDA 兼容路径。"
         },
-        "zluda": {
-          "label": "AMD ZLUDA",
-          "description": "在AMD GPU上通过ZLUDA运行Flux，需要AMD HIP SDK。"
-        },
         "cpu": {
           "label": "CPU",
           "description": "不使用 Python 或 Diffusers 的纯 CPU Flux 兼容模式。每页可能需要数分钟以上；实际 CPU 修复建议使用 LaMa 或 AOT。"
+        },
+        "rocm": {
+          "label": "AMD ROCm",
+          "description": "在 AMD GPU 上运行 ROCm 10 原生引擎。应用会自动准备所需运行时。"
         }
       },
       "inpaintingModels": {
@@ -2215,8 +2215,8 @@
       "fluxLowMemoryOverride": "允许在{{available}}统一内存下风险运行Flux",
       "sm75FluxWarningTitle": "仅限 RTX 20 系列",
       "sm75FluxWarningDetail": "其行为或结果可能与标准 NVIDIA CUDA 略有不同。",
-      "fluxAmdUnsupportedTitle": "AMD官方未支持的GPU",
-      "fluxAmdUnsupportedDetail": "{{gpu}}不在AMD当前Windows HIP SDK官方支持列表中。仍可实验性选择ZLUDA，但运行时可能失败。",
+      "fluxAmdUnsupportedTitle": "需要确认 AMD GPU 运行时兼容性",
+      "fluxAmdUnsupportedDetail": "未能确认 {{gpu}} 对应的 ROCm 运行时。启动时将再次检查 GPU 兼容性。",
       "fluxAmdUseCpu": "切换到CPU后端",
       "downloadHipSdk": "下载AMD HIP SDK",
       "openLinkFailed": "无法打开链接。请检查默认浏览器。",
@@ -2225,9 +2225,9 @@
       "fluxRequirements": {
         "cuda-native": "需要 SM75 以外的 NVIDIA GPU",
         "cuda-sm75-experimental": "仅限 RTX 20 / GTX 16 (SM75)",
-        "zluda-native": "需要 AMD GPU",
         "cpu-native": "无需 GPU · 较慢",
-        "metal-native": "需要 Apple Silicon"
+        "metal-native": "需要 Apple Silicon",
+        "rocm-native": "需要 AMD GPU"
       },
       "ocrRequirements": {
         "cuda": "需要 NVIDIA GPU",

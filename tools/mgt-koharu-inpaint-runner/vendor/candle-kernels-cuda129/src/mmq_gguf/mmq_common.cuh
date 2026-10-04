@@ -334,7 +334,8 @@ static __device__ void no_device_code(
 }
 
 #ifdef __CUDA_ARCH__
-#define NO_DEVICE_CODE no_device_code(__FILE__, __LINE__, __FUNCTION__, __CUDA_ARCH__, STRINGIZE(__CUDA_ARCH_LIST__))
+// Keep the diagnostic source identity without embedding the build host's home path.
+#define NO_DEVICE_CODE no_device_code("candle-kernels/mmq_gguf", __LINE__, __FUNCTION__, __CUDA_ARCH__, STRINGIZE(__CUDA_ARCH_LIST__))
 #else
 #define NO_DEVICE_CODE
 #endif

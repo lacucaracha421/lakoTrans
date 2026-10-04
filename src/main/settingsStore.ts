@@ -14,7 +14,7 @@ import {
 } from "./appSettings";
 import { CURRENT_GENERATION_LIMITS_VERSION } from "./settings/appSettingsGenerationLimitMigration";
 import { supportsWindowsRocmOcrGpu } from "./settings/ocrRocmSupport";
-import { resolveWindowsHipSdkGpuSupport } from "./settings/fluxZludaSupport";
+import { resolveNativeRocmGpuSupport } from "./settings/fluxZludaSupport";
 import {
   detectBestGpuInfo,
   resolveAmdRocmTargetFromInfo,
@@ -283,7 +283,7 @@ function createDetectedRuntimeHardware(
     ...(detectedGpu.vendor === "amd"
       ? {
           supportsOcrRocm: supportsWindowsRocmOcrGpu(detectedGpu),
-          supportsFluxZluda: resolveWindowsHipSdkGpuSupport(detectedGpu),
+          supportsFluxZluda: resolveNativeRocmGpuSupport(detectedGpu),
         }
       : {}),
     supportsRocm: Boolean(detectedGpu.supportsRocm),

@@ -22,6 +22,7 @@ const APP_RUNTIME_MODULE_FILES = {
   runtimePaths: "simple-page-runtime-paths.cjs",
   simplePage: "simple-page-translate.cjs",
   zipExtractor: "simple-page-zip-utils.cjs",
+  tarExtractor: "simple-page-tar-utils.cjs",
 } as const;
 
 export type AppRuntimeModuleId = keyof typeof APP_RUNTIME_MODULE_FILES;

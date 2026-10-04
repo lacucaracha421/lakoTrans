@@ -1938,13 +1938,13 @@
           "label": "SM75 CUDA",
           "description": "RTX 20シリーズ（SM 7.5）向けのFP16 CUDA互換パスです。"
         },
-        "zluda": {
-          "label": "AMD ZLUDA",
-          "description": "AMD GPUでFluxをZLUDA経由で実行します。AMD HIP SDKが必要です。"
-        },
         "cpu": {
           "label": "CPU",
           "description": "PythonやDiffusersを使わないCPU専用Flux互換モードです。1ページに数分以上かかる場合があるため、実用的なCPU修復にはLaMaまたはAOTを推奨します。"
+        },
+        "rocm": {
+          "label": "AMD ROCm",
+          "description": "AMD GPUでROCm 10ネイティブエンジンを実行します。必要なランタイムはアプリが自動で準備します。"
         }
       },
       "inpaintingModels": {
@@ -2215,8 +2215,8 @@
       "fluxLowMemoryOverride": "ユニファイドメモリ{{available}}で危険なFlux実行を許可",
       "sm75FluxWarningTitle": "RTX 20シリーズ専用",
       "sm75FluxWarningDetail": "通常のNVIDIA CUDAとは動作や結果が少し異なる場合があります。",
-      "fluxAmdUnsupportedTitle": "AMDの公式サポート対象外GPU",
-      "fluxAmdUnsupportedDetail": "{{gpu}}は現在のWindows HIP SDK公式サポート一覧に含まれていません。ZLUDAを実験的に選択できますが、実行時エラーが発生する可能性があります。",
+      "fluxAmdUnsupportedTitle": "AMD GPU ランタイムの互換性を確認してください",
+      "fluxAmdUnsupportedDetail": "{{gpu}}に対応するROCmランタイムを確認できませんでした。実行時にGPU互換性を再確認します。",
       "fluxAmdUseCpu": "CPUバックエンドに切り替える",
       "downloadHipSdk": "AMD HIP SDKをダウンロード",
       "openLinkFailed": "リンクを開けませんでした。既定のブラウザーを確認してください。",
@@ -2225,9 +2225,9 @@
       "fluxRequirements": {
         "cuda-native": "SM75 以外の NVIDIA GPU が必要",
         "cuda-sm75-experimental": "RTX 20 / GTX 16 (SM75) 専用",
-        "zluda-native": "AMD GPU が必要",
         "cpu-native": "GPU 不要 · 低速",
-        "metal-native": "Apple Silicon が必要"
+        "metal-native": "Apple Silicon が必要",
+        "rocm-native": "AMD GPU が必要"
       },
       "ocrRequirements": {
         "cuda": "NVIDIA GPU が必要",

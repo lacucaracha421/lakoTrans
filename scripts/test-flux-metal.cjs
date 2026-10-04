@@ -3,7 +3,7 @@
 
 const { spawnSync } = require("node:child_process");
 const { join } = require("node:path");
-const { patchCandleMetalQMatMul } = require("./patch-candle-metal-qmatmul.cjs");
+const { nativeBindgenEnv } = require("./native-bindgen-env.cjs");
 
 const root = join(__dirname, "..");
 const runnerManifest = join(
@@ -12,12 +12,10 @@ const runnerManifest = join(
   "mgt-flux-klein-runner",
   "Cargo.toml",
 );
-const attentionManifest = join(
+const imageProcessingManifest = join(
   root,
   "tools",
-  "mgt-flux-klein-runner",
-  "vendor",
-  "candle-nn-metal-attention",
+  "runner-image-processing",
   "Cargo.toml",
 );
 const runtimePolicyManifest = join(
@@ -32,9 +30,8 @@ function cargo(args) {
   const result = spawnSync("cargo", args, {
     cwd: root,
     env: {
-      ...process.env,
+      ...nativeBindgenEnv(),
       CANDLE_METAL_XCODE: "1",
-      LLAMA_CPP_TAG: process.env.LLAMA_CPP_TAG || "b-mgt-unused",
     },
     stdio: "inherit",
     shell: false,
@@ -52,8 +49,7 @@ function main() {
     throw new Error("Flux Metal tests require an Apple Silicon Mac.");
   }
 
-  patchCandleMetalQMatMul({ cwd: root, manifestPath: runnerManifest });
-  cargo(["test", "--manifest-path", runtimePolicyManifest, "--offline"]);
+  cargo(["test", "--manifest-path", runtimePolicyManifest, "--locked"]);
   cargo([
     "test",
     "--manifest-path",
@@ -68,9 +64,8 @@ function main() {
   cargo([
     "test",
     "--manifest-path",
-    attentionManifest,
-    "--features",
-    "metal",
+    imageProcessingManifest,
+    "--locked",
     "--",
     "--test-threads=1",
   ]);

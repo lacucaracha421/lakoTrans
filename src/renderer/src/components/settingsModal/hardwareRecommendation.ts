@@ -56,7 +56,7 @@ export function resolveHardwareRecommendation(
     const recommendation = createGpuRecommendation(
       props,
       "rocm-transformers",
-      props.supportsFluxZluda === true ? "zluda-native" : "cpu-native",
+      props.supportsFluxZluda === true ? "rocm-native" : "cpu-native",
     );
     return props.supportsOcrRocm === true
       ? recommendation

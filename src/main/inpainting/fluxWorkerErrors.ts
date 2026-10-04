@@ -168,7 +168,7 @@ function buildPythonRuntimeExitError(
   code: number | null,
   backend: FluxWorkerBackend,
 ): Error | null {
-  if (backend === "python-rocm") {
+  if (backend === "python-rocm" || backend === "rocm-native") {
     return buildPythonRocmRuntimeExitError(stderr, detail, code);
   }
   if (backend === "python-cpu") {
@@ -250,7 +250,7 @@ function buildCudaRuntimeExitError(
   }
   if (isFluxBlackwellRuntimeError(stderr)) {
     return new Error(
-      `RTX 50번대/Blackwell에서 Flux CUDA 커널 실행에 실패했습니다. Flux는 앱이 준비한 CUDA 12.9/cuDNN 9.21 런타임만 사용해야 합니다. 앱을 최신 설치 파일로 업데이트하고 Flux 런타임 캐시를 다시 준비하세요. ${detail}`,
+      `Flux 네이티브 CUDA 커널 실행에 실패했습니다. 앱이 준비한 CUDA 13.3/cuDNN 9.25 런타임과 NVIDIA 드라이버의 호환성을 확인하세요. ${detail}`,
     );
   }
   if (isFluxInvalidPtxRuntimeError(stderr)) {
@@ -308,7 +308,7 @@ function buildCudaNativeWorkerResponseError(
     return null;
   }
   return new Error(
-    `Flux CUDA 커널/심볼을 현재 NVIDIA GPU에서 찾지 못했습니다. 배포된 Flux 실행 파일이 이 GPU의 compute capability와 맞지 않거나 앱 데이터의 Flux runner 캐시가 오래됐을 수 있습니다. 최신 설치 파일로 업데이트한 뒤 Flux runner 캐시를 갱신하세요. RTX 30번대/Ampere 계열은 sm86용 Flux 실행 파일이 필요합니다. 원인=${message}${detail ? ` ${detail}` : ""}`,
+    `Flux CUDA 커널/심볼을 현재 NVIDIA GPU에서 찾지 못했습니다. 앱이 준비한 CUDA 13.3 네이티브 런타임과 NVIDIA 드라이버의 호환성을 확인하세요. 원인=${message}${detail ? ` ${detail}` : ""}`,
   );
 }
 

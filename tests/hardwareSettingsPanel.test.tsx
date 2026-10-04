@@ -26,12 +26,8 @@ function HardwareSettingsPanel(
   );
 }
 
-import { createTestMangaGatewayStub } from "../src/renderer/src/api/mangaGateway";
 import { RuntimeHardwareNote } from "../src/renderer/src/components/settingsModal/GemmaMemorySummary";
-import {
-  AmdHipSdkDownloadButton,
-  FluxHardwareContextNote,
-} from "../src/renderer/src/components/settingsModal/HardwareContextNotes";
+import { FluxHardwareContextNote } from "../src/renderer/src/components/settingsModal/HardwareContextNotes";
 import { resolveHardwareRecommendation } from "../src/renderer/src/components/settingsModal/hardwareRecommendation";
 import { OCR_FULL_RECOMMENDED_GPU_MEMORY_MB } from "../src/shared/ocrMemoryPolicy";
 
@@ -90,8 +86,6 @@ describe("HardwareSettingsPanel", () => {
   });
 
   it("omits generic Flux runtime context notes outside Apple Silicon", () => {
-    const openAmdHipSdkDownload = vi.fn().mockResolvedValue(undefined);
-    window.mangaApi = createTestMangaGatewayStub({ openAmdHipSdkDownload });
     const { container, rerender } = render(
       <RuntimeHardwareNote usesAppleHardware={false} />,
     );
@@ -102,10 +96,6 @@ describe("HardwareSettingsPanel", () => {
 
     rerender(<FluxHardwareContextNote usesAppleHardware />);
     expect(container.textContent).toContain("Apple Silicon");
-
-    rerender(<AmdHipSdkDownloadButton />);
-    fireEvent.click(screen.getByRole("button"));
-    expect(openAmdHipSdkDownload).toHaveBeenCalledOnce();
   });
 
   it("keeps OCR on CPU for detected AMD adapters outside the ROCm allowlist", () => {

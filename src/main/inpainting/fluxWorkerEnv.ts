@@ -25,7 +25,12 @@ export function buildFluxWorkerEnv(
   const launchPath = launch.env?.PATH;
   const env: NodeJS.ProcessEnv = {
     ...launch.env,
-    PATH: [buildRuntimePathEnv(launch.executable, launch.backend), launchPath]
+    PATH: [
+      launchPath,
+      launch.args.includes("--native-runtime")
+        ? dirname(launch.executable)
+        : buildRuntimePathEnv(launch.executable, launch.backend),
+    ]
       .filter(Boolean)
       .join(delimiter),
     PYTHONIOENCODING: "utf-8",

@@ -1,9 +1,5 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { settingsGateway } from "../../api/settingsGateway";
-import { toast } from "../../lib/toastStore";
-import { formatSettingsErrorMessage } from "../settingsModalHelpers";
-import { Button } from "../ui/Button";
 
 export function FluxHardwareContextNote({
   usesAppleHardware,
@@ -19,27 +15,4 @@ export function FluxHardwareContextNote({
     );
   }
   return null;
-}
-
-export function AmdHipSdkDownloadButton(): React.JSX.Element {
-  const { t } = useTranslation("components");
-  return (
-    <Button
-      type="button"
-      className="settings-external-link"
-      onClick={() => {
-        void settingsGateway.openAmdHipSdkDownload().catch((error) => {
-          toast.error(
-            formatSettingsErrorMessage(
-              error,
-              t("settings.hardware.openLinkFailed"),
-            ),
-          );
-        });
-      }}
-      variant="bare"
-    >
-      {t("settings.hardware.downloadHipSdk")}
-    </Button>
-  );
 }

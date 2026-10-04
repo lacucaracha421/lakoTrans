@@ -306,7 +306,7 @@ describe("Apple Silicon Alpha packaging", () => {
       join(repoRoot, "tools", "mgt-flux-klein-runner", "Cargo.toml"),
     ]) {
       expect(readFileSync(manifest, "utf8")).toContain(
-        'rev = "0d640615d435a399bc195c892de8f5d17efb68f8"',
+        'rev = "52bb4f55e2266f72c1523562a583c827ec191ceb"',
       );
     }
   });

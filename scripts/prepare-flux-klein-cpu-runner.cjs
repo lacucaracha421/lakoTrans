@@ -28,9 +28,13 @@ if (!existsSync(manifestPath)) {
 }
 
 if (!forceRebuild && isUsableRunner(outputPath)) {
-  assertCpuOnlyCapabilities(outputPath);
-  console.log(`Flux CPU-only runner already exists: ${outputPath}`);
-  process.exit(0);
+  try {
+    assertCpuOnlyCapabilities(outputPath);
+    console.log(`Flux CPU-only runner already exists: ${outputPath}`);
+    process.exit(0);
+  } catch (error) {
+    console.log(`Rebuilding an incompatible CPU runner: ${String(error)}`);
+  }
 }
 
 const cargoArgs = [

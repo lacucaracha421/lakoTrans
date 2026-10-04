@@ -6,12 +6,14 @@ type LocalRunnerSourceShape = {
   path: string;
 };
 
-export function resolveBundledSm75AliasSource<T extends LocalRunnerSourceShape>(
+export function resolveBundledNativeRunnerSource<
+  T extends LocalRunnerSourceShape,
+>(
   computeCapability: string,
   targetDirName: string,
   generic: T | null,
 ): T | null {
-  if (computeCapability !== "75" || !generic) return null;
+  if (!computeCapability || !generic) return null;
   return {
     ...generic,
     dirName: targetDirName,

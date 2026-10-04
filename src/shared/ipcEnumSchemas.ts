@@ -38,6 +38,7 @@ export const FluxBackendSchema = z.preprocess(
   z.enum([
     "cuda-native",
     "cuda-sm75-experimental",
+    "rocm-native",
     "zluda-native",
     "metal-native",
     "cpu-native",
@@ -51,7 +52,14 @@ export const InpaintingModelSchema = z.preprocess(
 
 export const KoharuInpaintingBackendSchema = z.preprocess(
   (value) => canonicalizeKoharuInpaintingBackend(value, "ipc") ?? value,
-  z.enum(["auto", "cuda-native", "zluda-native", "metal-native", "cpu"]),
+  z.enum([
+    "auto",
+    "cuda-native",
+    "rocm-native",
+    "zluda-native",
+    "metal-native",
+    "cpu",
+  ]),
 );
 
 export const OcrGpuBackendSchema = z.preprocess(

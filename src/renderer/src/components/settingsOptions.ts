@@ -320,9 +320,9 @@ export const FLUX_BACKEND_OPTIONS: FluxBackendOption[] = [
     descriptionKey: "settings.options.fluxBackends.sm75.description",
   },
   {
-    id: "zluda-native",
-    labelKey: "settings.options.fluxBackends.zluda.label",
-    descriptionKey: "settings.options.fluxBackends.zluda.description",
+    id: "rocm-native",
+    labelKey: "settings.options.fluxBackends.rocm.label",
+    descriptionKey: "settings.options.fluxBackends.rocm.description",
   },
   {
     id: "cpu-native",

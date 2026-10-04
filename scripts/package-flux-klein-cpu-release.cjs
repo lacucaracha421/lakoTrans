@@ -20,6 +20,8 @@ const AdmZip = require("adm-zip");
 const yazl = require("yazl");
 
 const root = join(__dirname, "..");
+// Legacy single-executable contract. Native 0.83.5 assets include licenses and
+// use package-native-inference-release.cjs with an explicit new release config.
 const defaultReleaseTag = "flux-runners-cpu-win-x64-r1";
 const archiveFileName = "mgt-flux-klein-cpu-win-x64.zip";
 const executableFileName = "mgt-flux-klein-cpu.exe";
@@ -277,6 +279,11 @@ function assertArchivedCpuRunner(executable) {
 /** @param {string} path */
 function assertCpuOnlyRunner(path) {
   const capabilities = runJsonProbe(path, ["--capabilities"]);
+  if (capabilities?.engine === "koharu-diffusion-0.83.5") {
+    throw new Error(
+      "Use scripts/package-native-inference-release.cjs for native 0.83.5 assets and their license inventory.",
+    );
+  }
   if (
     capabilities?.backend !== "cpu-native" ||
     capabilities?.cpu_only !== true ||

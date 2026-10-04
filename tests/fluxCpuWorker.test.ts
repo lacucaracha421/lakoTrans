@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -24,6 +24,15 @@ import {
   FLUX_CPU_RUNNER_RELEASE_TAG,
   FLUX_CUDA_RUNTIME_DIR,
 } from "../src/main/inpainting/fluxAssets/constants";
+
+import { prepareNativeInferenceLaunch } from "../src/main/runtimeSupport/nativeInferenceLaunch";
+vi.mock("../src/main/runtimeSupport/nativeInferenceLaunch", () => ({
+  prepareNativeInferenceLaunch: vi.fn(async (options) => ({
+    executable: options.executable,
+    manifest: join(options.runtimeDir, "diffusion-test.json"),
+    env: { PATH: "managed-native-runtime" },
+  })),
+}));
 
 const describeWindows = process.platform === "win32" ? describe : describe.skip;
 const tempDirs: string[] = [];
@@ -67,7 +76,7 @@ describeWindows("Flux CPU worker runtime", () => {
 
     expect(launch).toMatchObject({
       backend: "cpu-native",
-      args: [],
+      args: ["--native-runtime", join(runtimeDir, "diffusion-test.json")],
       label: "Flux Klein CPU (매우 느린 호환 모드)",
     });
     expect(launch.executable).toBe(
@@ -75,6 +84,9 @@ describeWindows("Flux CPU worker runtime", () => {
     );
     expect(readFileSync(launch.executable, "utf8")).toBe("cpu-only-runner");
     expect(existsSync(join(runtimeDir, FLUX_CUDA_RUNTIME_DIR))).toBe(false);
+    expect(prepareNativeInferenceLaunch).toHaveBeenCalledWith(
+      expect.objectContaining({ backend: "cpu", engine: "diffusion" }),
+    );
   });
 
   it("downloads and verifies the pinned CPU-only runner when it is not local", async () => {
@@ -174,17 +186,22 @@ describeWindows("Flux CPU worker runtime", () => {
       "utf8",
     );
     expect(buildScript).toContain('"--no-default-features"');
-    expect(buildScript).toContain('LLAMA_CPP_TAG: "b-mgt-unused"');
+    expect(buildScript).toContain(
+      'capabilities.engine !== "koharu-diffusion-0.83.5"',
+    );
     expect(buildScript).toContain('capabilities.backend !== "cpu-native"');
     const releaseScript = readFileSync(
       join(repoRoot, "scripts", "package-flux-klein-cpu-release.cjs"),
       "utf8",
     );
-    expect(releaseScript).toContain(FLUX_CPU_RUNNER_RELEASE_TAG);
-    expect(releaseScript).toContain(FLUX_CPU_RUNNER_ASSET_FILE);
-    expect(FLUX_CPU_RUNNER_ARCHIVE_BYTES).toBe(22_500_917);
+    expect(releaseScript).toContain("package-native-inference-release.cjs");
+    expect(FLUX_CPU_RUNNER_RELEASE_TAG).toBe("koharu-native-0.83.5-win-x64-r1");
+    expect(FLUX_CPU_RUNNER_ASSET_FILE).toBe(
+      "mgt-flux-klein-cpu-0.83.5-win-x64.zip",
+    );
+    expect(FLUX_CPU_RUNNER_ARCHIVE_BYTES).toBe(3_244_240);
     expect(FLUX_CPU_RUNNER_ARCHIVE_SHA256).toBe(
-      "4eed6d48de73e4f7c9d3fb646cf99fa5147dcf145789ec864a6db2b25a413e87",
+      "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e",
     );
   });
 });

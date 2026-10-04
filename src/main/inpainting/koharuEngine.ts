@@ -21,10 +21,8 @@ export type KoharuInpaintingEngine = InpaintingEngine & {
 };
 
 /**
- * Candle's Metal Conv2D path materializes a 7x7 im2col buffer and rounds the
- * allocation to the next power of two. A 1024px LaMa input therefore asks
- * Metal for a 1 GiB buffer before the rest of the graph is considered. Keep
- * the longest padded side at 512px (a 256 MiB first-layer buffer) on Metal.
+ * Retain the established 512px Metal memory budget during the LibTorch
+ * migration. Increasing it requires an Apple Silicon memory/inference check.
  */
 export const KOHARU_LAMA_METAL_MAX_PIXELS = 512 * 512;
 
@@ -68,6 +66,7 @@ export async function prepareKoharuInpaintingEngine(options: {
     model: options.model,
     modelFiles,
     backend: options.backend,
+    computeGpuIndex: options.computeGpuIndex,
     signal: options.signal,
     onProgress: options.onProgress,
   });

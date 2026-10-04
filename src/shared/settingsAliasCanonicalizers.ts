@@ -32,8 +32,16 @@ const FLUX_BACKEND_ALIASES = createAliasMap<FluxBackend>([
     ["cuda-sm75-experimental", "cuda-sm75", "sm75-cuda", "sm75"],
   ],
   [
-    "zluda-native",
-    ["zluda-native", "zluda", "python-rocm", "rocm", "hip", "amd"],
+    "rocm-native",
+    [
+      "rocm-native",
+      "zluda-native",
+      "zluda",
+      "python-rocm",
+      "rocm",
+      "hip",
+      "amd",
+    ],
   ],
   ["metal-native", ["metal-native", "metal", "apple"]],
   ["cpu-native", ["cpu-native", "python-cpu", "cpu"]],
@@ -48,7 +56,10 @@ const INPAINTING_MODEL_ALIASES = createAliasMap<InpaintingModel>([
 const KOHARU_BACKEND_ALIASES = createAliasMap<KoharuInpaintingBackend>([
   ["auto", ["auto", "default"]],
   ["cuda-native", ["cuda", "cuda-native", "nvidia"]],
-  ["zluda-native", ["zluda", "zluda-native", "amd"]],
+  [
+    "rocm-native",
+    ["rocm-native", "rocm", "hip", "zluda", "zluda-native", "amd"],
+  ],
   ["metal-native", ["metal", "metal-native", "apple"]],
   ["cpu", ["cpu", "python-cpu"]],
 ]);

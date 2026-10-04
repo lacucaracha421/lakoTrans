@@ -237,7 +237,7 @@ describe("settings store", () => {
         qualityMode: "full",
       },
       expectedSupportsOcrRocm: false,
-      expectedSupportsFluxZluda: false,
+      expectedSupportsFluxZluda: true,
     },
     {
       gpu: {
@@ -347,7 +347,7 @@ describe("settings store", () => {
         qualityMode: "full",
       },
       expectedSupport: false,
-      expectedFluxSupport: false,
+      expectedFluxSupport: true,
       env: { MANGA_TRANSLATOR_LLAMA_RUNTIME_PROFILE: "cuda12" },
     },
     {

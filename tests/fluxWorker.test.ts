@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -150,6 +150,15 @@ function writeCachedFluxCudaRuntime(runtimeDir: string): string {
   return cudaDir;
 }
 
+import { prepareNativeInferenceLaunch } from "../src/main/runtimeSupport/nativeInferenceLaunch";
+vi.mock("../src/main/runtimeSupport/nativeInferenceLaunch", () => ({
+  prepareNativeInferenceLaunch: vi.fn(async (options) => ({
+    executable: options.executable,
+    manifest: join(options.runtimeDir, "diffusion-test.json"),
+    env: { PATH: "managed-native-runtime" },
+  })),
+}));
+
 const describeWindows = process.platform === "win32" ? describe : describe.skip;
 
 describeWindows("Flux worker runtime helpers", () => {
@@ -244,10 +253,10 @@ describeWindows("Flux worker runtime helpers", () => {
 
     expect(error.message).toContain("Flux CUDA 커널/심볼");
     expect(error.message).toContain("compute capability");
-    expect(error.message).toContain("sm86");
+    expect(error.message).toContain("CUDA 13.3");
   });
 
-  it("passes the managed ZLUDA CUDA support runtime explicitly to the Flux launcher", async () => {
+  it("migrates ZLUDA settings to managed native ROCm without a local HIP SDK", async () => {
     const runtimeDir = createTempDir("mgt-flux-zluda-");
     const modelDir = createTempDir("mgt-flux-model-");
     const hipRoot = createTempDir("mgt-flux-hip-");
@@ -265,77 +274,47 @@ describeWindows("Flux worker runtime helpers", () => {
       backend: "zluda-native",
     });
 
-    expect(launch.backend).toBe("zluda-native");
-    expect(launch.executable).toContain("mgt-flux-klein.exe");
+    expect(launch.backend).toBe("rocm-native");
     expect(launch.args).toEqual([
-      "--require-zluda",
-      "--zluda-runtime-root",
-      join(runtimeDir, "koharu-zluda"),
-      "--cuda-runtime-dir",
-      supportDir,
+      "--native-runtime",
+      join(runtimeDir, "diffusion-test.json"),
     ]);
-    expect(launch.env).toMatchObject({
-      HIP_PATH: hipRoot,
-      KOHARU_DATA_ROOT: join(runtimeDir, "koharu-zluda"),
-      ROCM_PATH: hipRoot,
-    });
-    expect(launch.env?.PATH?.split(delimiter)[0]).toBe(join(hipRoot, "bin"));
-    const appLog = readFileSync(join(runtimeDir, "app.log"), "utf8");
-    expect(appLog).toContain("AMD HIP SDK probe succeeded");
-    expect(appLog).toContain('"koharuHipRuntimeAvailable":true');
-    expect(appLog).toContain('"selectedBinMatchesKoharuLayout":true');
+    expect(prepareNativeInferenceLaunch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        engine: "diffusion",
+        backend: "rocm",
+      }),
+    );
+    expect(launch.env?.PATH).toBe("managed-native-runtime");
+    expect(launch.args).not.toContain(supportDir);
+    expect(launch.env?.HIP_PATH).not.toBe(hipRoot);
   });
 
-  it("logs and rejects a driver-only HIP DLL before launching ZLUDA", async () => {
-    const runtimeDir = createTempDir("mgt-flux-zluda-probe-failure-");
-    const modelDir = createTempDir("mgt-flux-model-");
-    const isolatedSystemDrive = createTempDir("mgt-isolated-system-drive-");
-    const driverRuntimeDir = createTempDir("mgt-driver-runtime-");
-    writeFileSync(join(driverRuntimeDir, "amdhip64_7.dll"), "driver-runtime");
-    const logPath = join(runtimeDir, "app.log");
-    const overriddenEnvironment = {
-      HIP_PATH: undefined,
-      MANGA_TRANSLATOR_LOG_PATH: logPath,
-      PATH: driverRuntimeDir,
-      ProgramFiles: isolatedSystemDrive,
-      ProgramW6432: isolatedSystemDrive,
-      ROCM_PATH: undefined,
-      SystemDrive: isolatedSystemDrive,
-    } satisfies Record<string, string | undefined>;
-    const previousEnvironment = new Map(
-      Object.keys(overriddenEnvironment).map((key) => [key, process.env[key]]),
+  it("propagates native ROCm probe failures without a CPU substitution", async () => {
+    const runtimeDir = createTempDir("mgt-flux-rocm-probe-failure-");
+    const { exe } = createTempToolsLayout();
+    process.env.MGT_FLUX_KLEIN_EXE = exe;
+    process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
+    vi.mocked(prepareNativeInferenceLaunch).mockRejectedValueOnce(
+      new Error("Selected ROCm GPU unavailable"),
     );
-
-    try {
-      for (const [key, value] of Object.entries(overriddenEnvironment)) {
-        if (value === undefined) delete process.env[key];
-        else process.env[key] = value;
-      }
-
-      await expect(
-        ensureFluxWorkerLaunch({
-          runtimeDir,
-          modelDir,
-          backend: "zluda-native",
-        }),
-      ).rejects.toThrow("SDK bin 구조가 아닌 PATH 위치");
-
-      const appLog = readFileSync(logPath, "utf8");
-      expect(appLog).toContain("AMD HIP SDK probe failed");
-      expect(appLog).toContain('"ignoredNonSdkRuntimeDllCount":1');
-      expect(appLog).toContain('"sdk":null');
-    } finally {
-      for (const [key, value] of previousEnvironment) {
-        if (value === undefined) delete process.env[key];
-        else process.env[key] = value;
-      }
-    }
+    await expect(
+      ensureFluxWorkerLaunch({
+        runtimeDir,
+        modelDir: runtimeDir,
+        backend: "rocm-native",
+        computeGpuIndex: 1,
+      }),
+    ).rejects.toThrow("Selected ROCm GPU unavailable");
+    expect(prepareNativeInferenceLaunch).toHaveBeenLastCalledWith(
+      expect.objectContaining({ backend: "rocm", computeGpuIndex: 1 }),
+    );
   });
 
   it("passes the managed CUDA runtime explicitly to the native Flux launcher", async () => {
     const runtimeDir = createTempDir("mgt-flux-cuda-");
     const modelDir = createTempDir("mgt-flux-model-");
-    const cudaDir = writeCachedFluxCudaRuntime(runtimeDir);
+    writeCachedFluxCudaRuntime(runtimeDir);
     const { exe } = createTempToolsLayout();
     process.env.MGT_FLUX_KLEIN_EXE = exe;
     process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
@@ -347,13 +326,16 @@ describeWindows("Flux worker runtime helpers", () => {
     });
 
     expect(launch.backend).toBe("cuda-native");
-    expect(launch.args).toEqual(["--cuda-runtime-dir", cudaDir]);
+    expect(launch.args).toEqual([
+      "--native-runtime",
+      join(runtimeDir, "diffusion-test.json"),
+    ]);
   });
 
-  it("maps the experimental SM75 backend to CUDA and enables the FP16 worker path", async () => {
+  it("migrates the legacy SM75 setting to the native CUDA runtime", async () => {
     const runtimeDir = createTempDir("mgt-flux-sm75-");
     const modelDir = createTempDir("mgt-flux-model-");
-    const cudaDir = writeCachedFluxCudaRuntime(runtimeDir);
+    writeCachedFluxCudaRuntime(runtimeDir);
     const { exe } = createTempToolsLayout();
     process.env.MGT_FLUX_KLEIN_EXE = exe;
     process.env.MANGA_TRANSLATOR_LOG_PATH = join(runtimeDir, "app.log");
@@ -367,8 +349,11 @@ describeWindows("Flux worker runtime helpers", () => {
     });
 
     expect(launch.backend).toBe("cuda-native");
-    expect(launch.args).toEqual(["--cuda-runtime-dir", cudaDir]);
-    expect(launch.env).toEqual({ MGT_FLUX_SM75_FP16: "1" });
+    expect(launch.args).toEqual([
+      "--native-runtime",
+      join(runtimeDir, "diffusion-test.json"),
+    ]);
+    expect(launch.env).toEqual({ PATH: "managed-native-runtime" });
   });
 
   it("keeps NVIDIA CUDA support DLLs out of the ZLUDA PATH and passes them explicitly", () => {
@@ -410,7 +395,7 @@ describeWindows("Flux worker runtime helpers", () => {
     );
   });
 
-  it("prefers the bundled Flux runner matching the NVIDIA compute capability", async () => {
+  it("prefers the new universal runner over old architecture-specific binaries", async () => {
     const runtimeDir = createTempDir("mgt-flux-runner-sm-runtime-");
     const toolsDir = createTempDir("mgt-flux-runner-sm-tools-");
     const genericDir = join(toolsDir, "mgt-flux-klein");
@@ -431,7 +416,7 @@ describeWindows("Flux worker runtime helpers", () => {
     expect(managedPath).toBe(
       join(runtimeDir, "mgt-flux-klein-sm86", "mgt-flux-klein.exe"),
     );
-    expect(readFileSync(managedPath, "utf8")).toBe("sm86-runner");
+    expect(readFileSync(managedPath, "utf8")).toBe("generic-runner");
     expect(progress).toContainEqual(
       expect.objectContaining({
         progressText: "Flux 실행 파일 준비 중",
@@ -464,34 +449,26 @@ describeWindows("Flux worker runtime helpers", () => {
     expect(readFileSync(managedPath, "utf8")).toBe("patched-sm75-runner");
   });
 
-  it("does not use lower or generic Flux runners for a detected NVIDIA GPU", async () => {
-    const runtimeDir = createTempDir("mgt-flux-runner-lower-runtime-");
-    const toolsDir = createTempDir("mgt-flux-runner-lower-tools-");
-    const genericDir = join(toolsDir, "mgt-flux-klein");
-    const sm75Dir = join(toolsDir, "mgt-flux-klein-sm75");
-    mkdirSync(genericDir, { recursive: true });
-    mkdirSync(sm75Dir, { recursive: true });
-    writeFileSync(join(genericDir, "mgt-flux-klein.exe"), "generic-runner");
-    writeFileSync(join(sm75Dir, "mgt-flux-klein.exe"), "sm75-runner");
-    process.env.MGT_FLUX_KLEIN_TOOLS_DIR = toolsDir;
+  it("uses the universal runner for a supported NVIDIA architecture", async () => {
+    const runtimeDir = createTempDir("mgt-flux-universal-");
+    const { root, exe } = createTempToolsLayout();
+    process.env.MGT_FLUX_KLEIN_TOOLS_DIR = join(root, "resources", "tools");
     process.env.MGT_FLUX_DISABLE_REMOTE_RUNNER_DOWNLOAD = "1";
-
+    const output = await ensureManagedFluxRunner({
+      runtimeDir,
+      nvidiaComputeCapability: 8.6,
+    });
+    expect(readFileSync(output)).toEqual(readFileSync(exe));
     await expect(
-      ensureManagedFluxRunner({
-        runtimeDir,
-        nvidiaComputeCapability: 8.6,
-      }),
-    ).rejects.toThrow("mgt-flux-klein-sm86/mgt-flux-klein.exe");
-    expect(readFileSync(join(sm75Dir, "mgt-flux-klein.exe"), "utf8")).toBe(
-      "sm75-runner",
-    );
+      ensureManagedFluxRunner({ runtimeDir, nvidiaComputeCapability: 7 }),
+    ).rejects.toThrow();
   });
 
   it("downloads and verifies the exact NVIDIA Flux runner when it is not bundled", async () => {
     const runtimeDir = createTempDir("mgt-flux-runner-remote-runtime-");
     const toolsDir = createTempDir("mgt-flux-runner-remote-tools-");
     const assetDir = createTempDir("mgt-flux-runner-remote-assets-");
-    const fileName = "mgt-flux-klein-sm86-cuda12.9-win-x64.zip";
+    const fileName = "mgt-flux-klein-native-0.83.5-win-x64.zip";
     const archivePath = join(assetDir, fileName);
     const zip = new AdmZip();
     zip.addFile("mgt-flux-klein.exe", Buffer.from("remote-sm86-runner"));

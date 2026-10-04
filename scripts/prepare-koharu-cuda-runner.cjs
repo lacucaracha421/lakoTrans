@@ -5,6 +5,7 @@ const {
   mkdirSync,
   readFileSync,
 } = require("node:fs");
+const { nativeBindgenEnv } = require("./native-bindgen-env.cjs");
 const { execFileSync, spawnSync } = require("node:child_process");
 const { dirname, join, delimiter, resolve } = require("node:path");
 
@@ -70,7 +71,7 @@ function prepareKoharuCudaRunner(root) {
     console.log("Koharu portable sm_75 PTX check passed");
     return;
   }
-  const env = koharuCudaBuildEnv(root, process.env);
+  const env = koharuCudaBuildEnv(root, nativeBindgenEnv());
   const version = execFileSync(env.CUDACXX, ["--version"], {
     encoding: "utf8",
   });

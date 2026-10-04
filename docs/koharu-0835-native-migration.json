@@ -1,0 +1,59 @@
+{
+  "status": "native-producers-validated-app-integration-in-progress",
+  "scope": "User-approved Koharu engine migration; PaddleOCR and installed local development tools excluded",
+  "koharu": {
+    "version": "0.83.5",
+    "revision": "52bb4f55e2266f72c1523562a583c827ec191ceb",
+    "torchShim": "2.13.0.7",
+    "diffusionTag": "master-853-b68d586",
+    "diffusionRevision": "b68d58624d227682eb4b95ef8bcf569cd1311eb5"
+  },
+  "contracts": {
+    "lamaAot": "LibTorch explicit model paths and app-installed native runtime",
+    "flux": "stable-diffusion.cpp, explicit transformer / Qwen3 text encoder / full-encoder small-decoder VAE",
+    "animeText": "Existing YOLO12 and postprocessing, Candle 0.11 F32, portable sm75 CUDA kernels; existing ZLUDA path retained",
+    "orchestration": "Old crop, balloon, mask, alpha and pixel-budget behavior characterized before moving into runner-image-processing",
+    "windowsPaths": "UTF-8 activeCodePage manifests; no system locale change",
+    "amd": "Native ROCm 10 exact-device probe and managed packages; hardware validation pending",
+    "mac": "Native Metal libraries and colocated worker; hardware validation pending"
+  },
+  "validation": {
+    "preMoveImageTests": 18,
+    "adapterTests": 19,
+    "nativePolicyTests": 5,
+    "fluxTests": 3,
+    "installerTests": 12,
+    "actualProductionWorkerInferences": [
+      "LaMa CPU",
+      "AOT CPU",
+      "FLUX CPU",
+      "LaMa RTX4090",
+      "AOT RTX4090",
+      "FLUX RTX4090"
+    ],
+    "actualAdapterInferences": ["AnimeText CPU", "AnimeText RTX4090 F32"],
+    "smokeFixture": "Synthetic 256x256 manga lettering mask; validates execution, dimensions and JSON protocol, not image-quality equivalence between engines",
+    "smokeReceipt": ".tmp/runtime-update-stage23/production-native-smoke.json",
+    "windowsUnicodeRegression": "All production smokes used Korean absolute paths; SDCPP failed before the process UTF-8 manifest fix"
+  },
+  "build": {
+    "installedToolsChanged": false,
+    "isolatedTools": ["CMake 4.4.3", "libclang 18.1.1"],
+    "cudaCompiler": "Existing CUDA 12.9, only needed for AnimeText Candle kernels",
+    "nativeCudaRuntime": "Official CUDA 13.3 packages, downloaded independently of local CUDA",
+    "msvcRuntime": "Official signed Microsoft VC++ 14.51.36247.0 DLLs, extracted without running the installer",
+    "cpuDiffusion": "scripts/build-native-diffusion-cpu.ps1, AVX2, no Vulkan/CUDA dependency",
+    "assetProducer": "scripts/package-native-inference-release.cjs",
+    "removedLegacy": [
+      "Flux Candle Metal wrapper and its implementation-specific QMatMul test",
+      "Flux build-time Cargo cache mutation"
+    ]
+  },
+  "release": null,
+  "remaining": [
+    "Publish immutable runtime/runner assets and re-download verify",
+    "Finish app backend/model/runtime integration and cold remote installation",
+    "Update existing contract tests, CI and model metadata checks",
+    "Complete full application checks and platform smoke validation"
+  ]
+}

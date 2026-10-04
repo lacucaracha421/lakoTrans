@@ -14,7 +14,7 @@ anyhow = "1.0"
 clap = { version = "4.5", features = ["derive"] }
 cudarc = { version = "0.19.10", default-features = false, features = ["fallback-dynamic-loading", "runtime", "std"], optional = true }
 image = "0.25"
-koharu-ml = { git = "https://github.com/mayocream/koharu", rev = "0d640615d435a399bc195c892de8f5d17efb68f8", package = "koharu-ml", default-features = false }
+koharu-ml = { path = "vendor/mgt-koharu-models", package = "mgt-koharu-models", default-features = false }
 koharu-runtime = { path = "vendor/koharu-runtime-lite" }
 libloading = "0.9"
 runner-runtime-policy = { path = "../runner-runtime-policy" }
@@ -25,13 +25,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 ureq = { version = "3", default-features = false, features = ["rustls"] }
 zip = { version = "8.6", default-features = false, features = ["deflate"] }
 
-[patch."https://github.com/mayocream/koharu"]
-koharu-runtime = { path = "vendor/koharu-runtime-lite" }
+
+koharu-torch = { git = "https://github.com/koharu-rs/koharu", rev = "52bb4f55e2266f72c1523562a583c827ec191ceb" }
 
 [patch.crates-io]
-candle-core = { git = "https://github.com/mayocream/candle", rev = "e7e71e18414db8de91113963beaabb6b4046a0a5" }
-candle-nn = { git = "https://github.com/mayocream/candle", rev = "e7e71e18414db8de91113963beaabb6b4046a0a5" }
-candle-transformers = { git = "https://github.com/mayocream/candle", rev = "e7e71e18414db8de91113963beaabb6b4046a0a5" }
-candle-flash-attn = { git = "https://github.com/mayocream/candle", rev = "e7e71e18414db8de91113963beaabb6b4046a0a5" }
-ug = { git = "https://github.com/mayocream/ug", branch = "cuda-dynamic-loading" }
-ug-cuda = { git = "https://github.com/mayocream/ug", branch = "cuda-dynamic-loading" }
+candle-kernels = { path = "vendor/candle-kernels-cuda129" }

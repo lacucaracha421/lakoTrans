@@ -17,7 +17,6 @@ use koharu_ml::{
     lama::Lama,
     types::TextRegion,
 };
-use koharu_runtime::{ComputePolicy, RuntimeManager};
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{EnvFilter, fmt};
 
@@ -89,6 +88,9 @@ struct Cli {
 
     #[arg(long, value_name = "DIR")]
     cuda_runtime_dir: Option<PathBuf>,
+
+    #[arg(long, value_name = "FILE")]
+    native_runtime: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -109,6 +111,8 @@ enum BackendKind {
     CudaNative,
     #[value(name = "zluda-native")]
     ZludaNative,
+    #[value(name = "rocm-native")]
+    RocmNative,
     #[value(name = "metal-native")]
     MetalNative,
     #[value(name = "cpu")]
@@ -206,35 +210,64 @@ enum WorkerDispatch {
 async fn main() -> Result<()> {
     install_panic_hook();
     init_logging();
+    if runner_runtime_policy::native::handle_rocm_probe()? {
+        return Ok(());
+    }
     if std::env::args_os().any(|arg| arg == "--capabilities") {
         return print_capabilities();
     }
     let cli = Cli::parse();
 
-    let uses_zluda = cli.require_zluda || cli.backend == BackendKind::ZludaNative;
-    if uses_zluda && cli.backend == BackendKind::MetalNative {
-        bail!("--require-zluda and --backend metal-native cannot be used together");
-    }
-    let uses_native_cuda =
-        cli.backend != BackendKind::MetalNative && cli.backend != BackendKind::Cpu;
-    let runtime_probe = decide_cuda_runtime_probe(uses_zluda, uses_native_cuda);
-    if cli.backend == BackendKind::MetalNative {
-        ensure_metal_available()?;
-    } else if uses_zluda {
-        prepare_zluda_runtime(&cli).await?;
-    } else if cli.backend != BackendKind::Cpu {
-        prepare_cuda_runtime(cli.cuda_runtime_dir.as_deref())?;
-    }
-    match runtime_probe {
-        CudaRuntimeProbe::Run => log_cuda_runtime_probe(),
-        CudaRuntimeProbe::SkipForZluda => {
-            eprintln!("mgt-koharu-inpaint-runner: CUDA runtime probe skipped for ZLUDA");
+    let native_runtime = if matches!(cli.model, ModelKind::AnimeTextYolo) {
+        None
+    } else {
+        let manifest = cli
+            .native_runtime
+            .as_deref()
+            .context("--native-runtime is required for the Koharu 0.83.5 LibTorch engine")?;
+        let runtime = runner_runtime_policy::native::load_runtime(manifest, "torch")?;
+        let expected = match cli.backend {
+            BackendKind::Cpu => "cpu",
+            BackendKind::CudaNative => "cuda",
+            BackendKind::RocmNative => "rocm",
+            BackendKind::MetalNative => "metal",
+            BackendKind::Auto => runtime.specification.backend.as_str(),
+            BackendKind::ZludaNative => bail!(
+                "LibTorch inpainting requires rocm-native on AMD; ZLUDA is only supported by AnimeText"
+            ),
+        };
+        if runtime.specification.backend != expected {
+            bail!("requested backend does not match installed native runtime");
         }
-        CudaRuntimeProbe::Disabled => {}
+        Some(runtime)
+    };
+
+    if native_runtime.is_none() {
+        let uses_zluda = cli.require_zluda || cli.backend == BackendKind::ZludaNative;
+        if uses_zluda && cli.backend == BackendKind::MetalNative {
+            bail!("--require-zluda and --backend metal-native cannot be used together");
+        }
+        let uses_native_cuda =
+            cli.backend != BackendKind::MetalNative && cli.backend != BackendKind::Cpu;
+        let runtime_probe = decide_cuda_runtime_probe(uses_zluda, uses_native_cuda);
+        if cli.backend == BackendKind::MetalNative {
+            ensure_metal_available()?;
+        } else if uses_zluda {
+            prepare_zluda_runtime(&cli).await?;
+        } else if cli.backend != BackendKind::Cpu {
+            prepare_cuda_runtime(cli.cuda_runtime_dir.as_deref())?;
+        }
+        match runtime_probe {
+            CudaRuntimeProbe::Run => log_cuda_runtime_probe(),
+            CudaRuntimeProbe::SkipForZluda => {
+                eprintln!("mgt-koharu-inpaint-runner: CUDA runtime probe skipped for ZLUDA");
+            }
+            CudaRuntimeProbe::Disabled => {}
+        }
     }
 
     let load_started = Instant::now();
-    let model = load_model(&cli).await?;
+    let model = load_model(&cli, native_runtime.as_ref()).await?;
     eprintln!(
         "mgt-koharu-inpaint-runner: model loaded in {:?}",
         load_started.elapsed()
@@ -284,21 +317,14 @@ fn ensure_metal_available() -> Result<()> {
     }
 }
 
-async fn load_model(cli: &Cli) -> Result<LoadedModel> {
+async fn load_model(
+    cli: &Cli,
+    runtime: Option<&runner_runtime_policy::native::LoadedRuntime>,
+) -> Result<LoadedModel> {
     let cpu = cli.backend == BackendKind::Cpu;
     match cli.model {
         ModelKind::LamaManga => {
-            set_env_path("MGT_KOHARU_LAMA_WEIGHTS_PATH", &cli.weights);
-            let runtime_root = resolve_runtime_root();
-            let runtime = RuntimeManager::new(
-                runtime_root,
-                if cpu {
-                    ComputePolicy::CpuOnly
-                } else {
-                    ComputePolicy::PreferGpu
-                },
-            )?;
-            let model = Lama::load(&runtime, cpu).await?;
+            let model = Lama::load_from_path(&cli.weights, torch_device(runtime)?)?;
             Ok(LoadedModel::Lama(model))
         }
         ModelKind::AotInpainting => {
@@ -308,7 +334,8 @@ async fn load_model(cli: &Cli) -> Result<LoadedModel> {
                 .context("--config is required for aot-inpainting")?;
             set_env_path("MGT_KOHARU_AOT_CONFIG_PATH", config);
             set_env_path("MGT_KOHARU_AOT_WEIGHTS_PATH", &cli.weights);
-            let model = AotInpainting::load_from_paths(config, &cli.weights, cpu)?;
+            let model =
+                AotInpainting::load_from_paths(config, &cli.weights, torch_device(runtime)?)?;
             Ok(LoadedModel::Aot(model))
         }
         ModelKind::AnimeTextYolo => {
@@ -319,16 +346,28 @@ async fn load_model(cli: &Cli) -> Result<LoadedModel> {
     }
 }
 
-fn resolve_runtime_root() -> PathBuf {
-    std::env::var_os("KOHARU_DATA_ROOT")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            std::env::current_exe()
-                .ok()
-                .and_then(|path| path.parent().map(|parent| parent.join("koharu-data")))
-                .unwrap_or_else(|| PathBuf::from("koharu-data"))
-        })
+fn torch_device(
+    runtime: Option<&runner_runtime_policy::native::LoadedRuntime>,
+) -> Result<koharu_torch::Device> {
+    use koharu_torch::{Cuda, Device};
+    let runtime = runtime.context("missing native runtime")?;
+    match runtime.specification.backend.as_str() {
+        "cpu" => Ok(Device::Cpu),
+        "cuda" | "rocm" => {
+            if !Cuda::is_available() {
+                bail!("requested GPU is unavailable in the installed LibTorch runtime");
+            }
+            Cuda::set_user_enabled_cudnn(runtime.specification.backend == "cuda" || !cfg!(windows));
+            Ok(Device::Cuda(0))
+        }
+        "metal" => {
+            if !koharu_torch::utils::has_mps() {
+                bail!("Metal is unavailable in the installed LibTorch runtime");
+            }
+            Ok(Device::Mps)
+        }
+        _ => bail!("unsupported native runtime backend"),
+    }
 }
 
 async fn prepare_zluda_runtime(cli: &Cli) -> Result<()> {
@@ -911,7 +950,11 @@ fn windows_to_text_regions(windows: Vec<[u32; 4]>) -> Vec<TextRegion> {
 
 fn init_logging() {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn"));
-    let _ = fmt().with_env_filter(filter).with_target(false).try_init();
+    let _ = fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(filter)
+        .with_target(false)
+        .try_init();
 }
 
 #[cfg(feature = "cuda")]

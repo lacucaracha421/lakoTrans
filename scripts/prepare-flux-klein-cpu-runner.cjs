@@ -1,6 +1,7 @@
 // @ts-check
 
 const { copyFileSync, existsSync, mkdirSync, statSync } = require("node:fs");
+const { nativeBindgenEnv } = require("./native-bindgen-env.cjs");
 const { tmpdir } = require("node:os");
 const { join } = require("node:path");
 const { spawnSync } = require("node:child_process");
@@ -44,9 +45,8 @@ console.log(`> cargo ${cargoArgs.join(" ")}`);
 const build = spawnSync("cargo", cargoArgs, {
   cwd: root,
   env: {
-    ...process.env,
+    ...nativeBindgenEnv(),
     CARGO_TARGET_DIR: targetDir,
-    LLAMA_CPP_TAG: "b-mgt-unused",
     RUSTFLAGS: buildRustFlags(),
   },
   stdio: "inherit",
@@ -87,6 +87,7 @@ function assertCpuOnlyCapabilities(path) {
   }
   const capabilities = JSON.parse(line);
   if (
+    capabilities.engine !== "koharu-diffusion-0.83.5" ||
     capabilities.backend !== "cpu-native" ||
     capabilities.cpu_only !== true ||
     capabilities.cuda_compiled !== false ||

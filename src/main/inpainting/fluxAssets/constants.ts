@@ -244,8 +244,6 @@ export const FLUX_CUDA_DLLS = new Set([
   "curand64_10.dll",
 ]);
 
-export const FLUX_ZLUDA_SUPPORT_DLLS = new Set(["curand64_10.dll"]);
-
 export const FLUX_CUDNN_DLLS = new Set([
   "cudnn64_9.dll",
   "cudnn_adv64_9.dll",

@@ -29,7 +29,9 @@
       "FLUX CPU",
       "LaMa RTX4090",
       "AOT RTX4090",
-      "FLUX RTX4090"
+      "FLUX RTX4090",
+      "AnimeText CPU (clean PATH)",
+      "AnimeText RTX4090 F32"
     ],
     "actualAdapterInferences": ["AnimeText CPU", "AnimeText RTX4090 F32"],
     "smokeFixture": "Synthetic 256x256 manga lettering mask; validates execution, dimensions and JSON protocol, not image-quality equivalence between engines",
@@ -50,6 +52,31 @@
       "node": "26.10.0",
       "vitest": "5.0.3",
       "result": "21 tests passed; three new native modules measured separately. Existing coverage floors unchanged."
+    },
+    "windowsCpuPortability": "PE import-table regression guard rejects nvcuda/cudart/cublas/curand loader imports. Actual LaMa and AnimeText CPU inference passed with PATH restricted to Windows/System32 and app-private MSVC DLLs.",
+    "coverageRetirement": "Existing numerical coverage floors were not lowered. Removed the baseline entry for deleted, unreachable zludaRuntime.ts and the introduced entry for deleted hipSdk.ts; scope manifest tracks 817 existing, 1336 added and 12 deleted files.",
+    "finalCheck": {
+      "command": "npm run check",
+      "node": "26.10.0 (isolated portable runtime)",
+      "gates": 27,
+      "passed": 10119,
+      "failed": 0,
+      "skipped": 9,
+      "durationSeconds": 566.51,
+      "coverage": {
+        "statements": 85.44,
+        "branches": 78.74,
+        "functions": 87.73,
+        "lines": 86.62
+      },
+      "coverageFloors": "passed without lowering existing floors",
+      "build": "passed, rebuilt Electron/renderer/runtime assets",
+      "postBuild": [
+        "page artwork parity",
+        "image protocol smoke",
+        "renderer bundle boundary",
+        "preload bundle boundary"
+      ]
     }
   },
   "build": {
@@ -62,8 +89,23 @@
     "assetProducer": "scripts/package-native-inference-release.cjs",
     "removedLegacy": [
       "Flux Candle Metal wrapper and its implementation-specific QMatMul test",
-      "Flux build-time Cargo cache mutation"
-    ]
+      "Flux build-time Cargo cache mutation",
+      "Unreferenced Flux manual HIP SDK discovery and ZLUDA support installer; separate AnimeText ZLUDA retained"
+    ],
+    "windowsKoharuArtifact": {
+      "path": "tools/mgt-koharu-inpaint-runner/mgt-koharu-inpaint-runner.exe",
+      "bytes": 55410176,
+      "sha256": "08b3195dab998630312fc44478fab987a1daaa9cb7b7b3ffc22db2a4dde116d3",
+      "embeddedLocalUserPath": false
+    },
+    "candleCorePatch": {
+      "upstreamVersion": "0.11.0",
+      "upstreamCrateSha256": "5ecb245093b0f791b89d3420c3df9c6d49c60ab63ba54db896bf8a3baf486706",
+      "sourceFilesCompared": 65,
+      "algorithmChanges": 0,
+      "whitespaceOnlyChanges": ["src\\tensor.rs"],
+      "contract": "Switch cudarc from dynamic-linking to dynamic-loading. Link static CUDART on Windows for native kernel registration before main; optional NVIDIA DLLs are loaded only when AnimeText selects CUDA."
+    }
   },
   "release": {
     "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/koharu-native-0.83.5-win-x64-r1",
@@ -104,8 +146,8 @@
     "contract": "Four flat ZIP archives plus binding manifest.json; five server assets matched names, bytes and SHA-256 after re-download. Archive member inventories verified. Immutable asset-only prerelease; no application release."
   },
   "remaining": [
-    "Final npm run check",
-    "macOS native CI compilation and real inference"
+    "macOS native CI real inference",
+    "Final isolated remote model installation/inference receipt"
   ],
   "consumerContracts": {
     "runtimeCatalog": "src/main/runtime/native-inference-manifest.json",

@@ -396,7 +396,8 @@
         "tag": "v6",
         "asset": "zluda-windows-3fe1206.zip"
       },
-      "artifact": {
+      "scope": "Historical dependency-only checkpoint 39e997ff, before the Koharu 0.83.5 engine migration. The final native artifact and validation are in docs/koharu-0835-native-migration.json.",
+      "checkpointArtifact": {
         "path": "tools/mgt-koharu-inpaint-runner/mgt-koharu-inpaint-runner.exe",
         "bytes": 26742784,
         "sha256": "8fa9e363fe81f6e3bae0088c592b4d67d6a032d251c6d0363fbace9b8e6b0a25",
@@ -438,12 +439,13 @@
     "lama": {
       "cpu": "Inference passed.",
       "cuda": "Old and new runner returned byte-identical PNG for a synthetic 256x256 fixture.",
-      "outputSha256": "140832db4de5bad1a9389a4d4b493a78b03110eab5aeb8420074bca590d70a14"
+      "outputSha256": "140832db4de5bad1a9389a4d4b493a78b03110eab5aeb8420074bca590d70a14",
+      "scope": "Historical dependency-only checkpoint 39e997ff. Byte parity does not describe the subsequent LibTorch migration."
     },
     "paddle": "8 legacy install-plan/import-check contracts matched HEAD byte-for-byte.",
     "limitations": [
       "No AMD hardware execution.",
-      "No macOS execution.",
+      "At dependency-only checkpoint: no macOS execution. See native migration handoff for subsequent macOS CI.",
       "CUDA 12.6 package resolution/hash validation only; actual GPU inference used CUDA 13.0."
     ],
     "evidenceDirectory": ".tmp/runtime-update-stage23",
@@ -456,5 +458,5 @@
       "durationSeconds": 719.15
     }
   },
-  "rollback": "Revert this commit as a source/lock/native-binary unit. The changed lock signatures trigger engine-private package reinstall. Existing external releases and user library/original/output data are unchanged."
+  "rollback": "Revert dependency/engine migration commits together as a source/lock/native-binary/catalog unit. See the native migration handoff for the engine-only rollback to 39e997ff. Keep immutable external releases and user library/original/output data."
 }

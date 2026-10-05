@@ -23,23 +23,24 @@ export const FLUX_VAE_SHA256 =
 
 export const FLUX_RUNNER_DIR = "mgt-flux-klein";
 
-const FLUX_CPU_RUNNER_CACHE_VERSION = "koharu-0.83.5-r1";
+const FLUX_CPU_RUNNER_CACHE_VERSION = "koharu-0.83.5-sd929-r1";
 export const FLUX_CPU_RUNNER_DIR = `mgt-flux-klein-cpu-${FLUX_CPU_RUNNER_CACHE_VERSION}`;
 export const FLUX_CPU_RUNTIME_EXECUTABLE = "mgt-flux-klein-cpu.exe";
 
-export const FLUX_CPU_RUNNER_RELEASE_TAG = "koharu-native-0.83.5-win-x64-r1";
+export const FLUX_CPU_RUNNER_RELEASE_TAG =
+  "diffusion-master-929-cpu-win-x64-r1";
 export const FLUX_CPU_RUNNER_ASSET_FILE =
-  "mgt-flux-klein-cpu-0.83.5-win-x64.zip";
+  "mgt-flux-klein-cpu-master-929-win-x64.zip";
 export const FLUX_CPU_RUNNER_BASE_URL = `https://github.com/ucx0204/CarrotMangaTranslator/releases/download/${FLUX_CPU_RUNNER_RELEASE_TAG}`;
 export const FLUX_CPU_RUNNER_ARCHIVE_SHA256 =
-  "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e";
-export const FLUX_CPU_RUNNER_ARCHIVE_BYTES = 3244240;
+  "9b1fb7f834cc9bf90f8c9a60b3ee1c8e7c4f5f2ad48059805ff1a2d0868d0505";
+export const FLUX_CPU_RUNNER_ARCHIVE_BYTES = 3244600;
 export const FLUX_CPU_RUNNER_EXECUTABLE_SHA256 =
-  "69cf265709f7093c4cf463dbb6ac15e299631e976254b6ab137f341cd020e773";
-export const FLUX_CPU_RUNNER_EXECUTABLE_BYTES = 8440832;
+  "e6eaa1cdaa1aefd7617149cb5780a2cf5edfcdc8677a3585f0abba2c83faa7b3";
+export const FLUX_CPU_RUNNER_EXECUTABLE_BYTES = 8434688;
 export const FLUX_CPU_RUNNER_MARKER = ".mgt-flux-cpu-runner.json";
 
-const FLUX_NVIDIA_RUNNER_RELEASE_TAG = "koharu-native-0.83.5-win-x64-r1";
+const FLUX_NVIDIA_RUNNER_RELEASE_TAG = "diffusion-master-929-cpu-win-x64-r1";
 
 export const FLUX_NVIDIA_RUNNER_BASE_URL = `https://github.com/ucx0204/CarrotMangaTranslator/releases/download/${FLUX_NVIDIA_RUNNER_RELEASE_TAG}`;
 
@@ -48,28 +49,28 @@ export const FLUX_NVIDIA_RUNNER_MARKER = ".mgt-flux-runner.json";
 // GPU kernels now live in the native runtime; all supported GPUs share one runner.
 export const FLUX_NVIDIA_RUNNER_ASSETS = {
   "75": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
   "80": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
   "86": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
   "89": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
   "90": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
   "120": {
-    fileName: "mgt-flux-klein-native-0.83.5-win-x64.zip",
-    sha256: "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+    fileName: "mgt-flux-klein-native-master-929-win-x64.zip",
+    sha256: "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
   },
 } as const;
 
@@ -155,9 +156,10 @@ export const FLUX_CPU_TORCH_INDEX_URL = "https://download.pytorch.org/whl/cpu";
 
 export const FLUX_PYTHON_DEFAULT_MODE = "klein-edit-composite";
 
-export const FLUX_EMBED_PYTHON_VERSION = "3.12.7";
+export const FLUX_EMBED_PYTHON_VERSION = "3.14.8";
+export const FLUX_ROCM_EMBED_PYTHON_VERSION = "3.12.7";
 
-export const FLUX_ROCM_PREBUILT_RUNTIME_FILE = `mgt-flux-rocm-win-x64-rocm${FLUX_ROCM_WINDOWS_VERSION}-py${FLUX_EMBED_PYTHON_VERSION}-sdcpp.zip`;
+export const FLUX_ROCM_PREBUILT_RUNTIME_FILE = `mgt-flux-rocm-win-x64-rocm${FLUX_ROCM_WINDOWS_VERSION}-py${FLUX_ROCM_EMBED_PYTHON_VERSION}-sdcpp.zip`;
 
 const FLUX_ROCM_PREBUILT_RUNTIME_RELEASE_TAG = "flux-runtime-rocm7.2.1-r1";
 

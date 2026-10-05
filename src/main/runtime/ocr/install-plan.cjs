@@ -159,6 +159,20 @@ function resolveRocmInstallBatches(options) {
 
 /** @param {RuntimeOptions} options @param {string[]} applicationPackages @returns {string[][]} */
 function buildRocmInstallBatches(options, applicationPackages) {
+  if (isHayaiOcrPipeline(options)) {
+    return [
+      [
+        "torch==2.13.0+rocm10.0.0",
+        "torchvision==0.28.0+rocm10.0.0",
+        "torchaudio==2.11.0.2+rocm10.0.0",
+        "--index-url",
+        "https://stable.repo.amd.com/rocm/whl-next/",
+        "--extra-index-url",
+        "https://pypi.org/simple",
+      ],
+      resolveTransformerApplicationPackages(applicationPackages),
+    ];
+  }
   return [
     resolveAmdRocmSdkWheelPackages(options),
     resolveAmdRocmMetaPackage(options),

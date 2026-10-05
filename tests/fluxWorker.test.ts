@@ -482,7 +482,7 @@ describeWindows("Flux worker runtime helpers", () => {
     const runtimeDir = createTempDir("mgt-flux-runner-remote-runtime-");
     const toolsDir = createTempDir("mgt-flux-runner-remote-tools-");
     const assetDir = createTempDir("mgt-flux-runner-remote-assets-");
-    const fileName = "mgt-flux-klein-native-0.83.5-win-x64.zip";
+    const fileName = "mgt-flux-klein-native-master-929-win-x64.zip";
     const archivePath = join(assetDir, fileName);
     const zip = new AdmZip();
     zip.addFile("mgt-flux-klein.exe", Buffer.from("remote-sm86-runner"));

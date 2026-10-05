@@ -186,8 +186,15 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
   },
   "hayai-rocm": {
     required: [
-      "torch @ https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torch-2.9.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl",
-      "torchvision @ https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torchvision-0.24.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl",
+      "--index-url https://stable.repo.amd.com/rocm/whl-next/",
+      "torch==2.13.0+rocm10.0.0",
+      "sha256:9a01e2a7f89ea89383f6cd5ae884ac4875edefa387c4d8c77f207ba6efd178b0",
+      "torchvision==0.28.0+rocm10.0.0",
+      "sha256:2508a18eead7fb70ba35da6fcbc45bdc9b953d4ba44bb979a7fafebabebaa8b2",
+      "rocm-sdk-core==10.0.0",
+      "rocm-sdk-libraries==10.0.0",
+      "amd-torch-device-gfx1030==2.13.0+rocm10.0.0",
+      "amd-torch-device-gfx1201==2.13.0+rocm10.0.0",
       "huggingface-hub==1.33.0",
       "transformers==5.18.0",
       "tokenizers==0.23.2",
@@ -198,6 +205,7 @@ const OCR_BUILTIN_LOCK_CONTRACTS = {
       "paddlepaddle==",
       "paddlepaddle-gpu @",
       "download.pytorch.org/whl/cu",
+      "rocm7.2.1",
     ],
   },
 };

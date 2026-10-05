@@ -143,8 +143,8 @@ function resolveManagedBootstrapPythonConfig(): ManagedBootstrapPythonConfig {
     process.env.MGT_FLUX_GET_PIP_URL ??
     FLUX_GET_PIP_URL;
   const pythonAsset = resolvePinnedRemoteAsset({
-    defaultUrl: RUNTIME_INTEGRITY_MANIFEST.managedPython.archive.url,
-    defaultSha256: RUNTIME_INTEGRITY_MANIFEST.managedPython.archive.sha256,
+    defaultUrl: RUNTIME_INTEGRITY_MANIFEST.fluxManagedPython.archive.url,
+    defaultSha256: RUNTIME_INTEGRITY_MANIFEST.fluxManagedPython.archive.sha256,
     url: pythonUrl,
     overrideSha256:
       process.env.MANGA_TRANSLATOR_FLUX_PYTHON_SHA256 ??
@@ -152,8 +152,8 @@ function resolveManagedBootstrapPythonConfig(): ManagedBootstrapPythonConfig {
     label: "Flux managed Python archive",
   });
   const getPipAsset = resolvePinnedRemoteAsset({
-    defaultUrl: RUNTIME_INTEGRITY_MANIFEST.managedPython.getPip.url,
-    defaultSha256: RUNTIME_INTEGRITY_MANIFEST.managedPython.getPip.sha256,
+    defaultUrl: RUNTIME_INTEGRITY_MANIFEST.fluxManagedPython.getPip.url,
+    defaultSha256: RUNTIME_INTEGRITY_MANIFEST.fluxManagedPython.getPip.sha256,
     url: getPipUrl,
     overrideSha256:
       process.env.MANGA_TRANSLATOR_FLUX_GET_PIP_SHA256 ??

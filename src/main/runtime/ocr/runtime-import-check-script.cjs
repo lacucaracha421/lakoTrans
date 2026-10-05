@@ -30,7 +30,7 @@ function buildRocmImportCheckScript(options) {
     ...buildTransformersImportPrelude(options),
     "assert not missing, 'Missing AMD ROCm OCR package(s): ' + ', '.join(missing)",
     "import torch",
-    "_expected_rocm_tag = '+rocm7.2.1'",
+    `_expected_rocm_tag = '+rocm${isHayaiOcrPipeline(options) ? "10.0.0" : "7.2.1"}'`,
     "_torch_version = str(torch.__version__).lower()",
     "assert _torch_version.endswith(_expected_rocm_tag), 'Unexpected AMD ROCm PyTorch build: expected ' + _expected_rocm_tag + ', got ' + _torch_version",
     "assert getattr(torch.version, 'hip', None), 'PyTorch is not a ROCm/HIP build'",

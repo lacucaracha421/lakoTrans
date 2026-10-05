@@ -26,7 +26,7 @@ const CUDA_PACKAGES = [
 const CUDA_LIBRARIES = [
   "cudart64_13.dll",
   "nvJitLink_130_0.dll",
-  "nvrtc-builtins64_133.dll",
+  "nvrtc-builtins64_134.dll",
   "nvrtc64_130_0.dll",
   "cublasLt64_13.dll",
   "cublas64_13.dll",

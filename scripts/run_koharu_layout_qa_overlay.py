@@ -31,7 +31,8 @@ MODEL_SHA256 = "9bf6d2cbd7793c956d8c857bb1672a396eb7f100eb0682f86830d05e31168efb
 MODEL_BYTES = 161_292_684
 CONFIG_FILENAME = "inference_config.json"
 CONFIG_SHA256 = "3b1956f18e9f91a8add4865a78c6d554d3917bd5e1f28f5d91faa533d09e6de6"
-RFDETR_VERSION = "1.7.0"
+RFDETR_VERSION = "1.11.2"
+CHECKPOINT_RFDETR_VERSION = "1.7.0"
 RESOLUTION = 1152
 NUM_SELECT = 160
 CLASS_NAMES = {0: "text", 1: "onomatopoeia", 2: "bubble", 3: "panel"}
@@ -58,7 +59,7 @@ def sha256_file(path: Path) -> str:
 def expected_inference_config() -> dict[str, Any]:
     return {
         "architecture": "RFDETRSeg2XLarge",
-        "rfdetr_version": RFDETR_VERSION,
+        "rfdetr_version": CHECKPOINT_RFDETR_VERSION,
         "resolution": RESOLUTION,
         "num_select": NUM_SELECT,
         "classes": {str(class_id): name for class_id, name in CLASS_NAMES.items()},
@@ -315,9 +316,14 @@ def _load_model(weights_path: Path, device: str) -> tuple[Any, dict[str, Any]]:
             num_select=NUM_SELECT,
             num_classes=len(CLASS_NAMES),
         )
-    incompatible = model.model.model.load_state_dict(
-        load_file(str(weights_path), device="cpu"), strict=True
-    )
+    state = load_file(str(weights_path), device="cpu")
+    # RF-DETR added this deterministic schema buffer after the checkpoint was
+    # trained. This segmentation model has no keypoints; learned weights must
+    # still pass strict loading, including missing or unexpected keys.
+    keypoint_mask = model.model.model._kp_active_mask
+    if "_kp_active_mask" not in state and keypoint_mask.numel() == 0:
+        state["_kp_active_mask"] = keypoint_mask.clone()
+    incompatible = model.model.model.load_state_dict(state, strict=True)
     if incompatible.missing_keys or incompatible.unexpected_keys:
         raise RuntimeError(f"Incompatible KoharuLayout weights: {incompatible}")
     model.model.class_names = [CLASS_NAMES[index] for index in range(len(CLASS_NAMES))]

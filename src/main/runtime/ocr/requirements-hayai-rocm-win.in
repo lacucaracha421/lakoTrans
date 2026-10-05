@@ -1,19 +1,10 @@
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_core-7.2.1-py3-none-win_amd64.whl
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_devel-7.2.1-py3-none-win_amd64.whl
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_libraries_custom-7.2.1-py3-none-win_amd64.whl
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm-7.2.1.tar.gz
-filelock
-typing-extensions>=4.10.0
-setuptools
-sympy>=1.13.3
-networkx>=2.5.1
-jinja2
-fsspec>=0.8.5
-numpy
-pillow
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torch-2.9.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torchaudio-2.9.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl
-https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/torchvision-0.24.1%2Brocm7.2.1-cp312-cp312-win_amd64.whl
+# Stable ROCm multi-arch wheels; include every supported app GPU target.
+--index-url https://stable.repo.amd.com/rocm/whl-next/
+--extra-index-url https://pypi.org/simple
+torch[device-gfx1010,device-gfx1011,device-gfx1012,device-gfx1030,device-gfx1031,device-gfx1032,device-gfx1033,device-gfx1034,device-gfx1035,device-gfx1036,device-gfx1100,device-gfx1101,device-gfx1102,device-gfx1103,device-gfx1150,device-gfx1151,device-gfx1152,device-gfx1153,device-gfx1200,device-gfx1201,device-gfx908,device-gfx90a]==2.13.0+rocm10.0.0
+torchvision[device-gfx1010,device-gfx1011,device-gfx1012,device-gfx1030,device-gfx1031,device-gfx1032,device-gfx1033,device-gfx1034,device-gfx1035,device-gfx1036,device-gfx1100,device-gfx1101,device-gfx1102,device-gfx1103,device-gfx1150,device-gfx1151,device-gfx1152,device-gfx1153,device-gfx1200,device-gfx1201,device-gfx908,device-gfx90a]==0.28.0+rocm10.0.0
+torchaudio==2.11.0.2+rocm10.0.0
 transformers==5.18.0
-safetensors>=0.6.2
+safetensors==0.8.0
 tokenizers==0.23.2
+huggingface-hub==1.33.0

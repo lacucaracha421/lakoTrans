@@ -45,7 +45,7 @@ from transformers import AutoModel, AutoProcessor, PreTrainedTokenizerFast
 
 
 MODEL_ID = "JustANormalTinkerer/hayai-ocr-v2"
-MODEL_REVISION = "3608bb2075b9b39cb9f63e57251bca665de248cd"
+MODEL_REVISION = "53aed13296a9d39bd7c0c0bcba745010d8142b5b"
 PROCESSOR_ID = "google/siglip2-base-patch16-naflex"
 PROCESSOR_REVISION = "b53b807d3a2d5e2b3911292f2d69e5341cdc064c"
 REGION_SCHEMA = "hayai-dialogue-effect-separated-v1"
@@ -54,7 +54,7 @@ MODEL_FILES = {
     "config.json": (342, "581b762f1dfd55d0108f3f84e3f157bc762524af37fb0c19a7172a18b75582e2"),
     "configuration_hayai.py": (401, "47abd38cf1bae7aef27d01f5b8b4aa0960a7bc625a8afad79c4762ff5e5ed970"),
     "model.safetensors": (622502784, "4c645b221db8428cda04991be234c18133bb8861142a3d87cba04c5099b02328"),
-    "modeling_hayai.py": (28251, "3d78976206549964abd55f776ab059e002adc72d2167daf168e46a12a5f4ae62"),
+    "modeling_hayai.py": (29975, "1afe1eb914158479253e191d8b7c02b2c5784441a28b82439dc911279f81a5a3"),
     "tokenizer_config.json": (244, "6fb6c69afaedf1275872d3e62e276fd4467bd00da7a84cbbb5566a2cd28f58f6"),
     "tokenizer.json": (1247253, "f8a0a909c628a684fe463094614e236a8b1d3609e7770f77e7beafaf1056bf13"),
 }

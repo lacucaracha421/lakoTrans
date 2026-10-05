@@ -6,8 +6,11 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use hayro::hayro_interpret::InterpreterSettings;
 use hayro::hayro_interpret::hayro_syntax::Pdf;
+use hayro::hayro_interpret::util::TransformExt;
+use hayro::kurbo::Affine;
 use hayro::vello_cpu::color::palette::css::WHITE;
-use hayro::{RenderCache, RenderSettings, render};
+use hayro::vello_cpu::{Pixmap, RasterizerSettings, RenderContext, Resources, TargetInit};
+use hayro::{RenderCache, RenderSettings, render_into};
 use memmap2::Mmap;
 
 use crate::manifest::{ImportKind, ImportManifest, ImportedPage};
@@ -41,16 +44,23 @@ pub(crate) fn import_pdf(input: &Path, output: &Path) -> Result<ImportManifest> 
 
     for (index, page) in pages.iter().enumerate() {
         let (width, height, scale) = bounded_render_size(page.render_dimensions())?;
-        let pixmap = render(
+        let mut context = RenderContext::new(width as u16, height as u16);
+        render_into(
             page,
             &cache,
             &interpreter_settings,
-            &RenderSettings {
-                x_scale: scale,
-                y_scale: scale,
-                width: Some(width as u16),
-                height: Some(height as u16),
-                bg_color: WHITE,
+            &RenderSettings::default(),
+            &mut context,
+            Affine::scale(scale as f64) * page.initial_transform(true).to_kurbo(),
+        );
+        context.flush();
+        let mut pixmap = Pixmap::new(width as u16, height as u16);
+        context.render_with(
+            &mut pixmap,
+            &mut Resources::default(),
+            RasterizerSettings {
+                target_init: TargetInit::Clear(WHITE),
+                ..Default::default()
             },
         );
         let png = pixmap
@@ -141,6 +151,18 @@ mod tests {
         assert_eq!(result.pages[0].height, Some(300));
         let bytes = fs::read(output.join("page-000001.png")).unwrap();
         assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+        let image = Pixmap::from_png(std::io::Cursor::new(&bytes)).unwrap();
+        let pixels = image.data_as_u8_slice();
+        // PDF coordinates start at the bottom left. Preserve the page transform
+        // and white background when rendering into an explicitly bounded target.
+        for (x, y, expected) in [
+            (75, 225, [0, 0, 0, 255]),
+            (75, 75, [255, 255, 255, 255]),
+            (225, 225, [255, 255, 255, 255]),
+        ] {
+            let offset = (y * 300 + x) * 4;
+            assert_eq!(pixels[offset..offset + 4], expected);
+        }
     }
 
     fn minimal_pdf() -> Vec<u8> {
@@ -148,7 +170,7 @@ mod tests {
             b"<< /Type /Catalog /Pages 2 0 R >>".as_slice(),
             b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>".as_slice(),
             b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 72 72] /Resources << >> /Contents 4 0 R >>".as_slice(),
-            b"<< /Length 25 >>\nstream\n0 0 0 rg 0 0 72 72 re f\nendstream".as_slice(),
+            b"<< /Length 25 >>\nstream\n0 0 0 rg 0 0 36 36 re f\nendstream".as_slice(),
         ];
         let mut bytes = b"%PDF-1.4\n".to_vec();
         let mut offsets = Vec::new();

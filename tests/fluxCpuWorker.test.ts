@@ -272,13 +272,15 @@ describeWindows("Flux CPU worker runtime", () => {
       "utf8",
     );
     expect(releaseScript).toContain("package-native-inference-release.cjs");
-    expect(FLUX_CPU_RUNNER_RELEASE_TAG).toBe("koharu-native-0.83.5-win-x64-r1");
-    expect(FLUX_CPU_RUNNER_ASSET_FILE).toBe(
-      "mgt-flux-klein-cpu-0.83.5-win-x64.zip",
+    expect(FLUX_CPU_RUNNER_RELEASE_TAG).toBe(
+      "diffusion-master-929-cpu-win-x64-r1",
     );
-    expect(FLUX_CPU_RUNNER_ARCHIVE_BYTES).toBe(3_244_240);
+    expect(FLUX_CPU_RUNNER_ASSET_FILE).toBe(
+      "mgt-flux-klein-cpu-master-929-win-x64.zip",
+    );
+    expect(FLUX_CPU_RUNNER_ARCHIVE_BYTES).toBe(3_244_600);
     expect(FLUX_CPU_RUNNER_ARCHIVE_SHA256).toBe(
-      "1aff35d63b44397b53168225495463315f4981877c157a54b99d6fb35235229e",
+      "9b1fb7f834cc9bf90f8c9a60b3ee1c8e7c4f5f2ad48059805ff1a2d0868d0505",
     );
   });
 });

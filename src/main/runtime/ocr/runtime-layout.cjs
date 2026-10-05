@@ -117,7 +117,10 @@ function resolveExplicitWindowsRocmDir(options) {
 /** @param {OcrConfigOptions} options @returns {string[]} */
 function buildWindowsRocmDirCandidates(options) {
   const enginePrefix = isHayaiOcrPipeline(options) ? "h" : "r";
-  const rocmDirName = `${enginePrefix}${OCR_ROCM_WINDOWS_VERSION.replace(/\D/g, "")}`;
+  const version = isHayaiOcrPipeline(options)
+    ? "10.0.0"
+    : OCR_ROCM_WINDOWS_VERSION;
+  const rocmDirName = `${enginePrefix}${version.replace(/\D/g, "")}`;
   const baseRuntimeDir = resolveDefaultOcrRuntimeDir(options);
   const dataRoot = options.workingDir
     ? path.resolve(String(options.workingDir))

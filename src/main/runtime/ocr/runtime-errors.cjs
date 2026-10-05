@@ -75,7 +75,9 @@ function buildOcrBackendPackageIdentityFailureMessage(importMessage, options) {
       ? "CPU PyTorch 2.14.1"
       : "CPU PaddlePaddle"
     : isRocmGpu(options)
-      ? "PyTorch 2.9.1+rocm7.2.1"
+      ? isHayaiOcrPipeline(options)
+        ? "PyTorch 2.13.0+rocm10.0.0"
+        : "PyTorch 2.9.1+rocm7.2.1"
       : isOcrCudaTorchRuntime(options)
         ? `PyTorch ${isHayaiOcrPipeline(options) ? "2.14.1" : "2.9.1"}+${resolveOcrTorchCudaTag(options)}`
         : `CUDA ${resolveOcrGpuCudaTag(options)} PaddlePaddle GPU`;
@@ -114,7 +116,7 @@ function buildRocmImportFailureMessage(importMessage, options) {
     return `${engine} 런타임 설치 후 AMD ROCm/PyTorch 검증이 시간 초과되었습니다. Windows ROCm PyTorch 첫 import가 오래 걸릴 수 있습니다.${detail}`;
   }
   return isHayaiOcrPipeline(options)
-    ? `HayaiOCR AMD GPU 실행에 실패했습니다. Windows ROCm PyTorch 2.9.1/ROCm 7.2.1이 지원하는 GPU와 드라이버가 필요합니다. CPU로 처리하려면 설정에서 OCR 장치를 CPU로 직접 변경하세요.${detail}`
+    ? `HayaiOCR AMD GPU 실행에 실패했습니다. Windows ROCm PyTorch 2.13.0/ROCm 10.0.0이 지원하는 GPU와 드라이버가 필요합니다. CPU로 처리하려면 설정에서 OCR 장치를 CPU로 직접 변경하세요.${detail}`
     : `AMD OCR GPU 실행에 실패했습니다. AMD 경로는 PaddlePaddle CUDA가 아니라 Windows ROCm PyTorch + PaddleOCR Transformers engine을 사용합니다. Windows ROCm PyTorch 2.9.1/ROCm 7.2.1이 지원하는 GPU와 드라이버가 필요합니다. 실패가 반복되면 AMD ROCm OCR 안전 모드(dtype=float32, MIOpen 비활성화, det limit=1600)가 적용됐는지 확인하세요. CPU로 처리하려면 설정에서 OCR 장치를 CPU로 직접 변경하세요.${detail}`;
 }
 
@@ -142,6 +144,9 @@ function resolveOcrTimeoutSuffix(options) {
     return " CPU 런타임 검증이 제한 시간 안에 끝나지 않았습니다.";
   }
   if (resolveOcrGpuBackend(options) === "rocm-transformers") {
+    if (isHayaiOcrPipeline(options)) {
+      return " AMD ROCm/PyTorch GPU 검증이 제한 시간 안에 끝나지 않았습니다. Windows ROCm PyTorch 2.13.0/ROCm 10.0.0 지원 GPU와 드라이버를 확인하세요.";
+    }
     return " AMD ROCm/PyTorch GPU 검증이 제한 시간 안에 끝나지 않았습니다. Windows ROCm PyTorch 2.9.1/ROCm 7.2.1 지원 GPU와 드라이버를 확인하세요.";
   }
   if (isOcrCudaTorchRuntime(options)) {
@@ -185,6 +190,9 @@ function buildRocmGpuFailureMessage(text, options) {
     return `Windows ROCm HIP 런타임의 알려진 간헐 크래시로 보입니다(amdhip64 access violation). AMD Adrenalin 드라이버를 최신으로 유지하고, 내장 GPU(iGPU)가 함께 있는 시스템이라면 BIOS에서 iGPU를 비활성화하면 도움이 될 수 있습니다. detail=${truncateText(text, 1200)}`;
   }
   const engine = resolveOcrEngineLabel(options);
+  if (isHayaiOcrPipeline(options)) {
+    return `${engine} AMD GPU 실행에 실패했습니다. Windows ROCm PyTorch 2.13.0/ROCm 10.0.0이 지원하는 GPU와 Python 3.14가 필요합니다. AMD ROCm 지원 GPU/드라이버를 확인하세요. CPU로 처리하려면 설정에서 OCR 장치를 CPU로 직접 변경하세요. detail=${truncateText(text, 1200)}`;
+  }
   return `${engine} AMD GPU 실행에 실패했습니다. Windows ROCm PyTorch 2.9.1/ROCm 7.2.1이 지원하는 GPU와 Python 3.12가 필요합니다. AMD ROCm 지원 GPU/드라이버를 확인하세요. CPU로 처리하려면 설정에서 OCR 장치를 CPU로 직접 변경하세요. detail=${truncateText(text, 1200)}`;
 }
 
@@ -197,6 +205,9 @@ function buildPaddleOcrSm120FailureMessage(detail, options = {}) {
 function buildOcrNativeDllFailureMessage(detail, options = {}) {
   const engine = resolveOcrEngineLabel(options);
   if (isRocmGpu(options)) {
+    if (isHayaiOcrPipeline(options)) {
+      return `${engine} AMD GPU 런타임의 Windows ROCm PyTorch DLL을 불러오지 못했습니다. 자동 복구 후에도 반복되면 Microsoft Visual C++ 2015-2022 재배포 패키지, Windows ROCm PyTorch 2.13.0/ROCm 10.0.0 지원 GPU/드라이버와 OCR 런타임 설치 상태를 확인하세요. detail=${truncateText(detail, 1200)}`;
+    }
     return `${engine} AMD GPU 런타임의 Windows ROCm PyTorch DLL을 불러오지 못했습니다. 자동 복구 후에도 반복되면 Microsoft Visual C++ 2015-2022 재배포 패키지, Windows ROCm PyTorch 2.9.1/ROCm 7.2.1 지원 GPU/드라이버와 OCR 런타임 설치 상태를 확인하세요. detail=${truncateText(detail, 1200)}`;
   }
   if (isOcrCudaTorchRuntime(options)) {

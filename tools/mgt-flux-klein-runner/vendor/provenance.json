@@ -1,0 +1,8 @@
+{
+  "koharu": "52bb4f55e2266f72c1523562a583c827ec191ceb",
+  "diffusion": "3f8527a46c54ecf4cb4ed6003da8e8982283c73c",
+  "changes": [
+    "Updated FFI header and struct fields, image preprocessing defaults, effective video FPS argument.",
+    "Native runtime smoke passed for CPU and NVIDIA."
+  ]
+}

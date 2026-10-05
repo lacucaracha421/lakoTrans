@@ -1,0 +1,375 @@
+{
+  "date": "2026-10-05",
+  "baseCommit": "6063111cda7f27c990dad1e5ceabfd5d805df1ac",
+  "scope": {
+    "paddle": "Excluded; dedicated requirements, weights, legacy bootstrap and runtime branches preserved.",
+    "localDevelopmentEnvironment": "No global tools or packages changed. New validation runtimes live under .tmp/runtime-update-20261005.",
+    "applicationRelease": "No application version/release. Immutable native asset-only prerelease published."
+  },
+  "updates": {
+    "nodeAbi": {
+      "from": "4.35.0",
+      "to": "4.36.0"
+    },
+    "filelock": {
+      "from": "4.0.10",
+      "to": "4.0.11",
+      "scope": "Hayai CPU/CUDA/ROCm and legacy FLUX CPU locks"
+    },
+    "hayro": {
+      "from": "0.7.1",
+      "to": "0.8.0",
+      "compatibility": "Bounded PDF dimensions preserved using render_into and explicit Pixmap dimensions."
+    },
+    "hayai": {
+      "from": "3608bb2075b9b39cb9f63e57251bca665de248cd",
+      "to": "53aed13296a9d39bd7c0c0bcba745010d8142b5b",
+      "weights": "Unchanged, pinned hashes."
+    },
+    "hayaiWindowsAmd": {
+      "python": "3.14.8",
+      "torch": "2.13.0+rocm10.0.0",
+      "torchvision": "0.28.0+rocm10.0.0",
+      "torchaudio": "2.11.0.2+rocm10.0.0",
+      "rocm": "10.0.0",
+      "devices": "All 22 device extras pinned in requirements-hayai-rocm-win.in and its hashed lock.",
+      "cache": "h1000",
+      "dllDirectory": "_rocm_sdk_libraries/bin"
+    },
+    "legacyFluxCpu": {
+      "python": {
+        "from": "3.12.7",
+        "to": "3.14.8"
+      },
+      "lock": "src/main/runtime/python-locks/requirements-flux-cpu-win-py314.lock",
+      "buildToolsLock": "src/main/runtime/ocr/requirements-hayai-build-tools.lock"
+    },
+    "rfdetrQa": {
+      "from": "1.7.0",
+      "to": "1.11.2",
+      "checkpointVersion": "1.7.0",
+      "compatibility": "Only the absent empty deterministic keypoint mask is synthesized; learned weights still load with strict=True. Original checkpoint/config hashes remain enforced."
+    },
+    "diffusion": {
+      "from": "master-853-b68d586",
+      "to": "master-929-3f8527a.6",
+      "source": "3f8527a46c54ecf4cb4ed6003da8e8982283c73c",
+      "ffi": "Vendored Koharu 0.83.5 bindings updated to the exact new native header; licenses and provenance retained.",
+      "runtimeCache": "koharu-0.83.5-r2",
+      "cpuRunnerCache": "koharu-0.83.5-sd929-r1"
+    },
+    "nvidiaDlls": {
+      "cudaRuntime": "13.4.92",
+      "cublas": "13.8.0.4",
+      "cufft": "12.4.0.43",
+      "curand": "10.4.4.72",
+      "cudnn": "9.27.0.42",
+      "nvrtc": "13.4.92",
+      "nvjitlink": "13.4.92",
+      "cusparse": "12.8.6.72",
+      "cusolver": "12.3.4.7",
+      "nvrtcBuiltins": "nvrtc-builtins64_134.dll"
+    }
+  },
+  "deferred": {
+    "huggingfaceHub": "1.33.0 retained: tokenizers/diffusers require <2.",
+    "mpmath": "1.3.0 retained: sympy requires <1.4.",
+    "amdTranslation": "b1338 retained: b1339 bundles ROCm 10.2 alpha.",
+    "transitiveMajorUpdates": "Do not force overrides outside upstream dependency constraints.",
+    "legacyFluxRocmArchive": "Frozen ROCm 7.2.1/Python 3.12.7 archive and its immutable hash retained; production native HIP stack is separate.",
+    "paddle": "User exclusion."
+  },
+  "currentWithoutChanges": [
+    "@openai/codex 0.160.0",
+    "Electron 44.5.1",
+    "TypeScript 7.0.2 with compatibility alias 6.0.2",
+    "Vitest 5.0.3",
+    "Zod 4.6.5",
+    "GitHub Actions pins and CI toolchains"
+  ],
+  "assets": {
+    "release": {
+      "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/diffusion-master-929-cpu-win-x64-r1",
+      "assets": [
+        {
+          "name": "manifest.json",
+          "bytes": 4851,
+          "digest": "sha256:b4c789d4066b8be2315dd07ad6821eb2b4cfeac8d0355aa24511dcd24921fd95"
+        },
+        {
+          "name": "mgt-flux-klein-cpu-master-929-win-x64.zip",
+          "bytes": 3244600,
+          "digest": "sha256:9b1fb7f834cc9bf90f8c9a60b3ee1c8e7c4f5f2ad48059805ff1a2d0868d0505"
+        },
+        {
+          "name": "mgt-flux-klein-native-master-929-win-x64.zip",
+          "bytes": 3242098,
+          "digest": "sha256:cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b"
+        },
+        {
+          "name": "stable-diffusion-master-929-cpu-win-x64.zip",
+          "bytes": 14792697,
+          "digest": "sha256:c8df813fb44823cfdd5f98394b905954bf5a5d65b1efa7ace0948b828344427b"
+        }
+      ],
+      "verified": true
+    },
+    "manifest": {
+      "schema": 1,
+      "tag": "diffusion-master-929-cpu-win-x64-r1",
+      "sourceCommit": "6063111cda7f27c990dad1e5ceabfd5d805df1ac",
+      "provenance": {
+        "koharu": "52bb4f55e2266f72c1523562a583c827ec191ceb",
+        "diffusion": "3f8527a46c54ecf4cb4ed6003da8e8982283c73c",
+        "diffusionBuild": "scripts/build-native-diffusion-cpu.ps1; VS2022 x64, GGML_NATIVE=OFF, AVX2=ON, AVX512=OFF, AVX_VNNI=OFF, no CUDA/Vulkan dependency",
+        "cmake": {
+          "version": "4.4.3",
+          "url": "https://files.pythonhosted.org/packages/90/8c/e872d51e4cc7cd3fc159bd273baf5faab2de5a4f290e2728d14d551e0029/cmake-4.4.3-py3-none-win_amd64.whl",
+          "sha256": "708ad6b662ee89d3eb2eac02a1afba20ca653139cbe769fed046124d0c6bc050"
+        },
+        "libclang": {
+          "url": "https://files.pythonhosted.org/packages/0b/2d/3f480b1e1d31eb3d6de5e3ef641954e5c67430d5ac93b7fa7e07589576c7/libclang-18.1.1-py2.py3-none-win_amd64.whl",
+          "sha256": "4dd2d3b82fab35e2bf9ca717d7b63ac990a3519c7e312f19fa8e86dcc712f7fb",
+          "version": "18.1.1"
+        },
+        "validation": [
+          {
+            "model": "lama-manga",
+            "backend": "cpu",
+            "ok": true
+          },
+          {
+            "model": "aot-inpainting",
+            "backend": "cpu",
+            "ok": true
+          },
+          {
+            "model": "flux-klein",
+            "backend": "cpu",
+            "ok": true
+          },
+          {
+            "model": "lama-manga",
+            "backend": "cuda",
+            "ok": true
+          },
+          {
+            "model": "aot-inpainting",
+            "backend": "cuda",
+            "ok": true
+          },
+          {
+            "model": "flux-klein",
+            "backend": "cuda",
+            "ok": true
+          }
+        ],
+        "windowsUnicodePaths": "UTF-8 activeCodePage process manifest; all six real-worker smokes used Korean absolute paths",
+        "sourcePatchSha256": "806883349d23133fd771ddf197d2992bf8323d9af83e6583dff2510c12a67b96"
+      },
+      "assets": [
+        {
+          "name": "mgt-flux-klein-native-master-929-win-x64.zip",
+          "bytes": 3242098,
+          "sha256": "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
+          "files": [
+            {
+              "name": "LICENSE-GPL",
+              "bytes": 35145,
+              "sha256": "c85052e14a10f60d36f63362e3ed5de573aaf1f687da513768b85ef4c1f1a0a6"
+            },
+            {
+              "name": "LICENSE-KOHARU-APACHE",
+              "bytes": 11558,
+              "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+            },
+            {
+              "name": "LICENSE-KOHARU-MIT",
+              "bytes": 1121,
+              "sha256": "a92cc3408cc6d9c5d17f417ac5c424d6c8148b2512f86d95fa7acf3c9e132547"
+            },
+            {
+              "name": "mgt-flux-klein.exe",
+              "bytes": 8434176,
+              "sha256": "e821720578f1235cb415a12eb142f43cb816ddac7d0abbf5865c4a0b0baf778d"
+            },
+            {
+              "name": "NOTICE.txt",
+              "bytes": 245,
+              "sha256": "cede8470ed153b8d46ec1c1b239b1077b4165e1be02b2aad75ea97126d1c9a24"
+            }
+          ]
+        },
+        {
+          "name": "mgt-flux-klein-cpu-master-929-win-x64.zip",
+          "bytes": 3244600,
+          "sha256": "9b1fb7f834cc9bf90f8c9a60b3ee1c8e7c4f5f2ad48059805ff1a2d0868d0505",
+          "files": [
+            {
+              "name": "LICENSE-GPL",
+              "bytes": 35145,
+              "sha256": "c85052e14a10f60d36f63362e3ed5de573aaf1f687da513768b85ef4c1f1a0a6"
+            },
+            {
+              "name": "LICENSE-KOHARU-APACHE",
+              "bytes": 11558,
+              "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+            },
+            {
+              "name": "LICENSE-KOHARU-MIT",
+              "bytes": 1121,
+              "sha256": "a92cc3408cc6d9c5d17f417ac5c424d6c8148b2512f86d95fa7acf3c9e132547"
+            },
+            {
+              "name": "mgt-flux-klein-cpu.exe",
+              "bytes": 8434688,
+              "sha256": "e6eaa1cdaa1aefd7617149cb5780a2cf5edfcdc8677a3585f0abba2c83faa7b3"
+            },
+            {
+              "name": "NOTICE.txt",
+              "bytes": 245,
+              "sha256": "cede8470ed153b8d46ec1c1b239b1077b4165e1be02b2aad75ea97126d1c9a24"
+            }
+          ]
+        },
+        {
+          "name": "stable-diffusion-master-929-cpu-win-x64.zip",
+          "bytes": 14792697,
+          "sha256": "c8df813fb44823cfdd5f98394b905954bf5a5d65b1efa7ace0948b828344427b",
+          "files": [
+            {
+              "name": "LICENSE",
+              "bytes": 1082,
+              "sha256": "4e76049398df734a97db46f3bd4b5cbc460cb5f6bfaf737cdc3d6fbb8ab3de27"
+            },
+            {
+              "name": "LICENSE-GGML",
+              "bytes": 1099,
+              "sha256": "bcd8ec749126d45cb06737d0690295d73df4b6e7e194205bcf91190368f27285"
+            },
+            {
+              "name": "NOTICE.txt",
+              "bytes": 245,
+              "sha256": "cede8470ed153b8d46ec1c1b239b1077b4165e1be02b2aad75ea97126d1c9a24"
+            },
+            {
+              "name": "stable-diffusion.dll",
+              "bytes": 36688896,
+              "sha256": "4428f1fba013dcf941bcfbda26430d1aff4244a0ebb25aa0fbbc82dc9f59c8d3"
+            }
+          ]
+        }
+      ]
+    },
+    "consumerFiles": [
+      "src/main/runtime/native-inference-manifest.json",
+      "src/main/inpainting/fluxAssets/constants.ts",
+      "src/main/runtimeSupport/nativeInferencePlan.ts"
+    ],
+    "verification": "Four server asset names, sizes and SHA-256 digests checked; all downloaded into an initially empty directory and archive inventories validated before changing consumer pins.",
+    "sourceAvailability": "Matching vendored binding sources and runner binary are committed with this handoff. The asset tag points to baseCommit; release notes link the final source commit.",
+    "verificationCopies": "Re-downloaded archive copies removed after validation; original producer staging and verification receipts preserved."
+  },
+  "validation": {
+    "nativeModels": [
+      {
+        "model": "lama-manga",
+        "backend": "cpu",
+        "ok": true,
+        "wallMs": 1715
+      },
+      {
+        "model": "aot-inpainting",
+        "backend": "cpu",
+        "ok": true,
+        "wallMs": 478
+      },
+      {
+        "model": "flux-klein",
+        "backend": "cpu",
+        "ok": true,
+        "wallMs": 55696
+      },
+      {
+        "model": "lama-manga",
+        "backend": "cuda",
+        "ok": true,
+        "wallMs": 2930
+      },
+      {
+        "model": "aot-inpainting",
+        "backend": "cuda",
+        "ok": true,
+        "wallMs": 968
+      },
+      {
+        "model": "flux-klein",
+        "backend": "cuda",
+        "ok": true,
+        "wallMs": 4798
+      }
+    ],
+    "remoteColdInstall": {
+      "models": [
+        {
+          "model": "lama",
+          "ok": true
+        },
+        {
+          "model": "flux",
+          "ok": true
+        }
+      ],
+      "detail": "Initial empty cache downloaded and prepared new remote runtime successfully. First inference harness used missing fixture paths; fixed harness fixtures and reran against that installed cache, both passed."
+    },
+    "hayaiJapaneseParity": [
+      {
+        "revision": "3608bb2075b9b39cb9f63e57251bca665de248cd",
+        "texts": ["こんにちは", "ありがとう", "待ってください"],
+        "device": "cuda:0",
+        "torch": "2.14.1+cu130"
+      },
+      {
+        "revision": "53aed13296a9d39bd7c0c0bcba745010d8142b5b",
+        "texts": ["こんにちは", "ありがとう", "待ってください"],
+        "device": "cuda:0",
+        "torch": "2.14.1+cu130"
+      }
+    ],
+    "hayaiCpu": "App ensureOcrRuntime cold install and second-call reuse passed with Python 3.14.8.",
+    "amd": "App package installer and isolated torch/torchvision/transformers import passed. NVIDIA host has no AMD GPU; actual HIP inference untested.",
+    "rfdetr": "4 Python tests and actual pinned checkpoint/config validation, strict load and CUDA prediction passed.",
+    "rust": "Import runner 3 tests (PNG dimensions, PDF coordinate orientation and white background pixels); FLUX runner 4 tests; vendored bindings 8 unit tests plus 1 doctest passed (native metadata unit test intentionally ignored, actual native smoke performed separately).",
+    "huggingFace": "36 built-in assets verified.",
+    "hardwareLimitations": [
+      "No AMD GPU or Apple Silicon device available for physical inference testing.",
+      "RTX 20-series translation CUDA 12 selection and pinned binaries unchanged; physical tests used RTX 4090."
+    ],
+    "logs": ".tmp/runtime-update-20261005",
+    "paddleDedicatedFilesUnchanged": true,
+    "legacyFluxCpu": "3.14.8 (tags/v3.14.8:8e6e75d, Sep 30 2026, 18:19:33) [MSC v.1944 64 bit (AMD64)]\r\n2.14.1+cpu 0.40.0 4.0.11\r\nFLUX_PYTHON_READY\r\n",
+    "coverageInventory": "Added the two newly touched files using the existing SHA-256-verified Node 22 baseline artifact; existing coverage floors were not lowered.",
+    "fullCheck": {
+      "status": "passed",
+      "completedAt": "2026-10-05T07:57:00.350Z",
+      "passedTests": 10174,
+      "skippedTests": 9,
+      "failedTests": 0,
+      "stages": "typecheck, lint, architecture, full coverage tests, coverage floors, build, page artwork parity, image protocol smoke, renderer/preload bundle boundaries",
+      "log": ".tmp/runtime-update-20261005/check-sealed.log"
+    },
+    "amdFailureMessages": "Regression tests verify Hayai ROCm 10/Python 3.14 requirements and preserve legacy Paddle guidance."
+  },
+  "rollback": {
+    "source": "Revert the update commit as a unit so FFI bindings, runner binary and native DLL/cache pins revert together.",
+    "assets": "Keep both old and new immutable GitHub assets. Never overwrite tags, asset bytes or cache versions.",
+    "userData": "No library, source manga, output or user model files are removed."
+  },
+  "lockHashes": {
+    "src/main/runtime/ocr/requirements-hayai-cpu-win.lock": "ea3a29a28dc97e736a3bae37dee695a46b55f3a4809795c13bfa5472453a0705",
+    "src/main/runtime/ocr/requirements-hayai-cuda-cu126-win.lock": "9c393437429cfcd92a7a78967638ec5424e02353ee9c181016070f0555c1dcbc",
+    "src/main/runtime/ocr/requirements-hayai-cuda-cu130-win.lock": "16c582b63296456b79b152f5ed9e2d430d5d892e169a4b95da5f7d170bd84f27",
+    "src/main/runtime/ocr/requirements-hayai-rocm-win.lock": "87b60c2df9fec5a66be00529b9989090a2a13966187172f33354dddb8cd42b8f",
+    "src/main/runtime/python-locks/requirements-flux-cpu-win-py314.lock": "0d90b321661cb2233250c9fc84a0ff57276d19460dafb270dd98abf1a6c41fb9"
+  }
+}

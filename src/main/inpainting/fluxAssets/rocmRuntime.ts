@@ -4,6 +4,7 @@ import { tMain } from "../localization";
 import {
   DEFAULT_AMD_GPU_TARGETS,
   FLUX_EMBED_PYTHON_VERSION,
+  FLUX_ROCM_EMBED_PYTHON_VERSION,
   WINDOWS_MSVC_COMPILER_TARGET,
 } from "./constants";
 import type {
@@ -86,11 +87,15 @@ export function buildTargetPythonEnv(
   options: { requireNativeBuildEnv?: boolean } = {},
 ): NodeJS.ProcessEnv {
   const pathEntries = [
-    join(runtimeDir, "bootstrap-python", `python-${FLUX_EMBED_PYTHON_VERSION}`),
     join(
       runtimeDir,
       "bootstrap-python",
-      `python-${FLUX_EMBED_PYTHON_VERSION}`,
+      `python-${backend === "python-rocm" ? FLUX_ROCM_EMBED_PYTHON_VERSION : FLUX_EMBED_PYTHON_VERSION}`,
+    ),
+    join(
+      runtimeDir,
+      "bootstrap-python",
+      `python-${backend === "python-rocm" ? FLUX_ROCM_EMBED_PYTHON_VERSION : FLUX_EMBED_PYTHON_VERSION}`,
       "Scripts",
     ),
     packageDir,

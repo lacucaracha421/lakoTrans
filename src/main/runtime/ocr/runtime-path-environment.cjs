@@ -57,7 +57,13 @@ function buildOcrRuntimeDllSearchDirs(
     ? []
     : buildPaddleDllSearchDirs(packageDir);
   if (resolveOcrGpuBackend(options) === "rocm-transformers") {
-    return [...paddleDirs, ...buildRocmDllSearchDirs(packageDir)];
+    return [
+      ...paddleDirs,
+      ...buildRocmDllSearchDirs(packageDir),
+      ...(isHayaiOcrPipeline(options)
+        ? [path.join(packageDir, "_rocm_sdk_libraries", "bin")]
+        : []),
+    ];
   }
   return isOcrTorchRuntime(options)
     ? [...paddleDirs, ...buildTorchDllSearchDirs(packageDir)]

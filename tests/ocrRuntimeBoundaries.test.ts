@@ -274,7 +274,7 @@ describeWindows("OCR runtime boundary behavior", () => {
         ocrDevice: "gpu",
         ocrGpuBackend: "rocm-transformers",
       },
-      version: "3.12.7",
+      version: "3.14.8",
       label: "HayaiOCR",
     },
   ])(

@@ -6,8 +6,8 @@ param(
 $ErrorActionPreference = "Stop"
 $source = (Resolve-Path -LiteralPath $SourceDirectory).Path
 $revision = git -C $source rev-parse HEAD
-if ($LASTEXITCODE -ne 0 -or $revision -ne "b68d58624d227682eb4b95ef8bcf569cd1311eb5") {
-  throw "Use stable-diffusion.cpp master-853-b68d586 with its pinned submodules"
+if ($LASTEXITCODE -ne 0 -or $revision -ne "3f8527a46c54ecf4cb4ed6003da8e8982283c73c") {
+  throw "Use stable-diffusion.cpp master-929-3f8527a with its pinned submodules"
 }
 if (git -C $source status --porcelain) { throw "Source must be clean" }
 $submodules = git -C $source submodule status --recursive

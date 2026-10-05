@@ -28,7 +28,6 @@ const {
 } = require("./host-services.cjs");
 const {
   resolveOcrTempDir,
-  resolveOcrRuntimeVariant,
   summarizeOcrErrorMessage,
 } = require("../simple-page-ocr-runtime-config.cjs");
 const {
@@ -116,12 +115,11 @@ function assertManagedPythonPlatform() {
 
 /** @param {RuntimeOptions} options @param {string} runtimeDir @returns {ManagedPythonContext} */
 function resolveManagedPythonContext(options, runtimeDir) {
-  // AMD Windows wheels are cp312-only; the legacy Paddle bootstrap stays frozen.
-  const managedPython =
-    isHayaiOcrPipeline(options) &&
-    resolveOcrRuntimeVariant(options) !== "hayai-rocm"
-      ? RUNTIME_INTEGRITY_MANIFEST.hayaiManagedPython
-      : DEFAULT_MANAGED_PYTHON;
+  // Hayai's stable Windows CPU/CUDA/ROCm wheels all support CPython 3.14.
+  // Keep the legacy Paddle bootstrap frozen.
+  const managedPython = isHayaiOcrPipeline(options)
+    ? RUNTIME_INTEGRITY_MANIFEST.hayaiManagedPython
+    : DEFAULT_MANAGED_PYTHON;
   const version = String(
     runtimeOverrideEnv("MANGA_TRANSLATOR_EMBED_PYTHON_VERSION", options) ||
       managedPython.version,

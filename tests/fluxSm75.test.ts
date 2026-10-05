@@ -13,13 +13,13 @@ import {
 describe("experimental Flux SM75 routing", () => {
   it("uses the same immutable native runner for Turing and newer CUDA devices", () => {
     expect(FLUX_NVIDIA_RUNNER_BASE_URL).toMatch(
-      /\/koharu-native-0\.83\.5-win-x64-r1$/u,
+      /\/diffusion-master-929-cpu-win-x64-r1$/u,
     );
     expect(FLUX_NVIDIA_RUNNER_ASSETS["75"]).toEqual(
       FLUX_NVIDIA_RUNNER_ASSETS["86"],
     );
     expect(FLUX_NVIDIA_RUNNER_ASSETS["75"].sha256).toBe(
-      "7977e384dc8882d88eb687e516f3ad6036f3e4d14e406a2624e6ce0eb35505a3",
+      "cab50e3825737c5f8550538efa66d686c2facc6b75752933390b2c3b537bf60b",
     );
   });
 

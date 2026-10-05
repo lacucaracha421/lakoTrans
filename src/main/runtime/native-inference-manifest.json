@@ -1,8 +1,8 @@
 {
-  "version": "koharu-0.83.5-r1",
+  "version": "koharu-0.83.5-r2",
   "koharuRevision": "52bb4f55e2266f72c1523562a583c827ec191ceb",
   "torchVersion": "2.13.0.7",
-  "diffusionVersion": "master-853-b68d586",
+  "diffusionVersion": "master-929-3f8527a.6",
   "rocmVersion": "10.0.0",
   "packages": {
     "torch-win32-cpu": {
@@ -34,86 +34,86 @@
       "preservePaths": true
     },
     "diffusion-win32-cuda": {
-      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-853-b68d586/x86_64-pc-windows-msvc-cuda.tar.gz",
-      "sha256": "2fea91fb80dfdcfd45f16cf6f0b4d58d69fd14cb683ccac5678d7eb5a843a14b",
-      "bytes": 150253001,
+      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-929-3f8527a.6/x86_64-pc-windows-msvc-cuda.tar.gz",
+      "sha256": "863b72d8b392ca38b2a69f0372d6b8f52a21eeee8e6902af9e8efbfee52fadaf",
+      "bytes": 146752108,
       "format": "tar",
       "preservePaths": true
     },
     "diffusion-win32-rocm": {
-      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-853-b68d586/x86_64-pc-windows-msvc-hip.tar.gz",
-      "sha256": "42b35745fe2c54346e44d0fb1b88e9136b33b0184bab607f7bc59098a2b8f032",
-      "bytes": 201871925,
+      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-929-3f8527a.6/x86_64-pc-windows-msvc-hip.tar.gz",
+      "sha256": "7853473762b73ea11fbea4da19d423b838b3006e6570ee29a3e690656e66aeba",
+      "bytes": 205713170,
       "format": "tar",
       "preservePaths": true
     },
     "diffusion-darwin-metal": {
-      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-853-b68d586/aarch64-apple-darwin-metal.tar.gz",
-      "sha256": "13cc08f0542c4465724ca891c03da2251af2ec046fae043923cb91ca3756cb42",
-      "bytes": 23448570,
+      "url": "https://github.com/koharu-rs/diffusion/releases/download/master-929-3f8527a.6/aarch64-apple-darwin-metal.tar.gz",
+      "sha256": "f0cf82a2b3d26124f3feba9128356ece9d258bb8af89370835536e9c0872e141",
+      "bytes": 15744530,
       "format": "tar",
       "preservePaths": true
     },
     "nvidia-cuda-runtime": {
-      "url": "https://files.pythonhosted.org/packages/d2/27/b53a5e0397842a5c11f0e1a39d4e5b2f22638a4126e83b3c4e196f62c969/nvidia_cuda_runtime-13.3.29-py3-none-win_amd64.whl",
-      "sha256": "0667ec61c3d897388efa305ed4f7609ace88849a753ba9c6311d06dca55fff4f",
-      "bytes": 2630354,
+      "url": "https://files.pythonhosted.org/packages/86/00/d5436004268f049214193659ebc36550b5ef3925c3d13b4cc980e13be6f5/nvidia_cuda_runtime-13.4.92-py3-none-win_amd64.whl",
+      "sha256": "08dca5e4aba480c2fd5b55075c0fa71b84ef9dcf0521f2d58baa14a803a7311c",
+      "bytes": 2778543,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cublas": {
-      "url": "https://files.pythonhosted.org/packages/08/8f/890a96ea1ff615100296977cce23296052dcb8c114d4e451201ec39df9bf/nvidia_cublas-13.6.0.2-py3-none-win_amd64.whl",
-      "sha256": "3b5bcd6bfb6f65010ebf195851bcb9b2aa34b9fe08479432002991c1fe84b67d",
-      "bytes": 394568225,
+      "url": "https://files.pythonhosted.org/packages/a3/df/f1246959833e2c437db8be3e5b477f66b87f8817821ed40de6c7561c9a36/nvidia_cublas-13.8.0.4-py3-none-win_amd64.whl",
+      "sha256": "8c5494423bb8a46822cb6b0cb95d7fa4be2d7b96a31155dff083839ec8297910",
+      "bytes": 423266897,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cufft": {
-      "url": "https://files.pythonhosted.org/packages/94/64/8e9d808720559d3cbfcd1d1bc8a2e6f55deb29d692513d5a93c8d417b7e5/nvidia_cufft-12.3.0.29-py3-none-win_amd64.whl",
-      "sha256": "510036a2bbab5c83ae93dc5c907c3a49d3518e3066ac3a2052ff0f7f9b27dfc4",
-      "bytes": 183939745,
+      "url": "https://files.pythonhosted.org/packages/7b/cc/be7fe31058127336a66c88414a2ecc6beecf680baf85994a43eaf292b202/nvidia_cufft-12.4.0.43-py3-none-win_amd64.whl",
+      "sha256": "4ff7075f2d0b5f69291f70938d37a86ec632cbe5747184c74ba1f50f17accacc",
+      "bytes": 160953139,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-curand": {
-      "url": "https://files.pythonhosted.org/packages/2a/eb/63f7710fc84837e0118002bc29671542807921aef3a0c710da83a5e7e711/nvidia_curand-10.4.3.29-py3-none-win_amd64.whl",
-      "sha256": "34b18d5a2a8e5db4c3846475ae4eef0cacdf3ac5e9c501f3a4efb422f137a74e",
-      "bytes": 55429221,
+      "url": "https://files.pythonhosted.org/packages/e2/d4/f59ab342b82ff05ff27d674acd470ba625d788bf71338f7da6c89669d6b9/nvidia_curand-10.4.4.72-py3-none-win_amd64.whl",
+      "sha256": "e0bce83e083ef25976ee74f59e8f067c15149a74538f1be6c2462e286e7c9c68",
+      "bytes": 56731059,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cudnn-cu13": {
-      "url": "https://files.pythonhosted.org/packages/fd/0f/d7e4141c1126899c7b8d202eb3085380164beefef32f94cc8967ed3a00ff/nvidia_cudnn_cu13-9.25.1.1-py3-none-win_amd64.whl",
-      "sha256": "e1de75bf1ad9040414f9b13cc87135d660d13dd3c859180dd6b63353e571f860",
-      "bytes": 407762053,
+      "url": "https://files.pythonhosted.org/packages/87/6a/e55ff0ac26a5c6e2b21f41c9d04ad096b4ed6da593fba7e25845c61b0532/nvidia_cudnn_cu13-9.27.0.42-py3-none-win_amd64.whl",
+      "sha256": "7d96f634adafd55c72231eb0500ca77ab109ec8ebff7b33000b76e081bc4558e",
+      "bytes": 436469905,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cuda-nvrtc": {
-      "url": "https://files.pythonhosted.org/packages/a1/42/edce72f2c5a0f587168109c867f25f4a9a6cd7289ecf0d68ed2b1070f273/nvidia_cuda_nvrtc-13.3.33-py3-none-win_amd64.whl",
-      "sha256": "7d2af818851c0c224d5f92221e9226e51ee23c236df4b51f9194563979c888be",
-      "bytes": 45319163,
+      "url": "https://files.pythonhosted.org/packages/64/5b/aa91896f64444eff1dd7f189f4db05046c7f0ba08c0f531283c1c1aac581/nvidia_cuda_nvrtc-13.4.92-py3-none-win_amd64.whl",
+      "sha256": "6af7ac5372920f6a7a560d0699348560fe44cb52c1d722d6afd3119f8af948c4",
+      "bytes": 46972283,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-nvjitlink": {
-      "url": "https://files.pythonhosted.org/packages/67/f2/ec9c05a108095828dfc58840978c627b3c313fdf2a567c6de9ffbbb46901/nvidia_nvjitlink-13.3.33-py3-none-win_amd64.whl",
-      "sha256": "4297ee49639b4f2e07255a1d69b3acc7ab2d011bb892b403e91ac98368962e3b",
-      "bytes": 37766359,
+      "url": "https://files.pythonhosted.org/packages/72/7c/c44bd7277afafed9de262a23baec4dc8dcf7ecbb1b9ecb228821442d1e9b/nvidia_nvjitlink-13.4.92-py3-none-win_amd64.whl",
+      "sha256": "b286f3a4f227a9363efdec263c7b91788cef1478d2b8a5fa8bab7f3e82ff82fd",
+      "bytes": 39053950,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cusparse": {
-      "url": "https://files.pythonhosted.org/packages/91/3b/2193ab417f147d8a9fb43ea00b447ecb3fa352ba9d423fc55c8f0649a96b/nvidia_cusparse-12.8.2.51-py3-none-win_amd64.whl",
-      "sha256": "2ee59291cd362038f3d40d57c7cd09b26d689f3873ae5c94b31c3270772d41b8",
-      "bytes": 152492210,
+      "url": "https://files.pythonhosted.org/packages/85/f7/e0d0edefab227c9967df12484fd50e5586b9af86439f38354779c7086e8b/nvidia_cusparse-12.8.6.72-py3-none-win_amd64.whl",
+      "sha256": "013d3f83316431dd3338cf15141dd5420b24dffc6663fc083c053c8409fa3cb7",
+      "bytes": 168202645,
       "format": "zip",
       "preservePaths": false
     },
     "nvidia-cusolver": {
-      "url": "https://files.pythonhosted.org/packages/56/ed/520ef455cfacd3d44847b11c9858287af70d13ea4c38a64cfe16eb040139/nvidia_cusolver-12.2.6.9-py3-none-win_amd64.whl",
-      "sha256": "1dbb828e0fb27701c084a8fb80f770c562cb9a6d29b6f001320e6f542c6d024f",
-      "bytes": 236912336,
+      "url": "https://files.pythonhosted.org/packages/65/0b/1d751c92e1429ef3261021eb4b6cf27076b547d7512c6dc4b9aebeb9c49a/nvidia_cusolver-12.3.4.7-py3-none-win_amd64.whl",
+      "sha256": "7ed56898cd98abe36d8727eaf1408622c67557f2acb3baca5a27e24e595a1ccb",
+      "bytes": 261421900,
       "format": "zip",
       "preservePaths": false
     },
@@ -286,9 +286,9 @@
       "preservePaths": true
     },
     "diffusion-win32-cpu": {
-      "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/download/koharu-native-0.83.5-win-x64-r1/stable-diffusion-master-853-cpu-win-x64.zip",
-      "sha256": "91ecf36a94007c17c8cd997b7c3d71c893b92ca6d1249e4c5a36f710c2f3fad3",
-      "bytes": 22590910,
+      "url": "https://github.com/ucx0204/CarrotMangaTranslator/releases/download/diffusion-master-929-cpu-win-x64-r1/stable-diffusion-master-929-cpu-win-x64.zip",
+      "sha256": "c8df813fb44823cfdd5f98394b905954bf5a5d65b1efa7ace0948b828344427b",
+      "bytes": 14792697,
       "format": "zip",
       "preservePaths": false
     },

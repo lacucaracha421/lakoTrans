@@ -1,0 +1,23 @@
+[package]
+name = "koharu-diffusion-sys"
+version = "0.83.5"
+edition = "2024"
+description = "Low-level dynamically loaded FFI bindings for stable-diffusion.cpp."
+license = "MIT OR Apache-2.0"
+keywords = ["stable-diffusion", "diffusion", "ffi", "bindings", "machine-learning"]
+categories = ["external-ffi-bindings", "science"]
+publish = true
+build = "build.rs"
+
+[dependencies]
+libloading = "0.9"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[build-dependencies]
+anyhow = "1"
+koharu-bindgen = { git = "https://github.com/koharu-rs/koharu", rev = "52bb4f55e2266f72c1523562a583c827ec191ceb" }
+
+[package.metadata.cargo-machete]
+ignored = ["anyhow", "koharu-bindgen", "libc", "libloading"]

@@ -26,7 +26,7 @@ import evaluate_koharu_region_boxes as base
 
 
 MODEL_ID = "JustANormalTinkerer/hayai-ocr-v2"
-MODEL_REVISION = "3608bb2075b9b39cb9f63e57251bca665de248cd"
+MODEL_REVISION = "53aed13296a9d39bd7c0c0bcba745010d8142b5b"
 PROCESSOR_ID = "google/siglip2-base-patch16-naflex"
 SCHEMA_VERSION = "hayai-effect-crop-score-v1"
 

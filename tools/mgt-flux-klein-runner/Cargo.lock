@@ -1112,7 +1112,6 @@ dependencies = [
 [[package]]
 name = "koharu-diffusion"
 version = "0.83.5"
-source = "git+https://github.com/koharu-rs/koharu?rev=52bb4f55e2266f72c1523562a583c827ec191ceb#52bb4f55e2266f72c1523562a583c827ec191ceb"
 dependencies = [
  "image",
  "koharu-diffusion-sys",
@@ -1123,7 +1122,6 @@ dependencies = [
 [[package]]
 name = "koharu-diffusion-sys"
 version = "0.83.5"
-source = "git+https://github.com/koharu-rs/koharu?rev=52bb4f55e2266f72c1523562a583c827ec191ceb#52bb4f55e2266f72c1523562a583c827ec191ceb"
 dependencies = [
  "anyhow",
  "koharu-bindgen",

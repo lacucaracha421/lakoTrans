@@ -298,12 +298,39 @@ describe("Apple Silicon Alpha packaging", () => {
     ]);
     for (const manifest of [
       join(repoRoot, "tools", "mgt-koharu-inpaint-runner", "Cargo.toml"),
-      join(repoRoot, "tools", "mgt-flux-klein-runner", "Cargo.toml"),
+      join(
+        repoRoot,
+        "tools",
+        "mgt-flux-klein-runner",
+        "vendor",
+        "koharu-diffusion-sys",
+        "Cargo.toml",
+      ),
     ]) {
       expect(readFileSync(manifest, "utf8")).toContain(
         'rev = "52bb4f55e2266f72c1523562a583c827ec191ceb"',
       );
     }
+    const fluxManifest = readFileSync(
+      join(repoRoot, "tools", "mgt-flux-klein-runner", "Cargo.toml"),
+      "utf8",
+    );
+    expect(fluxManifest).toContain('path = "vendor/koharu-diffusion"');
+    const provenance = JSON.parse(
+      readFileSync(
+        join(
+          repoRoot,
+          "tools",
+          "mgt-flux-klein-runner",
+          "vendor",
+          "provenance.json",
+        ),
+        "utf8",
+      ),
+    );
+    expect(provenance.diffusion).toBe(
+      "3f8527a46c54ecf4cb4ed6003da8e8982283c73c",
+    );
   });
 
   it("pins every transitive macOS OCR wheel by version and SHA-256", async () => {

@@ -1074,6 +1074,28 @@
         "pct": 0
       }
     },
+    "src/main/inpainting/fluxAssets/pythonIntegrity.ts": {
+      "lines": {
+        "covered": 2,
+        "total": 15,
+        "pct": 13.33
+      },
+      "statements": {
+        "covered": 2,
+        "total": 16,
+        "pct": 12.5
+      },
+      "functions": {
+        "covered": 0,
+        "total": 5,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 8,
+        "pct": 0
+      }
+    },
     "src/main/inpainting/fluxAssets/pythonRuntimeInstaller.ts": {
       "lines": {
         "covered": 0,
@@ -1159,6 +1181,28 @@
       "branches": {
         "covered": 0,
         "total": 20,
+        "pct": 0
+      }
+    },
+    "src/main/inpainting/fluxAssets/rocmRuntime.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 62,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 62,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 17,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 61,
         "pct": 0
       }
     },

@@ -7,8 +7,8 @@ import {
 } from "./manifests";
 import type { FluxPythonBackend } from "./types";
 
-const FLUX_CPU_LOCK = "requirements-flux-cpu-win-py312.lock";
-const OCR_BUILD_TOOLS_LOCK = "ocr/requirements-build-tools.lock";
+const FLUX_CPU_LOCK = "requirements-flux-cpu-win-py314.lock";
+const OCR_BUILD_TOOLS_LOCK = "ocr/requirements-hayai-build-tools.lock";
 
 export function resolveFluxPythonIntegrityId(
   backend: FluxPythonBackend,

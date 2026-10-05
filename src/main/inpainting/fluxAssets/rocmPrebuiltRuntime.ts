@@ -1,7 +1,7 @@
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import {
-  FLUX_EMBED_PYTHON_VERSION,
+  FLUX_ROCM_EMBED_PYTHON_VERSION,
   FLUX_ROCM_PREBUILT_EXTRACTION_DEADLINE_MS,
   FLUX_ROCM_PREBUILT_EXTRACTION_LIMITS,
   FLUX_ROCM_PREBUILT_RUNTIME_FILE,
@@ -149,7 +149,7 @@ async function extractPrebuiltFluxRocmRuntime(
       join(
         stagingDir,
         "bootstrap-python",
-        `python-${FLUX_EMBED_PYTHON_VERSION}`,
+        `python-${FLUX_ROCM_EMBED_PYTHON_VERSION}`,
       ),
     );
     await ensureFluxPythonWorker(stagingDir, options.expectedMarker.worker);
@@ -267,7 +267,7 @@ async function validatePrebuiltFluxRocmRuntime(
       `Flux ROCm prebuilt ROCm 버전이 맞지 않습니다 (${String(manifest.rocmVersion)}).`,
     );
   }
-  if (manifest.pythonVersion !== FLUX_EMBED_PYTHON_VERSION) {
+  if (manifest.pythonVersion !== FLUX_ROCM_EMBED_PYTHON_VERSION) {
     throw new Error(
       `Flux ROCm prebuilt Python 버전이 맞지 않습니다 (${String(manifest.pythonVersion)}).`,
     );

@@ -403,6 +403,42 @@ describe("OCR engine runtime isolation", () => {
     },
   );
 
+  it.each([
+    "Unexpected AMD ROCm PyTorch build",
+    "DLL load failed while importing _C",
+    "model inference failed",
+  ])("reports the selected AMD runtime requirements for %s", (detail) => {
+    for (const [ocrPipeline, torchVersion, rocmVersion] of [
+      ["hayai", "2.13.0", "10.0.0"],
+      ["paddle", "2.9.1", "7.2.1"],
+    ]) {
+      const options = {
+        ocrPipeline,
+        ocrDevice: "gpu",
+        ocrGpuBackend: "rocm-transformers",
+      };
+      for (const message of [
+        runtime.buildOcrRuntimeImportFailureMessage(detail, options),
+        runtime.buildOcrGpuFailureMessage(new Error(detail), options),
+      ]) {
+        expect(message).toContain(torchVersion);
+        expect(message).toContain(rocmVersion);
+      }
+    }
+  });
+
+  it("reports ROCm 10 when Hayai AMD verification times out", () => {
+    const message = runtime.buildOcrRuntimeImportFailureMessage(
+      "HayaiOCR runtime verification timed out",
+      {
+        ocrPipeline: "hayai",
+        ocrDevice: "gpu",
+        ocrGpuBackend: "rocm-transformers",
+      },
+    );
+    expect(message).toContain("2.13.0/ROCm 10.0.0");
+  });
+
   it("keeps HayaiOCR and legacy PaddleOCR package and venv roots disjoint", () => {
     const routePairs = [
       [{ ocrDevice: "cpu" }, { ocrPipeline: "hayai", ocrDevice: "cpu" }],

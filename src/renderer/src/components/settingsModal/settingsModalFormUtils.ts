@@ -1,3 +1,4 @@
+import { apiSessionHeaderError } from "../../../../shared/apiSessionHeaders";
 import type { TFunction } from "i18next";
 import { coerceOpenAiCompatibleBaseUrl } from "../../../../shared/apiSettings";
 import { isValidLanguageCodeInput } from "../../../../shared/translationLanguages";
@@ -121,17 +122,23 @@ function resolveApiDraft(values: SettingsFormValues) {
     apiExtraBodyValidation,
     apiCustomHeadersValidation,
     apiBaseUrlValid: Boolean(coerceOpenAiCompatibleBaseUrl(values.apiBaseUrl)),
-    apiAdvancedSettingsValid: resolveApiAdvancedSettingsValid({
-      apiCustomHeadersValidation,
-      apiExtraBodyValidation,
-      apiKeysValidation,
-      parsedApiTemperature,
-      parsedApiKeyMaxAttempts,
-      parsedApiRetryDelaySeconds,
-      parsedApiRequestIntervalSeconds,
-      parsedApiTopK,
-      parsedApiTopP,
-    }),
+    apiAdvancedSettingsValid:
+      !apiSessionHeaderError({
+        sessionHeaderEnabled: values.apiSessionHeaderEnabled,
+        sessionHeaderName: values.apiSessionHeaderName,
+        customHeadersJson: values.apiCustomHeadersJson,
+      }) &&
+      resolveApiAdvancedSettingsValid({
+        apiCustomHeadersValidation,
+        apiExtraBodyValidation,
+        apiKeysValidation,
+        parsedApiTemperature,
+        parsedApiKeyMaxAttempts,
+        parsedApiRetryDelaySeconds,
+        parsedApiRequestIntervalSeconds,
+        parsedApiTopK,
+        parsedApiTopP,
+      }),
   };
 }
 
@@ -409,9 +416,5 @@ function validateCustomHeaderName(name: string): string | null {
 }
 
 function isCustomHeaderValue(value: unknown): boolean {
-  return (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  );
+  return ["string", "number", "boolean"].includes(typeof value);
 }

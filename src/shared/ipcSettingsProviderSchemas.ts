@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiSessionHeaderError } from "./apiSessionHeaders";
 import {
   ApiReasoningEffortSchema,
   CustomHeadersJsonObjectStringSchema,
@@ -60,8 +61,15 @@ export const ApiProviderProfileSettingsSchema = z
     reasoningEffort: ApiReasoningEffortSchema.nullable().optional(),
     extraBodyJson: JsonObjectStringSchema.optional(),
     customHeadersJson: CustomHeadersJsonObjectStringSchema.optional(),
+    sessionHeaderEnabled: z.boolean().optional(),
+    sessionHeaderName: z.string().max(128).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((profile, ctx) => {
+    const message = apiSessionHeaderError(profile);
+    if (message)
+      ctx.addIssue({ code: "custom", path: ["sessionHeaderName"], message });
+  });
 
 export function apiProviderProfileMapSchema<T extends z.ZodTypeAny>(value: T) {
   return z

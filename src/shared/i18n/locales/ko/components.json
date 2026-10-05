@@ -2160,7 +2160,18 @@
           "customHeaders": "요청에 추가할 HTTP 헤더를 JSON 객체로 입력합니다."
         }
       },
-      "requestIntervalSeconds": "최소 호출 간격 (초)"
+      "requestIntervalSeconds": "최소 호출 간격 (초)",
+      "customProfiles": {
+        "select": "연결 프로필",
+        "name": "프로필 이름",
+        "newName": "새 연결",
+        "add": "프로필 추가",
+        "delete": "프로필 삭제",
+        "session": "대화별 세션 헤더 전송",
+        "header": "세션 헤더 이름",
+        "invalidHeader": "인증·전송 제어용이 아닌 유효한 헤더 이름을 입력하세요. 사용자 헤더와 중복될 수 없습니다.",
+        "client": "클라이언트 식별"
+      }
     },
     "hardware": {
       "summaryTitle": "자동 감지 GPU와 현재 경로",

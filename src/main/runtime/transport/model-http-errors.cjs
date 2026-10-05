@@ -7,6 +7,11 @@
  */
 
 const {
+  apiFailureMessage,
+  classifyApiHttpFailure,
+  isTerminalApiFailure,
+} = require("./api-http-failure.cjs");
+const {
   isOpenAIApiProvider,
   isOpenAICodexProvider,
   resolveProviderDisplayName,
@@ -45,11 +50,20 @@ function createHttpFailureError(options, requestSummary, response, rawText) {
   const nonRetriable =
     (isNonRetriableHttpStatus(response.status) || usageLimitFailure !== null) &&
     !retryableCredentialFailure;
+  const apiFailure = isOpenAIApiProvider(options)
+    ? classifyApiHttpFailure(response, rawText)
+    : undefined;
   const message = usageLimitFailure
     ? buildUsageLimitFailureMessage(options, usageLimitFailure)
-    : buildHttpFailureMessage(options, response.status, response.statusText);
+    : buildHttpFailureMessage(
+        options,
+        response.status,
+        response.statusText,
+        apiFailure,
+      );
   return createDetailedError(message, {
     requestSummary,
+    apiProfileId: options.apiProfileId,
     status: response.status,
     statusText: response.statusText,
     rawTextPreview: truncateSensitiveText(rawText, options, 4000),
@@ -70,6 +84,7 @@ function createHttpFailureError(options, requestSummary, response, rawText) {
     ...(nonRetriable
       ? { nonRetriable: true, failureCategory: "model-request" }
       : {}),
+    ...apiFailure,
   });
 }
 
@@ -162,30 +177,25 @@ function asRecord(value) {
  * @param {TranslationRequestOptions} options
  * @param {number} status
  * @param {string} statusText
+ * @param {{apiFailureKind:string}|undefined} apiFailure
  * @returns {string}
  */
-function buildHttpFailureMessage(options, status, statusText) {
-  const providerName = resolveProviderDisplayName(options);
-  const statusLabel = formatHttpStatus(status, statusText);
+function buildHttpFailureMessage(options, status, statusText, apiFailure) {
+  const apiMessage =
+    isOpenAIApiProvider(options) &&
+    apiFailureMessage(apiFailure, status, statusText);
+  if (apiMessage) return apiMessage;
+  const statusLabel = `${status} ${statusText.trim()}`.trim();
   if (isOpenAICodexProvider(options) && status === 401) {
     return "Codex 로그인이 만료되었거나 취소되었습니다. 설정 > AI에서 ChatGPT로 다시 로그인해 주세요.";
   }
   if (!isOpenAIApiProvider(options)) {
-    return `${providerName} request failed (${status}).`;
-  }
-  if (status === 401 || status === 403) {
-    return `API 오류 ${statusLabel}: 인증에 실패했습니다. API 키가 잘못됐거나 만료됐을 수 있습니다. 키가 맞다면 선택한 모델이 이미지 입력을 지원하는지 확인하세요. 자세한 내용은 로그를 확인하세요.`;
+    return `${resolveProviderDisplayName(options)} request failed (${status}).`;
   }
   if (isNonRetriableHttpStatus(status)) {
     return `API 오류 ${statusLabel}: 요청이 거부되었습니다. API 키 또는 Base URL이 맞는지, 선택한 모델이 이미지 입력을 지원하는지 확인하세요. 자세한 내용은 로그를 확인하세요.`;
   }
   return `API 오류 ${statusLabel}: 요청이 실패했습니다. 잠시 후 다시 시도하거나 로그를 확인하세요.`;
-}
-
-/** @param {number} status @param {unknown} statusText */
-function formatHttpStatus(status, statusText) {
-  const suffix = String(statusText ?? "").trim();
-  return suffix ? `${status} ${suffix}` : String(status);
 }
 
 /** @param {number} status */
@@ -226,6 +236,7 @@ function isRetryableApiKeyError(error) {
     return false;
   }
   const record = /** @type {Record<string, unknown>} */ (error);
+  if (isTerminalApiFailure(record)) return false;
   if (record.apiKeyRetryable === true) {
     return true;
   }

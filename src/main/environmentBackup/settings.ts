@@ -14,9 +14,7 @@ import {
   separateSettingsSecrets,
 } from "../settingsSecretStore";
 
-function portableProfile(
-  profile: ApiProviderProfileSettings,
-): ApiProviderProfileSettings {
+function portableProfile<T extends ApiProviderProfileSettings>(profile: T): T {
   const result = { ...profile };
   delete result.apiKey;
   delete result.apiKeyCount;
@@ -54,6 +52,16 @@ export function portableSettings(
         portableProfile(profile),
       ]),
     ),
+    ...(clean.api.customProfiles
+      ? {
+          customProfiles: Object.fromEntries(
+            Object.entries(clean.api.customProfiles).map(([id, profile]) => [
+              id,
+              portableProfile(profile),
+            ]),
+          ),
+        }
+      : {}),
   };
   delete clean.runtimeHardware;
   clean.hardware = defaults.hardware;

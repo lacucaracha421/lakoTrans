@@ -153,6 +153,11 @@ export type TranslationOptions = {
   apiReasoningEffort?: ApiReasoningEffort | null;
   apiExtraBodyJson?: string;
   apiCustomHeadersJson?: string;
+  apiSessionHeaderName?: string;
+  apiConversationSeed?: string;
+  apiConversationId?: string;
+  apiUserAgent?: string;
+  apiProfileId?: string;
   ocrDevice: OcrDevice;
   /** Canonical OCR engine identity. App-created translation options always set it. */
   ocrPipeline: OcrPipeline;

@@ -1,14 +1,18 @@
 import React from "react";
+import {
+  snapshotCustomApiProfiles,
+  selectCustomApiProfile,
+} from "./settingsCustomApiProfiles";
 import type { AppSettings } from "../../../../shared/settingsTypes";
 import {
   createSettingsFormValues,
   type SettingsFormValues,
 } from "./settingsModalFormValues";
 import {
+  readActiveApiProfile,
   createDefaultApiProfileFormValues,
   createDefaultGenerationLimitFormValues,
   createDefaultResearchApiProfileFormValues,
-  type ApiProfileFormValues,
 } from "./settingsModalProfileFormValues";
 import type { ApiProviderPresetId } from "../../../../shared/apiProviderPresets";
 import type { ModelProvider } from "../../../../shared/settingsTypes";
@@ -19,6 +23,8 @@ type FieldSetter<K extends keyof SettingsFormValues> = React.Dispatch<
 
 type MutableSettingsFormField = Exclude<
   keyof SettingsFormValues,
+  | "customApiProfiles"
+  | "activeCustomProfileId"
   | "apiKeyCount"
   | "apiProfiles"
   | "apiProvider"
@@ -32,6 +38,7 @@ export type SettingsFormSetters = {
     K in MutableSettingsFormField as `set${Capitalize<string & K>}`
   ]: FieldSetter<K>;
 } & {
+  setActiveCustomProfileId: FieldSetter<"activeCustomProfileId">;
   setApiProvider: FieldSetter<"apiProvider">;
   setModelProvider: FieldSetter<"modelProvider">;
 };
@@ -214,6 +221,21 @@ function createApiFormSetters(
   setValues: React.Dispatch<React.SetStateAction<SettingsFormValues>>,
 ) {
   return {
+    setActiveCustomProfileId: (next: React.SetStateAction<string>) =>
+      setValues((current) =>
+        selectCustomApiProfile(
+          current,
+          resolveStateAction(next, current.activeCustomProfileId),
+        ),
+      ),
+    setApiSessionHeaderEnabled: createFormFieldDispatch(
+      setValues,
+      "apiSessionHeaderEnabled",
+    ),
+    setApiSessionHeaderName: createFormFieldDispatch(
+      setValues,
+      "apiSessionHeaderName",
+    ),
     setApiProvider: createApiProviderDispatch(setValues),
     setApiBaseUrl: createFormFieldDispatch(setValues, "apiBaseUrl"),
     setApiModel: createFormFieldDispatch(setValues, "apiModel"),
@@ -313,6 +335,7 @@ function createApiProviderDispatch(
         ...current,
         ...apiProfile,
         apiProvider: provider,
+        customApiProfiles: snapshotCustomApiProfiles(current),
         apiProfiles,
         generationLimitProfiles,
         researchApiModel: researchProfile.model,
@@ -364,28 +387,6 @@ function resolveGenerationLimitsForProvider(
     profiles.api[apiProvider] ??
     createDefaultGenerationLimitFormValues("openai-api", current.apiModel)
   );
-}
-
-function readActiveApiProfile(
-  values: SettingsFormValues,
-): ApiProfileFormValues {
-  return {
-    apiBaseUrl: values.apiBaseUrl,
-    apiModel: values.apiModel,
-    apiKey: values.apiKey,
-    apiKeyCount: values.apiKeyCount,
-    apiVertexAuthMode: values.apiVertexAuthMode,
-    apiVertexServiceAccountPath: values.apiVertexServiceAccountPath,
-    apiKeyMaxAttempts: values.apiKeyMaxAttempts,
-    apiRetryDelaySeconds: values.apiRetryDelaySeconds,
-    apiRequestIntervalSeconds: values.apiRequestIntervalSeconds,
-    apiTemperature: values.apiTemperature,
-    apiTopP: values.apiTopP,
-    apiTopK: values.apiTopK,
-    apiReasoningEffort: values.apiReasoningEffort,
-    apiExtraBodyJson: values.apiExtraBodyJson,
-    apiCustomHeadersJson: values.apiCustomHeadersJson,
-  };
 }
 
 function resolveStateAction<T>(action: React.SetStateAction<T>, current: T): T {

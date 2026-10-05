@@ -68,9 +68,9 @@ export function useSettingsModalController({
     canSubmit: submission.formValid,
     jobActive,
     modelProvider: state.form.values.modelProvider,
+    connectionIdentity: `${state.form.values.apiProvider}:${state.form.values.activeCustomProfileId}`,
     setTestState: state.test.setTestState,
   });
-  const formatPanelTitle = resolveFormatPanelTitle(state, t);
   return buildSettingsModalViewProps({
     isDirty: state.isDirty,
     activeTab: state.activeTab,
@@ -79,7 +79,7 @@ export function useSettingsModalController({
     defaultsPreviewActive: state.defaultsPreviewActive,
     draft: submission.draft,
     form: state.form,
-    formatPanelTitle,
+    formatPanelTitle: resolveFormatPanelTitle(state, t),
     formatPanelProps: {
       activePresetId: state.activeFormatPresetId,
       presetManagerOpenRequest:

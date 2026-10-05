@@ -2160,7 +2160,18 @@
           "customHeaders": "Additional HTTP request headers as a JSON object."
         }
       },
-      "requestIntervalSeconds": "Minimum request interval (seconds)"
+      "requestIntervalSeconds": "Minimum request interval (seconds)",
+      "customProfiles": {
+        "select": "Connection profile",
+        "name": "Profile name",
+        "newName": "New connection",
+        "add": "Add profile",
+        "delete": "Delete profile",
+        "session": "Send a conversation session header",
+        "header": "Session header name",
+        "invalidHeader": "Enter a valid, non-reserved header name that does not conflict with custom headers.",
+        "client": "Client identity"
+      }
     },
     "hardware": {
       "summaryTitle": "Auto-detected GPU and active routes",

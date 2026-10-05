@@ -11,6 +11,7 @@
  * @typedef {{ promptOptions: PromptRequestOptions; imageVariants: ImageVariant[]; requestBody: Record<string, unknown>; requestSummary: RequestSummary }} PreparedTranslationRequest
  */
 
+const { withApiConversation } = require("./api-conversation.cjs");
 const {
   buildSystemPrompt,
   getOverlayPrompt,
@@ -71,6 +72,11 @@ const {
  * @returns {Promise<{ requestBody: RequestSummary; rawResponse: unknown; outputText: string }>}
  */
 async function requestTranslation(server, options) {
+  return requestTranslationInConversation(server, withApiConversation(options));
+}
+
+/** @param {ModelServer} server @param {TranslationRequestOptions} options */
+async function requestTranslationInConversation(server, options) {
   const requestStartedAt = nowMs();
   const ocrBboxResult = /** @type {OcrBboxResult} */ (
     await collectOcrBboxHints(options)

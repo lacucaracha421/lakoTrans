@@ -214,6 +214,15 @@ describe("backup safety", () => {
       },
     };
     settings.internetResearch.tavilyApiKey = "SEARCH_SECRET";
+    settings.api.customProfiles = {
+      private: {
+        ...(settings.api.profiles.custom ?? settings.api),
+        name: "Private",
+        sessionHeaderEnabled: true,
+        sessionHeaderName: "x-session",
+      },
+    };
+    settings.api.activeCustomProfileId = "private";
     settings.gemma.localModelPath = "D:/model.gguf";
     settings.hardware = { computeGpuIndex: 9 };
     const clean = portableSettings(settings, defaults),
@@ -231,5 +240,12 @@ describe("backup safety", () => {
       expect(text).not.toContain(value);
     expect(clean.hardware).toEqual(defaults.hardware);
     expect(clean.translation).toEqual(settings.translation);
+    expect(clean.api.customProfiles?.private).toMatchObject({
+      name: "Private",
+      sessionHeaderEnabled: true,
+      sessionHeaderName: "x-session",
+      customHeadersJson: "{}",
+      extraBodyJson: "{}",
+    });
   });
 });

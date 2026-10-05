@@ -2160,7 +2160,18 @@
           "customHeaders": "追加するHTTPヘッダーをJSONオブジェクトで指定します。"
         }
       },
-      "requestIntervalSeconds": "最小呼び出し間隔（秒）"
+      "requestIntervalSeconds": "最小呼び出し間隔（秒）",
+      "customProfiles": {
+        "select": "接続プロファイル",
+        "name": "プロファイル名",
+        "newName": "新しい接続",
+        "add": "プロファイル追加",
+        "delete": "プロファイル削除",
+        "session": "会話ごとのセッションヘッダーを送信",
+        "header": "セッションヘッダー名",
+        "invalidHeader": "予約済みの名前やカスタムヘッダーと重複しない、有効な名前を入力してください。",
+        "client": "クライアント識別"
+      }
     },
     "hardware": {
       "summaryTitle": "自動検出GPUと現在の経路",

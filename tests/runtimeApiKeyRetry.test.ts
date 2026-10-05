@@ -212,7 +212,7 @@ describe("runtime API key retry policy", () => {
     expect(error.nonRetriable).toBeUndefined();
   });
 
-  it("leaves the API-key provider's 429 policy unchanged", () => {
+  it("stops retries for an explicit API-key account usage limit", () => {
     const rawText = '{"error":{"type":"usage_limit_reached"}}';
     const error = createHttpFailureError(
       { modelProvider: "openai-api" },
@@ -221,8 +221,8 @@ describe("runtime API key retry policy", () => {
       rawText,
     );
 
-    expect(error.nonRetriable).toBeUndefined();
-    expect(error).not.toHaveProperty("usageLimitReached");
+    expect(error.nonRetriable).toBe(true);
+    expect(error).toHaveProperty("usageLimitReached", true);
   });
 
   it("does not infer a Codex usage limit from malformed or unstructured text", () => {

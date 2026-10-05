@@ -1,3 +1,4 @@
+import { resolveCustomApiProfiles } from "../../../../shared/customApiProfiles";
 import type {
   ApiProviderProfileSettings,
   ApiReasoningEffort,
@@ -45,6 +46,14 @@ export type ApiProfileFormValues = {
   apiReasoningEffort: ApiReasoningEffort | "";
   apiExtraBodyJson: string;
   apiCustomHeadersJson: string;
+  apiSessionHeaderEnabled: boolean;
+  apiSessionHeaderName: string;
+};
+
+export type CustomApiProfileForm = {
+  name: string;
+  values: ApiProfileFormValues;
+  limits: GenerationLimitFormValues;
 };
 
 export type GenerationLimitFormValues = {
@@ -69,6 +78,8 @@ export function resolveApiFormValues(
 ): ApiProfileFormValues & {
   apiProvider: ApiProviderPresetId;
   apiProfiles: Partial<Record<ApiProviderPresetId, ApiProfileFormValues>>;
+  customApiProfiles: Record<string, CustomApiProfileForm>;
+  activeCustomProfileId: string;
 } {
   const provider =
     settings.api.provider ?? inferApiProviderPreset(settings.api.baseUrl);
@@ -85,6 +96,24 @@ export function resolveApiFormValues(
     ...createApiProfileFormValues(settings.api, provider),
     apiProvider: provider,
     apiProfiles,
+    activeCustomProfileId: resolveCustomApiProfiles(settings.api)
+      .activeCustomProfileId,
+    customApiProfiles: Object.fromEntries(
+      Object.entries(resolveCustomApiProfiles(settings.api).customProfiles).map(
+        ([id, profile]) => [
+          id,
+          {
+            name: profile.name,
+            values: createApiProfileFormValues(profile, "custom"),
+            limits: formatGenerationLimits(
+              profile.generationLimits ??
+                settings.generationLimits?.api.custom ??
+                resolveRecommendedGenerationLimits("openai-api", profile.model),
+            ),
+          },
+        ],
+      ),
+    ),
   };
 }
 
@@ -137,6 +166,8 @@ function createApiProfileFormValues(
     apiReasoningEffort: profile.reasoningEffort ?? "",
     apiExtraBodyJson: profile.extraBodyJson ?? "",
     apiCustomHeadersJson: profile.customHeadersJson ?? "",
+    apiSessionHeaderEnabled: profile.sessionHeaderEnabled ?? false,
+    apiSessionHeaderName: profile.sessionHeaderName ?? "",
   };
 }
 
@@ -176,6 +207,8 @@ export function createDefaultApiProfileFormValues(
     apiReasoningEffort: DEFAULT_API_REASONING_EFFORT ?? "",
     apiExtraBodyJson: DEFAULT_API_EXTRA_BODY_JSON,
     apiCustomHeadersJson: DEFAULT_API_CUSTOM_HEADERS_JSON,
+    apiSessionHeaderEnabled: false,
+    apiSessionHeaderName: "",
   };
 }
 
@@ -262,4 +295,28 @@ function formatGenerationLimits(
 
 function formatNullableNumberInput(value: number | null | undefined): string {
   return value === null || value === undefined ? "" : String(value);
+}
+
+export function readActiveApiProfile(
+  values: ApiProfileFormValues,
+): ApiProfileFormValues {
+  return {
+    apiBaseUrl: values.apiBaseUrl,
+    apiModel: values.apiModel,
+    apiKey: values.apiKey,
+    apiKeyCount: values.apiKeyCount,
+    apiVertexAuthMode: values.apiVertexAuthMode,
+    apiVertexServiceAccountPath: values.apiVertexServiceAccountPath,
+    apiKeyMaxAttempts: values.apiKeyMaxAttempts,
+    apiRetryDelaySeconds: values.apiRetryDelaySeconds,
+    apiRequestIntervalSeconds: values.apiRequestIntervalSeconds,
+    apiTemperature: values.apiTemperature,
+    apiTopP: values.apiTopP,
+    apiTopK: values.apiTopK,
+    apiReasoningEffort: values.apiReasoningEffort,
+    apiExtraBodyJson: values.apiExtraBodyJson,
+    apiCustomHeadersJson: values.apiCustomHeadersJson,
+    apiSessionHeaderEnabled: values.apiSessionHeaderEnabled,
+    apiSessionHeaderName: values.apiSessionHeaderName,
+  };
 }

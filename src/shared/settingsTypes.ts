@@ -127,9 +127,18 @@ export type ApiProviderProfileSettings = {
   reasoningEffort?: ApiReasoningEffort | null;
   extraBodyJson?: string;
   customHeadersJson?: string;
+  sessionHeaderEnabled?: boolean;
+  sessionHeaderName?: string;
+};
+
+export type CustomApiProfile = ApiProviderProfileSettings & {
+  name: string;
+  generationLimits?: GenerationLimitSettings;
 };
 
 type ApiSettings = ApiProviderProfileSettings & {
+  customProfiles?: Record<string, CustomApiProfile>;
+  activeCustomProfileId?: string;
   /** Provider profile currently projected onto the top-level API fields. */
   provider?: ApiProviderPresetId;
   /** Connection, credential, model, and request settings isolated by provider. */

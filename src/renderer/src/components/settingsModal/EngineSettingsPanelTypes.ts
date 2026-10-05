@@ -13,6 +13,16 @@ import type { ApiProviderPresetId } from "../../../../shared/apiProviderPresets"
 import type { ModelPresetId } from "../settingsOptions";
 
 export type EngineSettingsPanelProps = {
+  customApiProfiles?: import("./settingsModalFormValues").SettingsFormValues["customApiProfiles"];
+  activeCustomProfileId?: string;
+  setActiveCustomProfileId?: React.Dispatch<React.SetStateAction<string>>;
+  updateCustomApiProfiles?: React.Dispatch<
+    React.SetStateAction<import("./settingsModalFormValues").SettingsFormValues>
+  >;
+  apiSessionHeaderEnabled?: boolean;
+  apiSessionHeaderName?: string;
+  setApiSessionHeaderEnabled?: React.Dispatch<React.SetStateAction<boolean>>;
+  setApiSessionHeaderName?: React.Dispatch<React.SetStateAction<string>>;
   apiBaseUrl: string;
   apiProvider: ApiProviderPresetId;
   apiKey: string;

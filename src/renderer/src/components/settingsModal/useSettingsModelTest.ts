@@ -26,7 +26,9 @@ export function useSettingsModelTest({
   jobActive,
   modelProvider,
   setTestState,
+  connectionIdentity,
 }: {
+  connectionIdentity?: string;
   appendTestLogLine: SettingsTestStateController["appendTestLogLine"];
   buildSettings: () => AppSettings | null;
   canSubmit: boolean;
@@ -35,7 +37,7 @@ export function useSettingsModelTest({
   setTestState: SettingsTestStateController["setTestState"];
 }): () => Promise<void> {
   const { t } = useTranslation("components");
-  const lifecycleRef = useModelTestLifecycle();
+  const lifecycleRef = useModelTestLifecycle(connectionIdentity);
 
   return React.useCallback(async () => {
     const lifecycle = lifecycleRef.current;
@@ -98,13 +100,15 @@ export function useSettingsModelTest({
   ]);
 }
 
-function useModelTestLifecycle(): React.RefObject<ModelTestLifecycle> {
+function useModelTestLifecycle(
+  connectionIdentity?: string,
+): React.RefObject<ModelTestLifecycle> {
   const lifecycleRef = React.useRef<ModelTestLifecycle>({
     generation: 0,
     mounted: true,
     unsubscribe: null,
   });
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const lifecycle = lifecycleRef.current;
     lifecycle.mounted = true;
     return () => {
@@ -113,7 +117,7 @@ function useModelTestLifecycle(): React.RefObject<ModelTestLifecycle> {
       lifecycle.unsubscribe?.();
       lifecycle.unsubscribe = null;
     };
-  }, []);
+  }, [connectionIdentity]);
   return lifecycleRef;
 }
 

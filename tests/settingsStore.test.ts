@@ -42,6 +42,53 @@ vi.mock("electron", () => ({
 const tempDirs: string[] = [];
 
 describe("settings store", () => {
+  it("round-trips separate custom credentials through encrypted restart and deletion", async () => {
+    const paths = makeAppPaths(await createTempDir());
+    const settings = resolveDefaultAppSettings({});
+    settings.api = {
+      ...settings.api,
+      provider: "custom",
+      apiKey: "first-secret",
+    };
+    const first = await saveAppSettings(settings, paths, {}, async () => null);
+    const customProfiles = first.api.customProfiles ?? {};
+    customProfiles["opencode-go"] = {
+      ...customProfiles["opencode-go"],
+      apiKey: "second-secret",
+    };
+    const {
+      name: _name,
+      generationLimits: _limits,
+      ...connection
+    } = customProfiles["opencode-go"];
+    const switched = {
+      ...first,
+      api: {
+        ...connection,
+        provider: "custom" as const,
+        activeCustomProfileId: "opencode-go",
+        customProfiles,
+        profiles: { ...first.api.profiles, custom: connection },
+      },
+    };
+    await saveAppSettings(switched, paths, {}, async () => null);
+    const restarted = await getAppSettings(paths, {}, async () => null);
+    expect(restarted.api.apiKey).toBe("second-secret");
+    expect(restarted.api.customProfiles?.default.apiKey).toBe("first-secret");
+    expect(await readFile(paths.settingsPath, "utf8")).not.toMatch(
+      /first-secret|second-secret/,
+    );
+    const masked = maskAppSettingsSecrets(restarted);
+    delete masked.api.customProfiles?.default;
+    await saveAppSettings(masked, paths, {}, async () => null);
+    const secrets = await loadSettingsSecrets(paths);
+    expect(secrets.apiProfiles?.["custom:default"]).toBeUndefined();
+    expect(secrets.apiProfiles?.custom).toBeUndefined();
+    expect(secrets.apiProfiles?.["custom:opencode-go"].apiKey).toBe(
+      "second-secret",
+    );
+  });
+
   it.each(["flux-klein", "lama-manga"] as const)(
     "starts fresh CPU installations with Hayai and AOT without rewriting saved %s",
     async (savedModel) => {

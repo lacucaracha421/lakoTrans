@@ -106,6 +106,13 @@ export type SettingsFormValues = {
   apiReasoningEffort: ApiReasoningEffort | "";
   apiExtraBodyJson: string;
   apiCustomHeadersJson: string;
+  apiSessionHeaderEnabled: boolean;
+  apiSessionHeaderName: string;
+  customApiProfiles: Record<
+    string,
+    import("./settingsModalProfileFormValues").CustomApiProfileForm
+  >;
+  activeCustomProfileId: string;
   ocrDevice: OcrDevice;
   ocrPipeline: OcrPipeline;
   ocrGpuBackend: OcrGpuBackend;

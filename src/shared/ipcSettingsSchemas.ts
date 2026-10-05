@@ -267,7 +267,20 @@ export const AppSettingsSchema = z
           .min(MIN_TAVILY_MAX_CREDITS_PER_RUN),
       })
       .strict(),
-    api: ApiProviderProfileSettingsSchema.extend({
+    api: ApiProviderProfileSettingsSchema.safeExtend({
+      activeCustomProfileId: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/)
+        .optional(),
+      customProfiles: z
+        .record(
+          z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/),
+          ApiProviderProfileSettingsSchema.safeExtend({
+            name: z.string().trim().min(1).max(80),
+            generationLimits: GenerationLimitSettingsSchema.optional(),
+          }),
+        )
+        .optional(),
       provider: ApiProviderPresetSchema.optional(),
       profiles: apiProviderProfileMapSchema(
         ApiProviderProfileSettingsSchema,

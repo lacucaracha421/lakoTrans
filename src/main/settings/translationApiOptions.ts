@@ -1,3 +1,5 @@
+import { app } from "electron";
+import { randomUUID } from "node:crypto";
 import {
   DEFAULT_API_CUSTOM_HEADERS_JSON,
   DEFAULT_API_EXTRA_BODY_JSON,
@@ -37,6 +39,10 @@ import {
 
 type ApiTranslationOptions = Pick<
   TranslationOptions,
+  | "apiSessionHeaderName"
+  | "apiConversationSeed"
+  | "apiUserAgent"
+  | "apiProfileId"
   | "apiBaseUrl"
   | "apiModel"
   | "apiKey"
@@ -68,6 +74,17 @@ export function resolveApiTranslationOptions(
   });
   return {
     apiBaseUrl,
+    apiSessionHeaderName: settings.api.sessionHeaderEnabled
+      ? settings.api.sessionHeaderName
+      : undefined,
+    apiConversationSeed: randomUUID(),
+    apiUserAgent: app?.getVersion
+      ? `CarrotMangaTranslator/${app.getVersion()}`
+      : undefined,
+    apiProfileId:
+      settings.api.provider === "custom"
+        ? settings.api.activeCustomProfileId
+        : settings.api.provider,
     apiModel:
       resolveOptionalString(runtimeEnv.MANGA_TRANSLATOR_API_MODEL) ??
       settings.api.model,

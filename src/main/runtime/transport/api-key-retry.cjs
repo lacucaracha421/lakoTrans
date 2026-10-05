@@ -24,6 +24,7 @@ const {
   isRetryableApiKeyError,
   markApiKeyRetriesExhausted,
 } = require("./model-http-errors.cjs");
+const { apiRetryDelay } = require("./api-http-failure.cjs");
 const { waitForApiRequestStart } = require("./api-request-pacing.cjs");
 
 /**
@@ -89,7 +90,10 @@ async function runWithApiKeyRetry(options, requestAttempt) {
       if (attemptIndex >= attemptTotal) {
         throw markApiKeyRetriesExhausted(error, attemptIndex, keyCount);
       }
-      await waitForRetryDelay(delayMs, options.abortSignal);
+      await waitForRetryDelay(
+        apiRetryDelay(error, delayMs),
+        options.abortSignal,
+      );
     }
   }
 

@@ -240,6 +240,7 @@ function buildEnginePanelProps({
     unifiedMemoryMb: runtime.unifiedMemoryMb,
     ...values,
     ...setters,
+    updateCustomApiProfiles: form.setValues,
   };
 }
 

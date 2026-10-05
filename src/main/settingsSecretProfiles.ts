@@ -15,7 +15,7 @@ export type ApiProfileSecrets = {
 
 export type SettingsSecrets = ApiProfileSecrets & {
   /** Provider-isolated credentials. Top-level fields are read-only legacy aliases. */
-  apiProfiles?: Partial<Record<ApiProviderPresetId, ApiProfileSecrets>>;
+  apiProfiles?: Record<string, ApiProfileSecrets>;
   tavilyApiKey?: string;
 };
 
@@ -36,7 +36,13 @@ export function resolveActiveApiProvider(
 }
 
 export function readActiveApiProfile(settings: AppSettings) {
-  const { provider: _provider, profiles: _profiles, ...profile } = settings.api;
+  const {
+    provider: _provider,
+    profiles: _profiles,
+    customProfiles: _custom,
+    activeCustomProfileId: _id,
+    ...profile
+  } = settings.api;
   return profile;
 }
 
@@ -57,6 +63,8 @@ export function separateApiProfileSecrets(profile: AppSettings["api"]): {
   const publicProfile = { ...profile };
   delete publicProfile.provider;
   delete publicProfile.profiles;
+  delete publicProfile.customProfiles;
+  delete publicProfile.activeCustomProfileId;
   const apiKey = cleanSecret(publicProfile.apiKey);
   delete publicProfile.apiKey;
   delete publicProfile.apiKeyCount;
@@ -212,7 +220,12 @@ function normalizeApiProfiles(
   rawProfiles: SettingsSecrets["apiProfiles"],
 ): NonNullable<SettingsSecrets["apiProfiles"]> {
   const profiles: NonNullable<SettingsSecrets["apiProfiles"]> = {};
-  for (const provider of API_PROVIDER_PRESET_IDS) {
+  for (const provider of Object.keys(rawProfiles ?? {})) {
+    if (
+      !API_PROVIDER_PRESET_IDS.some((id) => id === provider) &&
+      !/^custom:[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(provider)
+    )
+      continue;
     const profile = normalizeApiProfileSecrets(rawProfiles?.[provider] ?? {});
     if (hasApiProfileSecrets(profile)) profiles[provider] = profile;
   }

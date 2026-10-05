@@ -80,6 +80,10 @@ type BuildSettingsFromFormInput = {
   apiBaseUrl: string;
   apiProvider: ApiProviderPresetId;
   apiProfiles: AppSettings["api"]["profiles"];
+  customProfiles?: AppSettings["api"]["customProfiles"];
+  activeCustomProfileId?: string;
+  apiSessionHeaderEnabled?: boolean;
+  apiSessionHeaderName?: string;
   apiModel: string;
   apiKey: string;
   apiVertexAuthMode: import("../../../shared/apiProviderPresets").VertexAuthMode;
@@ -239,10 +243,14 @@ function buildApiSettings(input: BuildSettingsFromFormInput) {
     reasoningEffort: input.apiReasoningEffort,
     extraBodyJson: input.apiExtraBodyJson,
     customHeadersJson: input.apiCustomHeadersJson,
+    sessionHeaderEnabled: input.apiSessionHeaderEnabled,
+    sessionHeaderName: input.apiSessionHeaderName,
   };
   return {
     ...activeProfile,
     provider: input.apiProvider,
+    customProfiles: input.customProfiles,
+    activeCustomProfileId: input.activeCustomProfileId,
     profiles: {
       ...input.apiProfiles,
       [input.apiProvider]: activeProfile,

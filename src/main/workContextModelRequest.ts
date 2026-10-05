@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { TranslationOptions } from "./appSettings";
 import type { ModelEndpointHandle } from "./pipeline/types";
 import { tMain } from "./i18n";
@@ -37,6 +38,7 @@ export async function requestWorkContextAnalysisText({
   );
   const boundedOptions: TranslationOptions = {
     ...options,
+    apiConversationId: options.apiSessionHeaderName ? randomUUID() : undefined,
     abortSignal: deadline.signal,
   };
   try {

@@ -2160,7 +2160,18 @@
           "customHeaders": "以JSON对象填写附加的HTTP请求头。"
         }
       },
-      "requestIntervalSeconds": "最短调用间隔（秒）"
+      "requestIntervalSeconds": "最短调用间隔（秒）",
+      "customProfiles": {
+        "select": "连接配置",
+        "name": "配置名称",
+        "newName": "新连接",
+        "add": "添加配置",
+        "delete": "删除配置",
+        "session": "发送会话标识请求头",
+        "header": "会话请求头名称",
+        "invalidHeader": "请输入有效的非保留名称，且不能与自定义请求头重复。",
+        "client": "客户端标识"
+      }
     },
     "hardware": {
       "summaryTitle": "自动检测GPU和当前路径",

@@ -35,6 +35,8 @@ const {
 const { buildChatRequestBody } = require("./request-bodies.cjs");
 const { createLinkedDeadlineController } = require("./http-deadline.cjs");
 
+const { withApiConversation } = require("./api-conversation.cjs");
+
 const VISION_PROBE_DATA_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 
@@ -44,6 +46,7 @@ const VISION_PROBE_DATA_URL =
  * @returns {Promise<Record<string, unknown>>}
  */
 async function testModelReply(server, options) {
+  options = withApiConversation(options, true);
   const deadline = createLinkedDeadlineController(
     options.abortSignal,
     30000,
@@ -58,7 +61,7 @@ async function testModelReply(server, options) {
     const requestBody = buildChatRequestBody(
       boundedOptions,
       buildProbeMessages(),
-      48,
+      isOpenAIApiProvider(boundedOptions) ? 1024 : 48,
     );
     if (!isOpenAIApiProvider(boundedOptions)) {
       await applyLocalForbiddenTokenBias(server, boundedOptions, requestBody);

@@ -138,7 +138,12 @@ function parseDecryptedApiProfiles(
   value: Record<string, unknown>,
 ): NonNullable<SettingsSecrets["apiProfiles"]> {
   const profiles: NonNullable<SettingsSecrets["apiProfiles"]> = {};
-  for (const provider of API_PROVIDER_PRESET_IDS) {
+  for (const provider of Object.keys(value)) {
+    if (
+      !API_PROVIDER_PRESET_IDS.some((id) => id === provider) &&
+      !/^custom:[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(provider)
+    )
+      continue;
     const raw = value[provider];
     if (!isSettingsJsonRecord(raw)) continue;
     const normalized = normalizeApiProfileSecrets({

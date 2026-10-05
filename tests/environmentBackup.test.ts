@@ -230,10 +230,27 @@ async function fixture(root: string) {
   await put(root, "codex/auth.json", "SOURCE_LOGIN_MUST_NOT_TRAVEL");
   await put(root, "hf-cache/model.bin", "MODEL_MUST_NOT_TRAVEL");
   const settings = resolveDefaultAppSettings({}, null);
+  settings.api.sessionHeaderEnabled = true;
+  settings.api.sessionHeaderName = "x-session";
+  settings.api.customProfiles = {
+    portable: {
+      ...settings.api,
+      name: "Portable session",
+      sessionHeaderEnabled: true,
+      sessionHeaderName: "x-session",
+      extraBodyJson: '{"private":"BODY_SECRET"}',
+    },
+  };
+  settings.api.activeCustomProfileId = "portable";
   await commitSettingsPair(
     paths(root),
     { ...settings },
-    { apiProfiles: { custom: { apiKey: "SOURCE_API_KEY" } } },
+    {
+      apiProfiles: {
+        custom: { apiKey: "SOURCE_API_KEY" },
+        "custom:portable": { apiKey: "SOURCE_PROFILE_KEY" },
+      },
+    },
   );
   return { imagePath, checkpoint };
 }
@@ -368,6 +385,18 @@ describe("environment backup", () => {
       ),
     );
     expect(await loadSettingsSecrets(paths(target))).toEqual({});
+    const restoredSettings = JSON.parse(
+      await readFile(paths(target).settingsPath, "utf8"),
+    );
+    expect(restoredSettings.api.customProfiles.portable).toMatchObject({
+      name: "Portable session",
+      sessionHeaderEnabled: true,
+      sessionHeaderName: "x-session",
+      extraBodyJson: "{}",
+    });
+    expect(JSON.stringify(restoredSettings)).not.toMatch(
+      /SOURCE_PROFILE_KEY|BODY_SECRET/,
+    );
     expect(existsSync(join(target, "codex/auth.json"))).toBe(false);
     expect(existsSync(join(target, "linked-workspaces.json"))).toBe(false);
     expect(

@@ -1,4 +1,8 @@
 import React from "react";
+import {
+  CustomApiProfileFields,
+  ApiSessionFields,
+} from "./CustomApiProfileFields";
 import { ControlTooltip } from "../ui/ControlTooltip";
 import { useTranslation } from "react-i18next";
 import type { ApiReasoningEffort } from "../../../../shared/settingsTypes";
@@ -11,6 +15,14 @@ import { Select } from "../ui/Select";
 
 export type ApiSettingsFieldsProps = Pick<
   EngineSettingsPanelProps,
+  | "customApiProfiles"
+  | "activeCustomProfileId"
+  | "setActiveCustomProfileId"
+  | "updateCustomApiProfiles"
+  | "apiSessionHeaderEnabled"
+  | "apiSessionHeaderName"
+  | "setApiSessionHeaderEnabled"
+  | "setApiSessionHeaderName"
   | "apiBaseUrl"
   | "apiProvider"
   | "apiCustomHeadersJson"
@@ -52,6 +64,7 @@ export function ApiSettingsFields(
 ): React.JSX.Element {
   return (
     <>
+      <CustomApiProfileFields {...props} />
       <ApiProviderConnectionFields {...props} />
       <ApiAdvancedRequestFields {...props} />
     </>
@@ -64,6 +77,7 @@ function ApiAdvancedRequestFields(
   return (
     <div className="settings-subsection-stack">
       <ApiScalarAdvancedFields {...props} />
+      <ApiSessionFields {...props} />
       <ApiJsonAdvancedFields {...props} />
     </div>
   );

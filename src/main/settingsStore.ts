@@ -1,3 +1,4 @@
+import { resolveCustomApiProfiles } from "../shared/customApiProfiles";
 import {
   withSettingsMutation,
   preserveCodexPreferences,
@@ -153,6 +154,10 @@ async function saveAppSettingsUnlocked(
   env: NodeJS.ProcessEnv = process.env,
   detectGpu: GpuInfoProvider = detectBestGpuInfo,
 ): Promise<AppSettings> {
+  settings = {
+    ...settings,
+    api: { ...settings.api, ...resolveCustomApiProfiles(settings.api) },
+  };
   const normalized = await normalizeAppSettingsForRuntime(
     settings,
     env,
@@ -367,7 +372,11 @@ function mergeApiProfileSecrets(
   encrypted: SettingsSecrets,
 ): NonNullable<SettingsSecrets["apiProfiles"]> {
   const apiProfiles: NonNullable<SettingsSecrets["apiProfiles"]> = {};
-  for (const provider of API_PROVIDER_PRESET_IDS) {
+  for (const provider of new Set([
+    ...API_PROVIDER_PRESET_IDS,
+    ...Object.keys(plaintext.apiProfiles ?? {}),
+    ...Object.keys(encrypted.apiProfiles ?? {}),
+  ])) {
     const plaintextProfile = plaintext.apiProfiles?.[provider];
     const encryptedProfile = encrypted.apiProfiles?.[provider];
     if (!plaintextProfile && !encryptedProfile) continue;

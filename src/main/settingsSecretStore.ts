@@ -1,3 +1,4 @@
+import { transformCustomProfileSecrets } from "./settingsCustomProfileSecrets";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -149,10 +150,24 @@ export function separateSettingsSecrets(settings: AppSettings): {
   return {
     persistentSettings: {
       ...settings,
-      api: { ...activeProfile, provider, profiles: publicProfiles },
+      api: {
+        ...activeProfile,
+        provider,
+        profiles: publicProfiles,
+        ...transformCustomProfileSecrets(
+          { ...settings, api: { ...settings.api, profiles: publicProfiles } },
+          "separate",
+        ).api,
+      },
       internetResearch,
     },
-    secrets: normalizeSecrets({ apiProfiles, tavilyApiKey }),
+    secrets: normalizeSecrets({
+      apiProfiles: {
+        ...apiProfiles,
+        ...transformCustomProfileSecrets(settings, "separate").secrets,
+      },
+      tavilyApiKey,
+    }),
   };
 }
 
@@ -192,6 +207,11 @@ export function attachSettingsSecrets(
       ...activeProfile,
       provider,
       profiles,
+      ...transformCustomProfileSecrets(
+        { ...settings, api: { ...settings.api, profiles } },
+        "attach",
+        secrets,
+      ).api,
     },
   };
 }
@@ -225,7 +245,10 @@ export function resolveSubmittedSettingsSecrets(
   return {
     settings: submitted.persistentSettings,
     secrets: normalizeSecrets({
-      apiProfiles,
+      apiProfiles: {
+        ...apiProfiles,
+        ...transformCustomProfileSecrets(settings, "submit", existing).secrets,
+      },
       tavilyApiKey,
     }),
   };
@@ -239,7 +262,11 @@ export function hasSettingsSecretSentinels(settings: AppSettings): boolean {
     return true;
   }
   const profiles = settings.api.profiles ?? {};
-  return [settings.api, ...Object.values(profiles)].some(
+  return [
+    settings.api,
+    ...Object.values(profiles),
+    ...Object.values(settings.api.customProfiles ?? {}),
+  ].some(
     (profile) =>
       profile?.apiKey === SETTINGS_SECRET_PRESERVE_SENTINEL ||
       Object.values(parseHeaderRecord(profile?.customHeadersJson)).some(
@@ -270,6 +297,10 @@ export function maskSettingsSecrets(settings: AppSettings): AppSettings {
       ...activeProfile,
       provider,
       profiles,
+      ...transformCustomProfileSecrets(
+        { ...settings, api: { ...settings.api, profiles } },
+        "mask",
+      ).api,
     },
   };
 }

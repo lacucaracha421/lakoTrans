@@ -1,3 +1,4 @@
+import { snapshotCustomApiProfiles } from "./settingsCustomApiProfiles";
 import type {
   AppSettings,
   ApiProviderProfileSettings,
@@ -74,22 +75,7 @@ export function buildSettingsFromDraft({
     codexImageModel: values.codexImageModel,
     codexImageGenerationModel: values.codexImageGenerationModel,
     ...buildInternetResearchFields(draft, values),
-    apiBaseUrl: draft.normalizedApiBaseUrl ?? initialSettings.api.baseUrl,
-    apiProvider: values.apiProvider,
-    apiProfiles: buildApiProfiles(values, initialSettings),
-    apiModel: draft.trimmedApiModel,
-    apiKey: draft.trimmedApiKey,
-    apiVertexAuthMode: values.apiVertexAuthMode,
-    apiVertexServiceAccountPath: draft.trimmedApiVertexServiceAccountPath,
-    apiKeyMaxAttempts: draft.parsedApiKeyMaxAttempts,
-    apiRetryDelaySeconds: draft.parsedApiRetryDelaySeconds,
-    apiRequestIntervalSeconds: draft.parsedApiRequestIntervalSeconds,
-    apiTemperature: draft.parsedApiTemperature.value,
-    apiTopP: draft.parsedApiTopP.value,
-    apiTopK: draft.parsedApiTopK.value,
-    apiReasoningEffort: values.apiReasoningEffort || null,
-    apiExtraBodyJson: values.apiExtraBodyJson.trim(),
-    apiCustomHeadersJson: values.apiCustomHeadersJson.trim(),
+    ...buildConnectionFields(draft, values, initialSettings),
     ocrDevice: values.ocrDevice,
     ocrPipeline: values.ocrPipeline,
     ocrGpuBackend: values.ocrGpuBackend,
@@ -176,6 +162,8 @@ function parseApiProfile(
     reasoningEffort: profile.apiReasoningEffort || null,
     extraBodyJson: profile.apiExtraBodyJson.trim(),
     customHeadersJson: profile.apiCustomHeadersJson.trim(),
+    sessionHeaderEnabled: profile.apiSessionHeaderEnabled,
+    sessionHeaderName: profile.apiSessionHeaderName.trim(),
   };
 }
 
@@ -283,4 +271,49 @@ function resolveBlockStyleCollections(
       groups ?? initialSettings.blockStylePresetGroups ?? [],
     blockStylePresets: presets ?? initialSettings.blockStylePresets ?? [],
   };
+}
+
+function buildConnectionFields(
+  draft: SettingsDraft,
+  values: SettingsFormValues,
+  initialSettings: AppSettings,
+) {
+  return {
+    apiBaseUrl: draft.normalizedApiBaseUrl ?? initialSettings.api.baseUrl,
+    apiProvider: values.apiProvider,
+    apiProfiles: buildApiProfiles(values, initialSettings),
+    customProfiles: Object.fromEntries(
+      Object.entries(snapshotCustomApiProfiles(values)).map(([id, profile]) => [
+        id,
+        {
+          ...requireApiProfile(profile.values),
+          name: profile.name,
+          generationLimits: parseGenerationLimits(profile.limits) ?? undefined,
+        },
+      ]),
+    ),
+    activeCustomProfileId: values.activeCustomProfileId,
+    apiSessionHeaderEnabled: values.apiSessionHeaderEnabled,
+    apiSessionHeaderName: values.apiSessionHeaderName.trim(),
+    apiModel: draft.trimmedApiModel,
+    apiKey: draft.trimmedApiKey,
+    apiVertexAuthMode: values.apiVertexAuthMode,
+    apiVertexServiceAccountPath: draft.trimmedApiVertexServiceAccountPath,
+    apiKeyMaxAttempts: draft.parsedApiKeyMaxAttempts,
+    apiRetryDelaySeconds: draft.parsedApiRetryDelaySeconds,
+    apiRequestIntervalSeconds: draft.parsedApiRequestIntervalSeconds,
+    apiTemperature: draft.parsedApiTemperature.value,
+    apiTopP: draft.parsedApiTopP.value,
+    apiTopK: draft.parsedApiTopK.value,
+    apiReasoningEffort: values.apiReasoningEffort || null,
+    apiExtraBodyJson: values.apiExtraBodyJson.trim(),
+    apiCustomHeadersJson: values.apiCustomHeadersJson.trim(),
+  };
+}
+
+function requireApiProfile(profile: ApiProfileFormValues) {
+  const parsed = parseApiProfile(profile);
+  if (!parsed)
+    throw new Error("A saved API profile has invalid connection settings.");
+  return parsed;
 }

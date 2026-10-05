@@ -14,6 +14,9 @@
  * @typedef {Record<string, unknown>} JsonRecord
  * @typedef {(options: RequestOptions) => string} ResolveRequestModelName
  */
+const {
+  applyApiConnectionHeaders,
+} = require("./transport/api-conversation.cjs");
 const { DEFAULT_API_KEY } = require("./simple-page-defaults.cjs");
 const {
   buildSystemPrompt,
@@ -256,7 +259,10 @@ function buildChatRequestHeaders(options = {}, apiKeyOverride) {
         : String(apiKeyOverride).trim();
     return {
       ...headers,
-      ...resolveConfiguredApiCustomHeaders(options),
+      ...applyApiConnectionHeaders(
+        options,
+        resolveConfiguredApiCustomHeaders(options),
+      ),
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     };
   }

@@ -63,8 +63,8 @@
       "reason": "Isolated OCR runtime composition root"
     },
     "src/main/runtime/transport/translation-request.cjs": {
-      "maxRuntimeImports": 21,
-      "reason": "Isolated translation runtime composition root"
+      "maxRuntimeImports": 22,
+      "reason": "Isolated translation runtime composition root Page lifecycle allocates isolated API conversations before existing OCR/group/translation/repair stages. HTTP session regression covers retries and parallel pages."
     },
     "src/renderer/src/app/session/AppSessionView.tsx": {
       "maxRuntimeImports": 26,
@@ -330,7 +330,8 @@
     },
     "src/main/settingsStore.ts": {
       "maxImportedBy": 30,
-      "reason": "Multi-work research directly reuses this existing native authority for bounded owned plans, original work evidence, typed errors, settings, strict tool contracts and encrypted checkpoints; no duplicate store, GPU scheduler, policy wrapper or global budget change. The exact measured consumer count is verified by native research/HTTP/restart/cancellation tests. See docs/mcp-research-batch-checkpoint-20260920.md. The measured exchange adapters reuse the existing text/context policy, locked native storage, exact source fingerprints and typed errors. The exact direct dependency or consumer list and regression evidence are recorded in docs/mcp-exchange-gates-20260923.json. Global and legacy budgets remain unchanged. Measured composite integration: Parent-session admission reads existing settings for the supplied app paths. Relative to the registered anchor, mcpImageEditExecution no longer imports getAppSettings and delegates runtime settings access; the new parent-session edge is a separate current consumer. The exact measured consumer ceiling is 28. Master integration: Environment backup settings and page workflow IPC reuse canonical settings alongside MCP composition. The merged runtime-consumer count is exactly 30; global limits are unchanged."
+      "reason": "Multi-work research directly reuses this existing native authority for bounded owned plans, original work evidence, typed errors, settings, strict tool contracts and encrypted checkpoints; no duplicate store, GPU scheduler, policy wrapper or global budget change. The exact measured consumer count is verified by native research/HTTP/restart/cancellation tests. See docs/mcp-research-batch-checkpoint-20260920.md. The measured exchange adapters reuse the existing text/context policy, locked native storage, exact source fingerprints and typed errors. The exact direct dependency or consumer list and regression evidence are recorded in docs/mcp-exchange-gates-20260923.json. Global and legacy budgets remain unchanged. Measured composite integration: Parent-session admission reads existing settings for the supplied app paths. Relative to the registered anchor, mcpImageEditExecution no longer imports getAppSettings and delegates runtime settings access; the new parent-session edge is a separate current consumer. The exact measured consumer ceiling is 28. Master integration: Environment backup settings and page workflow IPC reuse canonical settings alongside MCP composition. The merged runtime-consumer count is exactly 30; global limits are unchanged. First-save custom profile migration uses the shared seeding contract.",
+      "maxRuntimeImports": 13
     },
     "src/shared/blockFingerprint.ts": {
       "maxImportedBy": 150,
@@ -379,6 +380,10 @@
     "src/main/jobs/pageWorkflowJob.ts": {
       "reason": "Workflow execution captures per-work translation instructions for durable resume without replacing current saved defaults.",
       "maxRuntimeImports": 13
+    },
+    "src/shared/modelPresets.ts": {
+      "maxImportedBy": 26,
+      "reason": " Custom API seeding reuses canonical connection defaults; no copied model catalog."
     }
   }
 }

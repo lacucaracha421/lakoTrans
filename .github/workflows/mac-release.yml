@@ -103,6 +103,9 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Run full cross-platform checks
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          MGT_VITEST_MAX_WORKERS: "1"
         run: npm run check
 
       - name: Capture production renderer at release QA sizes

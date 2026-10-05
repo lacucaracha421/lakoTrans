@@ -6,7 +6,7 @@
 
 **한국어** · [English](README.en.md) · [日本語](README.ja.md) · [简体中文](README.zh-Hans.md) · [繁體中文](README.zh-Hant.md)
 
-**[v3.1.1 다운로드](https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/v3.1.1)** · [릴리스 노트](docs/release-notes/v3.1.1.md) · [오류·제안](https://github.com/ucx0204/CarrotMangaTranslator/issues)
+**[v3.2.0 다운로드](https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/v3.2.0)** · [릴리스 노트](docs/release-notes/v3.2.0.md) · [오류·제안](https://github.com/ucx0204/CarrotMangaTranslator/issues)
 
 Windows 10/11 · Apple Silicon macOS 14+ · [GPL-3.0-only](LICENSE)
 
@@ -18,7 +18,7 @@ Windows 10/11 · Apple Silicon macOS 14+ · [GPL-3.0-only](LICENSE)
 
 처음에는 **월 US$10인 Go 기본 요금제부터 시작하는 것을 추천합니다.** 사용량이 부족한지 확인한 뒤 상위 요금제를 검토하세요. 2026-10-06 확인 기준 가격이며, 무제한 요금제가 아니라 시간대별·주간·월간 사용 한도가 있습니다. [공식 요금·사용 한도](https://opencode.ai/docs/go/#usage-limits)
 
-**아래 빠른 설정은 현재 master 소스 기준입니다.** v3.1.1 설치본에는 OpenCode GO 빠른 설정이 없으므로, 해당 기능이 포함된 버전이나 최신 소스 빌드가 필요합니다.
+**OpenCode GO 빠른 설정은 v3.2.0부터 사용할 수 있습니다.** 이전 설치본을 사용 중이라면 위 다운로드 링크에서 업데이트하세요.
 
 <details>
 <summary><strong>가입 → API 키 발급 → 당근망가번역기 연결 방법 펼치기</strong></summary>

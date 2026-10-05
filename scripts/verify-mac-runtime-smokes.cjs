@@ -14,6 +14,7 @@ const {
 } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join } = require("node:path");
+const { ensureElectronExecutable } = require("./electron-executable.cjs");
 
 const root = join(__dirname, "..");
 const koharuSource = readFileSync(
@@ -271,11 +272,26 @@ function createOcrSmokeRequest(imagePath, toolsDir, workRoot) {
   };
 }
 
-/** @param {string} runner @param {string} python @param {string} workRoot @param {ReturnType<typeof createSmokeImages>} images */
-async function verifyKoharuImageSmokes(runner, python, workRoot, images) {
+/**
+ * @typedef {{ executable: string; args: string[]; env: NodeJS.ProcessEnv }} KoharuLaunch
+ * @param {(options: object) => Promise<KoharuLaunch>} prepareLaunch
+ * @param {string} python
+ * @param {string} workRoot
+ * @param {ReturnType<typeof createSmokeImages>} images
+ * @param {{ ensureAsset?: typeof ensureHfAsset; execute?: typeof run }} [dependencies]
+ */
+async function verifyKoharuImageSmokes(
+  prepareLaunch,
+  python,
+  workRoot,
+  images,
+  dependencies = {},
+) {
+  const ensureAsset = dependencies.ensureAsset ?? ensureHfAsset;
+  const execute = dependencies.execute ?? run;
   for (const asset of KOHARU_SMOKE_ASSETS) {
     const modelDir = join(workRoot, "models", asset.model);
-    const weights = await ensureHfAsset(
+    const weights = await ensureAsset(
       {
         label: `${asset.model} weights`,
         repo: asset.repo,
@@ -286,7 +302,7 @@ async function verifyKoharuImageSmokes(runner, python, workRoot, images) {
       modelDir,
     );
     const config = asset.configFile
-      ? await ensureHfAsset(
+      ? await ensureAsset(
           {
             label: `${asset.model} config`,
             repo: asset.repo,
@@ -297,21 +313,22 @@ async function verifyKoharuImageSmokes(runner, python, workRoot, images) {
         )
       : null;
     const output = join(workRoot, `${asset.model}-output.png`);
-    const args = [
-      "--model",
-      asset.model,
-      "--weights",
-      weights,
-      "--backend",
-      "metal-native",
-    ];
-    if (config) args.push("--config", config);
+    const launch = await prepareLaunch({
+      runtimeDir: join(workRoot, "koharu-runtime"),
+      model: asset.model,
+      modelFiles: {
+        model: asset.model,
+        weightsPath: weights,
+        ...(config ? { configPath: config } : {}),
+      },
+      backend: "metal-native",
+    });
     const request = createKoharuSmokeRequest(asset.model, images, output);
-    const result = run(runner, args, {
+    const result = execute(launch.executable, launch.args, {
       input: `${JSON.stringify(request)}\n${JSON.stringify({ type: "shutdown" })}\n`,
       timeout: 30 * 60 * 1000,
       env: {
-        KOHARU_DATA_ROOT: join(workRoot, "koharu-data", asset.model),
+        ...launch.env,
         RUST_LOG: "warn",
       },
     });
@@ -326,7 +343,7 @@ async function verifyKoharuImageSmokes(runner, python, workRoot, images) {
         `${asset.model} Metal 128x128 smoke failed: ${result.stdout}\n${result.stderr}`,
       );
     }
-    run(
+    execute(
       python,
       [
         "-c",
@@ -383,11 +400,6 @@ function buildSmokePythonEnv(workRoot) {
 async function verifyMacRuntimeSmokes(options) {
   const toolsDir = join(options.appPath, "Contents", "Resources", "tools");
   const python = join(toolsDir, "python", "bin", "python3");
-  const runner = join(
-    toolsDir,
-    "mgt-koharu-inpaint-runner",
-    "mgt-koharu-inpaint-runner",
-  );
   const workRoot = join(tmpdir(), "mgt-mac-runtime-smokes");
   rmSync(workRoot, { recursive: true, force: true });
   mkdirSync(workRoot, { recursive: true });
@@ -400,7 +412,20 @@ async function verifyMacRuntimeSmokes(options) {
       workRoot,
       images,
     );
-    await verifyKoharuImageSmokes(runner, python, workRoot, images);
+    // The production downloader/launcher needs Electron's app API and ASAR
+    // loader. Run it against the packaged code with isolated writable data.
+    const result = run(
+      ensureElectronExecutable(root),
+      [
+        __filename,
+        "--koharu-smoke",
+        options.appPath,
+        workRoot,
+        JSON.stringify(images),
+      ],
+      { timeout: 60 * 60 * 1000, env: { ELECTRON_RUN_AS_NODE: undefined } },
+    );
+    console.log(result.stdout);
   } finally {
     rmSync(workRoot, { recursive: true, force: true });
   }
@@ -413,4 +438,52 @@ module.exports = {
   createKoharuSmokeRequest,
   createOcrSmokeRequest,
   verifyMacRuntimeSmokes,
+  verifyKoharuImageSmokes,
 };
+
+if (require.main === module) {
+  const [, , mode, appPath, workRoot, imagesJson] = process.argv;
+  if (mode !== "--koharu-smoke" || !appPath || !workRoot || !imagesJson) {
+    throw new Error(
+      "Expected --koharu-smoke, packaged app, work root and images",
+    );
+  }
+  const { app } = require("electron");
+  const resources = join(appPath, "Contents", "Resources");
+  process.env.MANGA_TRANSLATOR_DATA_ROOT = join(workRoot, "app-data");
+  process.env.MANGA_TRANSLATOR_LOG_PATH = join(workRoot, "app.log");
+  process.env.MGT_KOHARU_RUNNER_EXE = join(
+    resources,
+    "tools",
+    "mgt-koharu-inpaint-runner",
+    "mgt-koharu-inpaint-runner",
+  );
+  app.setPath("userData", join(workRoot, "electron-profile"));
+  Object.defineProperty(process, "resourcesPath", { value: resources });
+  app.on("window-all-closed", () => {});
+  app
+    .whenReady()
+    .then(async () => {
+      const { ensureKoharuWorkerLaunch } = require(
+        join(
+          resources,
+          "app.asar",
+          "out",
+          "main",
+          "inpainting",
+          "koharuAssets.js",
+        ),
+      );
+      await verifyKoharuImageSmokes(
+        ensureKoharuWorkerLaunch,
+        join(resources, "tools", "python", "bin", "python3"),
+        workRoot,
+        JSON.parse(imagesJson),
+      );
+      app.exit(0);
+    })
+    .catch((error) => {
+      console.error(error);
+      app.exit(1);
+    });
+}

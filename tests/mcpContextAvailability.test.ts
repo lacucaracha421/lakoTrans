@@ -132,10 +132,23 @@ it("cancels queued context writes on shutdown without releasing another owner's 
   const { withMcpContextEditScope } =
     await import("../src/main/mcp/mcpContextEditScope");
   const { withLibraryContentEdit } = await import("../src/main/library/lock");
+  const { AppActivityGate } = await import("../src/main/appActivityGate");
+  const { libraryMutationCoordinator } =
+    await import("../src/main/libraryStore/libraryMutationCoordinator");
+  const gate = new AppActivityGate();
+  libraryMutationCoordinator.configureActivityGate(gate);
+  let notifyWaiting!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    notifyWaiting = resolve;
+  });
   const service = new McpContextProposalService({
     read: f.library.readWorkContextForEdit,
     commit: f.library.commitWorkContextEdit,
-    withEdit: withMcpContextEditScope,
+    withEdit: (...args) => {
+      const queued = withMcpContextEditScope(...args);
+      notifyWaiting();
+      return queued;
+    },
   });
   let enter!: () => void, release!: () => void;
   const entered = new Promise<void>((resolve) => {
@@ -153,6 +166,8 @@ it("cancels queued context writes on shutdown without releasing another owner's 
   );
   try {
     await entered;
+    expect(gate.activities).toHaveLength(1);
+    const owner = gate.current?.id;
     const before = await f.snapshot();
     const snapshot = await f.library.readWorkContextForEdit("chapter");
     const proposal = await service.preview(
@@ -177,11 +192,14 @@ it("cancels queued context writes on shutdown without releasing another owner's 
       () => {},
     );
     const rejected = expect(applying).rejects.toThrow();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await waiting;
     await service.close();
     await rejected;
+    expect(gate.activities).toHaveLength(1);
+    expect(gate.current?.id).toBe(owner);
     release();
     await held;
+    expect(gate.activities).toHaveLength(0);
     expect(await f.snapshot()).toEqual(before);
     expect(
       (await f.library.readWorkContextForEdit("chapter")).styleGuide.rules
@@ -191,6 +209,7 @@ it("cancels queued context writes on shutdown without releasing another owner's 
     release();
     await held;
     await service.close();
+    libraryMutationCoordinator.configureActivityGate(null);
     await f.close();
   }
 });

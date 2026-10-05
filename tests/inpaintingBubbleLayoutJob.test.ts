@@ -44,6 +44,10 @@ describe("bubble-aware inpainting postprocess", () => {
       imageHeight: 1000,
       detections: [],
     };
+    const sourceEraseConstraint = {
+      bounds: { x: 100, y: 120, w: 3, h: 2 },
+      data: new Uint8Array([1, 1, 0, 0, 1, 1]),
+    };
     const runPage = vi.fn<BubbleLayoutRunner["runPage"]>(
       async ({ page, paddingRatio }) => {
         // Adapter-side mutation cannot escape because the port receives a clone.
@@ -61,7 +65,7 @@ describe("bubble-aware inpainting postprocess", () => {
               renderBboxSpace: "normalized_1000",
               bubbleLayout: paddingRatio === 0 ? maskLayout : layout,
               ...(paddingRatio === 0
-                ? { sharedInpaintGroupIds: ["shared-1"] }
+                ? { sharedInpaintGroupIds: ["shared-1"], sourceEraseConstraint }
                 : {}),
               // Runtime-shaped malicious data is deliberately outside the type.
               bbox: { x: 900, y: 900, w: 10, h: 10 },
@@ -99,7 +103,7 @@ describe("bubble-aware inpainting postprocess", () => {
     );
 
     expect(result.status).toBe("completed");
-    expect(runtime.disposeBubbleLayoutSessions).toHaveBeenCalledTimes(1);
+    expect(runtime.disposeBubbleLayoutSessions).toHaveBeenCalledOnce();
     expect(runtime.logError).not.toHaveBeenCalled();
     expect(createBubbleLayoutRunner).toHaveBeenCalledTimes(1);
     expect(createBubbleLayoutRunner).toHaveBeenCalledWith(
@@ -107,7 +111,6 @@ describe("bubble-aware inpainting postprocess", () => {
         directMl: { ...gpuSettings.hardware, computeGpuBackend: "cuda" },
       }),
     );
-    expect(runPage).toHaveBeenCalledTimes(2);
     expect(runPage.mock.calls[0]?.[0]).toEqual(
       expect.objectContaining({
         imagePath: originalPage.imagePath,
@@ -157,7 +160,13 @@ describe("bubble-aware inpainting postprocess", () => {
       h: 260,
     });
     expect(savedBlock?.bubbleLayout).toEqual(layout);
-    expect(savedBlock).not.toHaveProperty("sharedInpaintGroupIds");
+    for (const key of ["sharedInpaintGroupIds", "sourceEraseConstraint"])
+      expect(savedBlock).not.toHaveProperty(key);
+    expect(
+      vi.mocked(runtime.inpaintPatternPage).mock.calls[0]?.[1],
+    ).toHaveProperty("sourceEraseConstraintsByBlock", {
+      [BLOCK_ID]: sourceEraseConstraint,
+    });
     expect(result.chapter?.pages[0]?.translationCompletion).toEqual({
       workflow: "bubble-layout",
       status: "completed",

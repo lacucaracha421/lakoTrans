@@ -155,3 +155,92 @@ case 22에서도 원래 없는 말풍선이 생겼다. 두 설정 모두 제품�
 것으로 간주하지 않는다. 실제 번역 API나 UI 클릭을 새로 실행한 테스트가 아니라,
 보관함의 실제 블록을 이용해 production 페이지 작업 및 효과음 후속 작업 함수를 실행한
 GPU 검증이다. 저장된 효과음 영역 밖의 누락과 모델 생성 실패는 별도로 남아 있다.
+
+## 2026-10-05: 39화의 일괄 지우기 잔여물 재현
+
+사용자가 지정한 「전생했더니 평민이었습니다. ～생활 수준을 견딜 수 없어서 귀족을
+목표로 합니다～」 39화의 6/9/10/12페이지를 앱의 `createWorkflowImages().erase`로
+실행하면 보관함 출력과 같은 연결부에 원문 획이 남았다. 앞선 개별 작업 경로
+`processInpaintingPage`만으로는 이 차이를 재현하지 못했다.
+
+### 원인과 적용한 수정
+
+- 일괄 작업은 모든 블록을 선택해도 `blockIds`를 명시적으로 전달한다.
+  `runBubbleLayoutMaskPrepass`가 인자 존재만 보고 부분 선택으로 판정하여, 전체 선택에도
+  이웃 보호용 간격을 남겼다. 이제 실제 미선택 owner 존재 여부를 검사한다. 전체 선택은
+  간격 0으로 연결 영역을 합치고, 단일/부분 선택에는 기존 보호 간격을 유지한다.
+- 렌더링용 profile은 여러 scanline의 교집합과 최장 구간만 저장하므로 곡선 경계와
+  분리된 짧은 구간을 잃는다. 지우기는 이미 안전 inset과 ownership 분할이 적용된
+  raster를 작업 메모리에서 그대로 전달한다. 렌더링 profile과 보관함 데이터 계약은
+  유지하며, 수동 영역은 자동 raster로 덮어쓰지 않는다.
+- `sourceEraseConstraintsByBlock`을 일반 작업, 일괄 작업, 효과음 후속 경로까지 전달한다.
+  마스크의 정수 좌표·크기·페이지 경계·typed array를 기존 validator에서 확인한다.
+  기존 typography 합성과 최종 hard constraint는 유지한다.
+- 단일 선택을 실제 GPU로 검증하니 geodesic ownership이 이웃 글자 끝까지 침범했다.
+  미선택 원문 bbox + 2px를 최종 composite core/envelope에서 제외한다. 모델 입력 마스크는
+  유지한다. 입력까지 잘랐던 `single*-protected` 실험은 6페이지에 가짜 글자를 생성하여
+  폐기했다. `single*-composite`가 최종 검증 결과다. 붙여넣은 overlay처럼 원문이 없는
+  `inpaintExcluded` 블록은 보호할 원문 owner로 취급하지 않는다. 이를 구분하지 않은
+  `diverse24-composite`에는 선택한 글자가 남았으며, 사용자도 해당 잔여물을 지적했다.
+  이 중간 결과를 합격이나 최종 출력으로 사용하지 않는다.
+- source-mask 요청의 `imagePath`도 원본으로 통일했다. 실제 production detector는 이전에도
+  원본을 사용했으므로, 이것을 이번 잔여물의 원인으로 해석하면 안 된다.
+
+외곽 안전 inset, 검출 영역, 실제 부분 선택의 ownership 간격을 일괄 확장한 수정이 아니다.
+보호된 이미지 알고리즘의 경계/선택 동작은 characterization test로 고정했다.
+
+### 검증 방법과 한계
+
+실험 자료는 `.tmp/overlap-erasure-20261005/`에 있다. `workflow-run.cjs`는 실제 production
+workflow와 Koharu 검출, 설치된 Flux CUDA native runner, 픽셀 합성, 결과 파일 저장을
+사용한다. engine lease만 동일한 실물 엔진을 재사용하도록 연결했다. 원본을 `.tmp`로
+복사하고 저장된 OCR 블록을 입력으로 사용했으며, 새 OCR/번역 API/UI 클릭 시험은 아니다.
+전체 페이지 결과는 원본부터 새로 처리한 `workflow-final`과 `diverse-final`을 기준으로 한다.
+기존 지운 결과 위에 재실행한 `final-chapter39`는 unchanged/incomplete가 섞인 진단군이며
+성공 페이지 수에 포함하지 않는다.
+
+39화의 연결부는 `workflow-compare-6/9/10/12.png`에서 원본/일괄 경로 수정 전/수정 후를
+비교한다. `workflow-contact-*.jpg`, `diverse-contact-*.jpg`는 원본/최종 출력 검수용이다.
+외부 RGB 변경은 실제 hard constraint 바깥에서 검사하며, constraint 없는 fallback은
+기존 window + 32px를 허용 영역으로 사용한다. 이 수치가 영역 내부 배경 복원의 정답이나
+모든 글자의 완전 제거를 보증하는 것은 아니다.
+
+추가 작품 9번 「오토메 게임의 악역 귀족으로 환생했기에, 돈의 힘으로 메인 히로인을
+사 보았다.」 2화 2.png에서는 테두리 근처 후리가나가 안전 검출 영역 밖에 남는다.
+`diverse9-furigana-diagnosis.png`에 입력/출력/model/core/constraint를 기록했다. 보관함의
+이전 출력에도 같은 후리가나가 남아 있었다. 39화 31/32페이지의 검은 배경·무늬 위 글자,
+추가 작품 9/18/24번의 일부 영역에는 모델이 만든 선·얼룩 등 별도 품질 실패도 있다.
+추가 작품 30번의 신문 형식 페이지에도 일부 본문이 남는다. 말풍선 연결부 외의 검출 누락과
+모델 생성 품질까지 해결됐다는 의미로 837블록의 실행 완료 숫자를 사용하면 안 된다.
+이번 연결부 수정으로 이 실패까지 해결됐다고 판정하지 않는다. 외곽을 넓혀 그림까지
+지우는 우회책은 적용하지 않았다. 실제 GPU 검증은 Windows CUDA이며 AMD/macOS 실행을
+확인한 결과는 아니다.
+
+### 최종 실제 실행 근거
+
+- 39화 전체 35페이지/426블록과 서로 다른 추가 32작품의 32페이지/411블록을 처리했다.
+  합계 33작품, 고유 67페이지, 837블록이며 실행상 incomplete는 0이다. 모든 원본/출력을
+  contact sheet로 직접 검수했고 의심 위치는 확대했다. 이 숫자는 시각적 무결점 수가 아니다.
+- 위 전체 페이지 native crop은 328 + 318 = 646회다. 단일 선택 최종 2회가 별도다.
+  중간 실패 실험과 이후 확인용 재실행은 이 수치에 합산하지 않는다.
+- 최종 코드로 67페이지의 model/core/constraint 마스크를 다시 생성해 기존 실제 GPU
+  실행의 마스크와 픽셀 단위로 모두 일치함을 확인했다(`full-mask-parity.json`).
+  단일 선택 최종 2페이지도 일치했다(`single-mask-parity-final.json`).
+- 단일 선택 2페이지에서 미선택 원문 bbox 27개의 변경 픽셀은 전부 0이다.
+  `single-final.json`, `single-final-6.png`, `single-final-10.png`에 기록했다.
+  초기 `single*-final`은 보호 전 비교군이며 이름의 final을 완료 근거로 사용하지 않는다.
+- 사용자 스크린샷의 추가 작품 24번은 최종 코드로 native crop 14회를 다시 실행했다.
+  `diverse24-final-verified`와 `user-residue-final-comparison.png`에서 지적된 두 말풍선의
+  원문 조각이 제거되고 테두리·인물 선화가 보존된 것을 확대 확인했다. 이것은 별도
+  확인 실행이며 고유 페이지/작품 수에 중복으로 더하지 않는다.
+- 67개 원본 파일 SHA-256은 최초 inventory와 모두 같다(`source-preservation.json`).
+  실험 출력은 `.tmp`에만 저장했다. 작업 중 보관함 39화 9/19/21/22페이지에는 별도의
+  `renderBbox`/수정시각 변경이 관측됐으므로 메타데이터 전체 불변을 주장하지 않는다.
+  이 변경을 되돌리지 않았으며 원문 bbox·원본·기존 출력 경로는 보존됐다.
+- 기존 파일 `bubbleLayoutRunnerPatches.ts`의 coverage floor를 동결 baseline artifact에서
+  그대로 추가했다. SHA-256은 `a0e1199f46a80734d228ff1772b99d1fde2f700321346da77abf9c29795e4c0a`다.
+  기존 floor를 낮추지 않았고 inventory는 826 → 827이다.
+- 최종 코드에서 Node 26.10.0으로 `scripts/check.cjs`가 353.59초에 통과했다.
+  테스트 10,223개 성공 / 9개 skip / 실패 0이다. 타입 검사, lint, architecture,
+  coverage floor, build, artwork parity, image protocol, renderer/preload bundle smoke를
+  포함한다. 근거는 `check7.log`다. UI 변경은 없으며 별도 UI 캡처로 대체한 검증이 아니다.

@@ -13,6 +13,8 @@ import type {
 import type { RefinedBubbleRegion } from "./bubbleMaskTypes";
 import { partitionSameBlockBubbleRegions } from "./bubbleSameBlockRegionPartition";
 import { padBubbleShapeProfile } from "./bubbleShapeProfilePadding";
+import type { InpaintingWindowMask } from "../inpainting/inpaintingEngine";
+import { unionWindowMasks } from "../inpainting/koharuTypographyMask";
 
 export type BubbleShapeProfileInput = {
   regions: RefinedBubbleRegion[];
@@ -36,6 +38,8 @@ export type BubbleShapeProfileResult = {
   renderBbox: BBox;
   renderBboxSpace: "normalized_1000";
   bubbleLayout: BubbleLayout;
+  /** Job-local raster: render bands lose curved seams and secondary runs. */
+  sourceEraseConstraint?: InpaintingWindowMask;
 };
 
 const DOMINANT_TEXT_REGION_MIN_COVERAGE = 0.7;
@@ -45,7 +49,6 @@ type MaskInterval = { start: number; end: number };
 export function buildBubbleShapeProfile(
   input: BubbleShapeProfileInput,
 ): BubbleShapeProfileResult | null {
-  if (input.regions.length === 0) return null;
   let ordered = orderBubbleRegions(input.regions, input.sourceDirection);
   if (!input.sourceEraseMask)
     ordered = partitionSameBlockBubbleRegions(ordered, input.regionGapPx);
@@ -81,6 +84,13 @@ export function buildBubbleShapeProfile(
     input.renderDirection,
   );
   return {
+    ...(input.sourceEraseMask
+      ? {
+          sourceEraseConstraint: input.regions
+            .map(({ bounds, mask: data }) => ({ bounds, data }))
+            .reduce(unionWindowMasks),
+        }
+      : {}),
     renderBbox: pixelsToBbox(
       paddedPixelBounds,
       input.pageWidth,

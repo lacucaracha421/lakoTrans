@@ -13,6 +13,107 @@ import type { MangaPage } from "../src/shared/libraryTypes";
 import type { TranslationBlock } from "../src/shared/textTypes";
 
 describe("pattern page text masks", () => {
+  it.each([
+    { blockId: "left" },
+    { blockIds: ["left"] },
+    { excludedBlockIds: ["right"] },
+  ])(
+    "protects unselected source ink even when detector ownership crosses it: %j",
+    (selection) => {
+      const width = 100,
+        height = 100;
+      const blocks = [
+        createBlock("left", 200, { y: 200, w: 300, h: 300 }),
+        createBlock("right", 450, { y: 350, w: 300, h: 300 }),
+        createBlock("far", 980, { y: 980, w: 10, h: 10 }),
+        createBlock("invalid", NaN),
+        {
+          ...createBlock("overlay", 200, { y: 200, w: 300, h: 300 }),
+          inpaintExcluded: true,
+        },
+      ];
+      const raster = {
+        bounds: { x: 10, y: 10, w: 80, h: 80 },
+        data: new Uint8Array(6400).fill(1),
+      };
+      const options = {
+        page: createPage(width, height, blocks),
+        width,
+        height,
+        bitmap: Buffer.alloc(width * height * 4, 255),
+        mode: "flux-region" as const,
+        bubbleLayoutConstraintBlockIds: ["left", "right"],
+        sourceEraseConstraintsByBlock: { left: raster, right: raster },
+        sharedInpaintGroupIdsByBlock: { left: ["shared"], right: ["shared"] },
+      };
+      const partial = buildPatternPageMask({ ...options, ...selection });
+      for (const masks of [
+        partial.inpaintCompositeMasks,
+        partial.inpaintWindowConstraints,
+      ]) {
+        const mask = masks[0];
+        if (!mask) throw new Error("Expected a protected write mask");
+        const pixels = expandWindowMaskToPage(mask, width, height);
+        for (let y = 33; y < 67; y++)
+          for (let x = 43; x < 77; x++) expect(pixels[y * width + x]).toBe(0);
+        expect(pixels[25 * width + 25]).toBe(1);
+      }
+      // Conditioning keeps its original shape; only the final write is clipped.
+      expect(partial.pageMask[40 * width + 50]).toBe(1);
+      expect(raster.data.every(Boolean)).toBe(true);
+      const full = buildPatternPageMask({
+        ...options,
+        blockIds: ["left", "right"],
+      });
+      expect(full.pageMask[40 * width + 50]).toBe(1);
+    },
+  );
+
+  it("joins exact curved ownership rasters without expanding outside them or selecting neighbors", () => {
+    const width = 100,
+      height = 100;
+    const blocks = [createBlock("left", 100), createBlock("right", 550)];
+    const page = createPage(width, height, blocks);
+    const bounds = { x: 20, y: 20, w: 60, h: 60 };
+    const sourceEraseConstraintsByBlock = Object.fromEntries(
+      blocks.map((block, i) => [
+        block.id,
+        {
+          bounds,
+          data: Uint8Array.from({ length: 3600 }, (_, n) =>
+            Number(n % 60 < Math.floor(n / 60) === (i === 0)),
+          ),
+        },
+      ]),
+    );
+    const options = {
+      page,
+      width,
+      height,
+      bitmap: Buffer.alloc(width * height * 4, 255),
+      mode: "flux-region" as const,
+      bubbleLayoutConstraintBlockIds: blocks.map((block) => block.id),
+      sourceEraseConstraintsByBlock,
+      sharedInpaintGroupIdsByBlock: { left: ["shared-1"], right: ["shared-1"] },
+    };
+    const all = buildPatternPageMask(options);
+    const single = buildPatternPageMask({ ...options, blockId: "left" });
+    expect(all.inpaintWindows).toHaveLength(1);
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) {
+        const inside = x >= 20 && x < 80 && y >= 20 && y < 80;
+        expect(all.pageMask[y * width + x]).toBe(Number(inside));
+        expect(single.pageMask[y * width + x]).toBe(Number(inside && x < y));
+      }
+    expect(() =>
+      buildPatternPageMask({
+        ...options,
+        sourceEraseConstraintsByBlock: {
+          left: { bounds: { ...bounds, x: NaN }, data: new Uint8Array(3600) },
+        },
+      }),
+    ).toThrow("Invalid block-owned inpainting mask");
+  });
   it("rejects array evidence rebound to a different block-keyed mask", () => {
     const page = createPage(32, 32, [
       createBlock("block-1", 100, { y: 100, w: 300, h: 300 }),

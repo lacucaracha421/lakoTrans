@@ -1,3 +1,4 @@
+import type { InpaintingWindowMask } from "../inpainting/inpaintingEngine";
 import type { StartInpaintingRequest } from "../../shared/inpaintingTypes";
 import type {
   MangaPage,
@@ -17,6 +18,7 @@ import {
   type BubbleLayoutRunner,
 } from "../inpainting/bubbleLayoutRunner";
 import type { KoharuTypographySegmentation } from "../bubbleLayout/contracts";
+import { isBubbleLayoutBlockEligible } from "../bubbleLayout/bubbleLayoutBlockEligibility";
 import {
   captureInpaintingLayoutStates,
   type InpaintingBlockLayoutState,
@@ -152,16 +154,17 @@ export async function runBubbleLayoutMaskPrepass({
   page: MangaPage;
   runner: BubbleLayoutRunner;
   signal: AbortSignal;
-}): Promise<{
-  bubbleLayoutConstraintBlockIds: string[];
-  page: MangaPage;
-  restoreLayout?: InpaintingBlockLayoutState[];
-  sharedInpaintGroupIdsByBlock?: Record<string, string[]>;
-  typographySegmentation?: KoharuTypographySegmentation;
-}> {
+}): Promise<ReturnType<typeof buildMaskPrepassResult>> {
   const targetBlockIds = resolvePrepassBlockIds(page, blockId, blockIds);
   const targetBlockIdSet = new Set(targetBlockIds);
-  const hasSubset = blockId !== undefined || blockIds !== undefined;
+  // Workflow callers pass explicit ids even when selecting the whole page.
+  // Only missing owners require a protective gutter between selected blocks.
+  const hasSubset =
+    blockId !== undefined ||
+    page.blocks.some(
+      (block) =>
+        isBubbleLayoutBlockEligible(block) && !targetBlockIdSet.has(block.id),
+    );
   const restoreLayout = captureInpaintingLayoutStates(page, targetBlockIds);
   const maskBaselinePage: MangaPage = {
     ...page,
@@ -231,11 +234,13 @@ function buildMaskPrepassResult(
   page: MangaPage;
   restoreLayout?: InpaintingBlockLayoutState[];
   sharedInpaintGroupIdsByBlock?: Record<string, string[]>;
+  sourceEraseConstraintsByBlock?: Record<string, InpaintingWindowMask>;
   typographySegmentation?: KoharuTypographySegmentation;
 } {
   return {
     bubbleLayoutConstraintBlockIds,
     page: processed.page,
+    sourceEraseConstraintsByBlock: processed.sourceEraseConstraintsByBlock,
     ...(restoreLayout.length ? { restoreLayout } : {}),
     ...(processed.sharedInpaintGroupIdsByBlock
       ? {

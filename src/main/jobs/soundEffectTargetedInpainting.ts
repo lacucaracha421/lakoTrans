@@ -194,9 +194,7 @@ async function inpaintPageTarget({
     };
   const existingIds = new Set(page.blocks.map((block) => block.id));
   const requestedIds = [...new Set(target.blockIds)];
-  const selectedIds = requestedIds.filter((blockId) =>
-    existingIds.has(blockId),
-  );
+  const selectedIds = requestedIds.filter((id) => existingIds.has(id));
   const warnings = requestedIds
     .filter((blockId) => !existingIds.has(blockId))
     .map(
@@ -214,20 +212,18 @@ async function inpaintPageTarget({
           signal,
         })
       : undefined;
-    const result = await dependencies.inpaintPage(prepared?.page ?? page, {
+    const {
+      page: maskPage = page,
+      restoreLayout,
+      ...maskOptions
+    } = prepared ?? {};
+    const result = await dependencies.inpaintPage(maskPage, {
+      ...maskOptions,
       blockIds: selectedIds,
       signal,
       decodeFallback,
       inpaintingEngine: engineLease.engine,
       preserveExistingInpainting: true,
-      ...(prepared
-        ? {
-            bubbleLayoutConstraintBlockIds:
-              prepared.bubbleLayoutConstraintBlockIds,
-            sharedInpaintGroupIdsByBlock: prepared.sharedInpaintGroupIdsByBlock,
-            typographySegmentation: prepared.typographySegmentation,
-          }
-        : {}),
     });
     const erased = new Set(result.erasedBlockIds ?? []);
     warnings.push(
@@ -236,8 +232,8 @@ async function inpaintPageTarget({
     if (erased.size === 0) return { warnings };
     return {
       page: mergeTargetedInpaintingCompletion(
-        prepared?.restoreLayout
-          ? applyInpaintingLayoutStates(result.page, prepared.restoreLayout)
+        restoreLayout
+          ? applyInpaintingLayoutStates(result.page, restoreLayout)
           : result.page,
         erased,
       ),

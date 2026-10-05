@@ -920,6 +920,28 @@
         "pct": 77.33
       }
     },
+    "src/main/inpainting/bubbleLayoutRunnerPatches.ts": {
+      "lines": {
+        "covered": 46,
+        "total": 52,
+        "pct": 88.46
+      },
+      "statements": {
+        "covered": 53,
+        "total": 59,
+        "pct": 89.83
+      },
+      "functions": {
+        "covered": 14,
+        "total": 14,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 44,
+        "total": 51,
+        "pct": 86.27
+      }
+    },
     "src/main/inpainting/computeGpuEnv.ts": {
       "lines": {
         "total": 14,

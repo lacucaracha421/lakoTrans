@@ -155,13 +155,15 @@ function forEachActiveWindowPixel(
   }
 }
 
-function validateWindowMask(
+export function validateWindowMask(
   windowMask: InpaintingWindowMask,
   pageWidth: number,
   pageHeight: number,
 ): void {
   const { bounds, data } = windowMask;
   if (
+    ![bounds.x, bounds.y, bounds.w, bounds.h].every(Number.isSafeInteger) ||
+    !(data instanceof Uint8Array) ||
     bounds.x < 0 ||
     bounds.y < 0 ||
     bounds.w <= 0 ||

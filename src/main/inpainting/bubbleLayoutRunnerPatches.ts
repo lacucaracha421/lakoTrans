@@ -2,6 +2,7 @@ import { isManualBubbleLayout } from "../../shared/bubbleLayout";
 import type { BubbleLayout } from "../../shared/bubbleLayout";
 import type { MangaPage } from "../../shared/libraryTypes";
 import type { BBox, TranslationBlock } from "../../shared/textTypes";
+import type { InpaintingWindowMask } from "./inpaintingEngine";
 
 type RenderBboxSpace = NonNullable<TranslationBlock["renderBboxSpace"]>;
 
@@ -12,6 +13,7 @@ export type BubbleLayoutBlockPatch = {
   bubbleLayout?: BubbleLayout | null;
   /** Job-local only; never applied to or persisted with a TranslationBlock. */
   sharedInpaintGroupIds?: string[];
+  sourceEraseConstraint?: InpaintingWindowMask;
 };
 
 export function parseBubbleLayoutRunnerPatches(
@@ -122,6 +124,9 @@ function copyRunnerRenderPatch(
   rawPatch: BubbleLayoutBlockPatch,
 ): BubbleLayoutBlockPatch {
   const patch: BubbleLayoutBlockPatch = { blockId: rawPatch.blockId };
+  if (rawPatch.sourceEraseConstraint) {
+    patch.sourceEraseConstraint = rawPatch.sourceEraseConstraint;
+  }
   if (hasOwn(rawPatch, "renderBbox")) patch.renderBbox = rawPatch.renderBbox;
   if (hasOwn(rawPatch, "renderBboxSpace")) {
     patch.renderBboxSpace = rawPatch.renderBboxSpace;

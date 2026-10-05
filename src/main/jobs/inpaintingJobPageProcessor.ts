@@ -1,3 +1,4 @@
+import type { InpaintingWindowMask } from "../inpainting/inpaintingEngine";
 import type { JobEvent } from "../../shared/jobTypes";
 import type { MangaPage } from "../../shared/libraryTypes";
 import type { KoharuTypographySegmentation } from "../bubbleLayout/contracts";
@@ -302,6 +303,12 @@ function buildPatternInpaintingOptions({
             maskPreparation.sharedInpaintGroupIdsByBlock,
         }
       : {}),
+    ...("sourceEraseConstraintsByBlock" in maskPreparation
+      ? {
+          sourceEraseConstraintsByBlock:
+            maskPreparation.sourceEraseConstraintsByBlock,
+        }
+      : {}),
     ...("typographySegmentation" in maskPreparation
       ? { typographySegmentation: maskPreparation.typographySegmentation }
       : {}),
@@ -332,6 +339,7 @@ async function preparePatternMaskPage({
   page: MangaPage;
   restoreLayout?: InpaintingBlockLayoutState[];
   sharedInpaintGroupIdsByBlock?: Record<string, string[]>;
+  sourceEraseConstraintsByBlock?: Record<string, InpaintingWindowMask>;
   typographySegmentation?: KoharuTypographySegmentation;
 }> {
   const engineModel = state.inpaintingEngineLease?.engine.model;

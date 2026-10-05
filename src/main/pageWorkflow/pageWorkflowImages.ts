@@ -54,31 +54,24 @@ async function eraseWorkflowPage(
             runner,
             signal: context.signal,
           })
-        : { page };
-    const result = await inpaintPatternPage(prepass.page, {
+        : undefined;
+    const {
+      page: maskPage = page,
+      restoreLayout,
+      ...maskOptions
+    } = prepass ?? {};
+    const result = await inpaintPatternPage(maskPage, {
+      ...maskOptions,
       blockIds,
       signal: context.signal,
       inpaintingEngine: lease.engine,
       decodeFallback: context.decodeImage,
       preserveExistingInpainting: true,
-      ...("bubbleLayoutConstraintBlockIds" in prepass
-        ? {
-            bubbleLayoutConstraintBlockIds:
-              prepass.bubbleLayoutConstraintBlockIds,
-          }
-        : {}),
-      ...("sharedInpaintGroupIdsByBlock" in prepass
-        ? { sharedInpaintGroupIdsByBlock: prepass.sharedInpaintGroupIdsByBlock }
-        : {}),
-      ...("typographySegmentation" in prepass
-        ? { typographySegmentation: prepass.typographySegmentation }
-        : {}),
     });
     const erased = new Set(result.erasedBlockIds);
-    const output =
-      "restoreLayout" in prepass && prepass.restoreLayout
-        ? applyInpaintingLayoutStates(result.page, prepass.restoreLayout)
-        : result.page;
+    const output = restoreLayout
+      ? applyInpaintingLayoutStates(result.page, restoreLayout)
+      : result.page;
     const committed = {
       ...output,
       erasedWorkflowRegions: {

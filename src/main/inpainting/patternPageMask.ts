@@ -11,11 +11,15 @@ import {
   type PixelRect,
 } from "./maskGeometry";
 import type { InpaintingWindowMask } from "./inpaintingEngine";
+import { validateWindowMask } from "./inpaintingWindowMask";
 import {
   buildBubbleLayoutConstraintMask,
   projectWindowMask,
 } from "./bubbleLayoutConstraintMask";
-import { isPatternInpaintingBlockEligible } from "./patternBlockEligibility";
+import {
+  isPatternInpaintingBlockEligible,
+  protectUnselectedPatternText,
+} from "./patternBlockEligibility";
 import { buildPatternTextMask } from "./patternTextMask";
 import { extendSharedBubbleMaskWithDetectedText } from "./sharedBubbleTextBridge";
 import { coalesceSharedConstrainedWindows } from "./patternSharedWindows";
@@ -55,6 +59,9 @@ export function buildPatternPageMask(options: {
   excludedBlockIds?: readonly string[];
   sharedInpaintGroupIdsByBlock?: Readonly<Record<string, readonly string[]>>;
   typographySegmentation?: KoharuTypographySegmentation;
+  sourceEraseConstraintsByBlock?: Readonly<
+    Record<string, InpaintingWindowMask>
+  >;
   signal?: AbortSignal;
 }): PatternMaskContext {
   const context = createEmptyPatternMaskContext(options.width, options.height);
@@ -160,15 +167,7 @@ function mergeFluxRegionMask(
   const sharedGroupIds = [
     ...(options.sharedInpaintGroupIdsByBlock?.[block.id] ?? []),
   ];
-  const bubbleMask = options.bubbleLayoutConstraintBlockIds?.includes(block.id)
-    ? buildBubbleLayoutConstraintMask(
-        block,
-        options.page,
-        options.width,
-        options.height,
-        true,
-      )
-    : null;
+  const bubbleMask = resolveFluxBubbleConstraint(options, block);
   // A usable green region is authoritative. Do not union the OCR rectangle:
   // on connected balloons an oversized OCR box can cross into its neighbor.
   const { regionMask, usedOtsu } = resolveFluxRegionMask({
@@ -189,6 +188,13 @@ function mergeFluxRegionMask(
     sourceRect: bboxToPixelRect(block.bbox, options.page),
     width: options.width,
   });
+  if (bubbleMask && plan.constraint) {
+    plan.compositeMask = protectUnselectedPatternText(
+      plan.compositeMask,
+      options,
+    );
+    plan.constraint = protectUnselectedPatternText(plan.constraint, options);
+  }
   const { compositeMask, featherPx: compositeFeatherPx, modelMask } = plan;
   context.usesKoharuTypographyComposite ||= plan.usesTypographySegmentation;
   const bounds = modelMask.bounds;
@@ -226,6 +232,24 @@ function mergeFluxRegionMask(
   context.inpaintSpeechBubbleWindows.push(bubbleMask !== null);
   if (usedOtsu) context.otsuBlocks += 1;
   context.blocksErased += 1;
+}
+
+function resolveFluxBubbleConstraint(
+  options: Parameters<typeof buildPatternPageMask>[0],
+  block: MangaPage["blocks"][number],
+): InpaintingWindowMask | null {
+  const bubbleMask = options.bubbleLayoutConstraintBlockIds?.includes(block.id)
+    ? (options.sourceEraseConstraintsByBlock?.[block.id] ??
+      buildBubbleLayoutConstraintMask(
+        block,
+        options.page,
+        options.width,
+        options.height,
+        true,
+      ))
+    : null;
+  if (bubbleMask) validateWindowMask(bubbleMask, options.width, options.height);
+  return bubbleMask;
 }
 
 function resolveFluxRegionMask({

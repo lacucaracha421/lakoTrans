@@ -2,9 +2,8 @@ import { nativeImage } from "electron";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { MangaPage } from "../../shared/libraryTypes";
-import { removeArtifactAfterFailure } from "../artifactCleanup";
-import type { KoharuTypographySegmentation } from "../bubbleLayout/contracts";
 import type { InpaintingEngine } from "./inpaintingEngine";
+import { removeArtifactAfterFailure } from "../artifactCleanup";
 import { logInpaintingRuntimeInfo } from "./inpaintingRuntimeLogger";
 import { loadPageImage, resolveInpaintedImagePath } from "./imageIO";
 import { measureWindowMaskedRegionChange } from "./fluxChangeStats";
@@ -24,6 +23,7 @@ import {
 import type {
   ImageDecodeFallback,
   PatternPageInpaintingResult,
+  PatternPageInpaintingOptions,
 } from "./inpaintingTypes";
 import {
   createPatternBitmapBaseline,
@@ -33,25 +33,6 @@ import {
   persistActualInpaintMask,
   buildMaskFromBitmapDifference,
 } from "./inpaintMaskArtifact";
-
-type PatternPageInpaintingOptions = {
-  blockId?: string;
-  /** Explicit batch selection. Selected excluded blocks become eligible. */
-  blockIds?: readonly string[];
-  signal?: AbortSignal;
-  decodeFallback?: ImageDecodeFallback;
-  inpaintingEngine?: InpaintingEngine;
-  /** Accept only current zero-padding prepass or allowlisted manual geometry. */
-  bubbleLayoutConstraintBlockIds?: readonly string[];
-  /** Block ids already committed by an earlier partial page run. */
-  excludedBlockIds?: readonly string[];
-  sharedInpaintGroupIdsByBlock?: Readonly<Record<string, readonly string[]>>;
-  typographySegmentation?: KoharuTypographySegmentation;
-  /** Production stays disabled; sealed QA/offline evidence opts in. */
-  sourceEvidenceMode?: "disabled" | "required";
-  /** Add this pass to the currently stored cleaned page instead of restarting. */
-  preserveExistingInpainting?: boolean;
-};
 
 export async function inpaintPatternPage(
   page: MangaPage,
@@ -215,6 +196,7 @@ function createPatternMaskContext(
     excludedBlockIds: options.excludedBlockIds,
     sharedInpaintGroupIdsByBlock: options.sharedInpaintGroupIdsByBlock,
     typographySegmentation: options.typographySegmentation,
+    sourceEraseConstraintsByBlock: options.sourceEraseConstraintsByBlock,
     signal: options.signal,
   });
 }

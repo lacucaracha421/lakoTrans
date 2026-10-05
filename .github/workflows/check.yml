@@ -69,6 +69,7 @@ jobs:
             coverage/coverage-summary.json
             .tmp/llama-runtime-cli/report.json
             .tmp/llama-runtime-cli/*-help.log
+            .tmp/llama-runtime-cli/probe-*.log
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
@@ -107,6 +108,13 @@ jobs:
           restore-keys: |
             check-${{ runner.os }}-node26-npm12-v1-${{ hashFiles('package-lock.json', 'scripts/run-prettier.cjs', 'scripts/dev-build-cache.cjs', 'scripts/build.cjs') }}-
 
+      - name: Compile Electron for native runtime verification
+        run: npm run compile:electron
+
+      - name: Validate published Apple Silicon command lines and native loader
+        timeout-minutes: 15
+        run: node scripts/verify-llama-runtime-cli.cjs
+
       - name: Run checks
         env:
           NODE_OPTIONS: --max-old-space-size=4096
@@ -115,10 +123,6 @@ jobs:
 
       - name: Test Flux Metal runtime
         run: npm run test:flux-metal
-
-      - name: Validate published Apple Silicon command lines and native loader
-        timeout-minutes: 15
-        run: node scripts/verify-llama-runtime-cli.cjs
 
       - name: Set up font runtime smoke Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -142,6 +146,7 @@ jobs:
             coverage/coverage-summary.json
             .tmp/llama-runtime-cli/report.json
             .tmp/llama-runtime-cli/*-help.log
+            .tmp/llama-runtime-cli/probe-*.log
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7

@@ -2,9 +2,9 @@
 // Exercise the published native parsers with production presets, without loading
 // models or requiring a GPU. Run after compile:electron/build/check.
 const assert = require("node:assert/strict");
-const { spawnSync } = require("node:child_process");
 const { mkdirSync, writeFileSync } = require("node:fs");
-const { join, resolve, dirname } = require("node:path");
+const { join, resolve, basename } = require("node:path");
+const { runRuntimeCliProbe } = require("./llama-runtime-cli-probe.cjs");
 const {
   getDefaultGemmaPresetForVramMode,
   getLegacyGemmaPresetForVramMode,
@@ -65,20 +65,19 @@ assert(
 const prepared = new Map();
 /** @type {Record<string, unknown>[]} */
 const report = [];
+let probeSequence = 0;
 
 /** @param {string} serverPath @param {string[]} args @param {Record<string, any>} options */
 function runParser(serverPath, args, options) {
-  const result = spawnSync(serverPath, args, {
-    cwd: dirname(serverPath),
+  const logPath = join(
+    workRoot,
+    `probe-${++probeSequence}-${basename(serverPath)}.log`,
+  );
+  console.log(`Probe ${probeSequence}: ${serverPath} ${args.join(" ")}`);
+  return runRuntimeCliProbe(serverPath, args, {
     env: buildLlamaServerEnv(serverPath, options),
-    encoding: "utf8",
-    windowsHide: true,
-    timeout: 30000,
-    maxBuffer: 4 * 1024 * 1024,
+    logPath,
   });
-  const output = `${result.stdout || ""}\n${result.stderr || ""}`;
-  assert.ifError(result.error);
-  return { status: result.status, output };
 }
 
 /** @param {Record<string, any>} options */

@@ -7,6 +7,11 @@ on:
         description: "Existing stable release tag to receive macOS artifacts (example: v1.6.4)"
         required: true
         type: string
+      verify_only:
+        description: "Build and strictly verify without publishing or requiring an existing release"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -68,6 +73,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG_NAME: ${{ inputs.tag_name }}
+          VERIFY_ONLY: ${{ inputs.verify_only }}
         run: |
           set -euo pipefail
           expected_ref="refs/heads/${{ github.event.repository.default_branch }}"
@@ -80,6 +86,12 @@ jobs:
           if [[ "$INPUT_TAG_NAME" != "$expected_tag" ]]; then
             echo "Release tag '$INPUT_TAG_NAME' does not match package version '$version' (expected '$expected_tag')." >&2
             exit 1
+          fi
+          echo "tag=$INPUT_TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$VERIFY_ONLY" == "true" ]]; then
+            echo "Verification only: no tag or release will be created or modified."
+            exit 0
           fi
           tag_commit="$(git rev-list -n 1 "$INPUT_TAG_NAME")"
           if [[ -z "$tag_commit" || "$tag_commit" != "$GITHUB_SHA" ]]; then
@@ -99,8 +111,6 @@ jobs:
             echo "Release '$INPUT_TAG_NAME' does not contain the verified Windows installer '$windows_asset'." >&2
             exit 1
           fi
-          echo "tag=$INPUT_TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Run full cross-platform checks
         env:
@@ -210,7 +220,8 @@ jobs:
         shell: bash
         run: |
           {
-            echo "### Verified macOS assets uploaded to ${{ steps.release_meta.outputs.tag }}"
+            echo "### Verified macOS build artifact for ${{ steps.release_meta.outputs.tag }}"
+            echo "- Verification only: ${{ inputs.verify_only }}"
             echo "- Runner: $(uname -m), $(sw_vers -productVersion)"
             echo "- Signing: $SIGNING_LABEL"
             echo "- Packaged GUI lifecycle: passed without an Alpha waiver"
@@ -218,7 +229,7 @@ jobs:
 
   publish:
     needs: build_verify
-    if: ${{ needs.build_verify.result == 'success' }}
+    if: ${{ needs.build_verify.result == 'success' && !inputs.verify_only }}
     runs-on: ubuntu-26.04
     environment: release
     permissions:

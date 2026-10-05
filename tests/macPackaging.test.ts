@@ -1071,6 +1071,11 @@ describe("Apple Silicon Alpha packaging", () => {
     );
     expect(workflow).toContain("--build-channel stable");
     expect(workflow).toContain("gh release upload");
+    expect(workflow).toContain("VERIFY_ONLY: ${{ inputs.verify_only }}");
+    expect(workflow).toContain(
+      "if: ${{ needs.build_verify.result == 'success' && !inputs.verify_only }}",
+    );
+    expect(workflow).toContain("default: false");
     expect(workflow).toContain("--clobber");
     expect(workflow).toContain("publish_attempt=1");
     expect(workflow).toContain("retrying in ${delay} seconds");

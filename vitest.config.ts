@@ -2,8 +2,9 @@ import { createRequire } from "node:module";
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
-const { resolveVitestMaxWorkers } =
+const { isCiEnvironment, resolveVitestMaxWorkers } =
   require("./scripts/vitest-worker-profile.cjs") as {
+    isCiEnvironment(env: NodeJS.ProcessEnv): boolean;
     resolveVitestMaxWorkers(): number;
   };
 
@@ -88,7 +89,9 @@ export default defineConfig({
       "**/.bug-hunter/**",
     ],
     maxWorkers: resolveVitestMaxWorkers(),
-    testTimeout: 15000,
+    // Shared CI disks can exceed 15s for durable migration/restart/undo tests.
+    // Keep a bounded CI budget without changing assertions or app timeouts.
+    testTimeout: isCiEnvironment(process.env) ? 45_000 : 15_000,
     setupFiles: ["./tests/setupI18n.ts"],
   },
 });

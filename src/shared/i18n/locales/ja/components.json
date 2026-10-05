@@ -2075,7 +2075,8 @@
         "googleAiStudio": "Google AI Studio",
         "googleVertex": "Google Vertex AI",
         "openRouter": "OpenRouter",
-        "ollama": "Ollama（ローカル）"
+        "ollama": "Ollama（ローカル）",
+        "openCodeGo": "OpenCode GO"
       },
       "providerHintCustom": "Base URLとモデルIDを直接入力します。キー・モデル・生成上限はプロバイダーごとに個別保存されます。",
       "providerHintVerified": "画像入力を確認できたモデルだけを読み込みます。キー・モデル・生成上限はプロバイダーごとに個別保存されます。",
@@ -2162,11 +2163,6 @@
       },
       "requestIntervalSeconds": "最小呼び出し間隔（秒）",
       "customProfiles": {
-        "select": "接続プロファイル",
-        "name": "プロファイル名",
-        "newName": "新しい接続",
-        "add": "プロファイル追加",
-        "delete": "プロファイル削除",
         "session": "会話ごとのセッションヘッダーを送信",
         "header": "セッションヘッダー名",
         "invalidHeader": "予約済みの名前やカスタムヘッダーと重複しない、有効な名前を入力してください。",

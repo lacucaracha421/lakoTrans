@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  snapshotCustomApiProfiles,
-  selectCustomApiProfile,
-} from "./settingsCustomApiProfiles";
+import { snapshotCustomApiProfiles } from "./settingsCustomApiProfiles";
 import type { AppSettings } from "../../../../shared/settingsTypes";
 import {
   createSettingsFormValues,
@@ -38,7 +35,6 @@ export type SettingsFormSetters = {
     K in MutableSettingsFormField as `set${Capitalize<string & K>}`
   ]: FieldSetter<K>;
 } & {
-  setActiveCustomProfileId: FieldSetter<"activeCustomProfileId">;
   setApiProvider: FieldSetter<"apiProvider">;
   setModelProvider: FieldSetter<"modelProvider">;
 };
@@ -221,13 +217,6 @@ function createApiFormSetters(
   setValues: React.Dispatch<React.SetStateAction<SettingsFormValues>>,
 ) {
   return {
-    setActiveCustomProfileId: (next: React.SetStateAction<string>) =>
-      setValues((current) =>
-        selectCustomApiProfile(
-          current,
-          resolveStateAction(next, current.activeCustomProfileId),
-        ),
-      ),
     setApiSessionHeaderEnabled: createFormFieldDispatch(
       setValues,
       "apiSessionHeaderEnabled",

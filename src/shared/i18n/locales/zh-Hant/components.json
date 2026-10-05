@@ -2075,7 +2075,8 @@
         "googleAiStudio": "Google AI Studio",
         "googleVertex": "Google Vertex AI",
         "openRouter": "OpenRouter",
-        "ollama": "Ollama（本地）"
+        "ollama": "Ollama（本地）",
+        "openCodeGo": "OpenCode GO"
       },
       "providerHintCustom": "直接輸入 Base URL 和模型 ID。金鑰、模型與生成上限會依供應商分別儲存。",
       "providerHintVerified": "只載入已驗證支援圖片輸入的模型。金鑰、模型與生成上限會依供應商分別儲存。",
@@ -2162,11 +2163,6 @@
       },
       "requestIntervalSeconds": "最短呼叫間隔（秒）",
       "customProfiles": {
-        "select": "連線設定檔",
-        "name": "設定檔名稱",
-        "newName": "新連線",
-        "add": "新增設定檔",
-        "delete": "刪除設定檔",
         "session": "傳送對話工作階段標頭",
         "header": "工作階段標頭名稱",
         "invalidHeader": "請輸入有效的非保留名稱，且不能與自訂標頭重複。",

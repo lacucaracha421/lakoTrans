@@ -122,6 +122,45 @@ function completion(
 }
 
 describe("API conversation HTTP boundaries", () => {
+  it("includes JSON instructions in image connection probes for configured JSON mode", async () => {
+    const f = await fixture((_index, body) => ({
+      status: JSON.stringify(body.messages).includes("JSON") ? 200 : 400,
+      body: completion('{"message":"model test ok"}'),
+    }));
+    const result = await testModelReply(
+      { baseUrl: f.baseUrl },
+      {
+        ...f.options,
+        apiExtraBodyJson: '{"response_format":{"type":"json_object"}}',
+      },
+    );
+    expect(result.outputText).toBe('{"message":"model test ok"}');
+    expect(f.seen).toHaveLength(1);
+    expect(f.seen[0].body.response_format).toEqual({ type: "json_object" });
+    expect(JSON.stringify(f.seen[0].body)).toContain("data:image/png;base64,");
+  });
+  it("honors explicit JSON mode on opaque schema rejection gateways and still repairs missing blocks", async () => {
+    const f = await fixture((index, body) => {
+      if ((body.response_format as { type?: string })?.type !== "json_object")
+        return { status: 400, body: { model: "vision" } };
+      return { body: index === 1 ? completion('{"items":[]}') : completion() };
+    });
+    const result = await requestTranslation(
+      { baseUrl: f.baseUrl },
+      {
+        ...f.options,
+        pageId: "json-mode",
+        apiExtraBodyJson: '{"response_format":{"type":"json_object"}}',
+      },
+    );
+    expect(JSON.parse(result.outputText).items).toHaveLength(1);
+    expect(f.seen).toHaveLength(2);
+    expect(new Set(f.seen.map((request) => request.session)).size).toBe(1);
+    for (const request of f.seen) {
+      expect(request.body.response_format).toEqual({ type: "json_object" });
+      expect(JSON.stringify(request.body)).toContain("data:image/png;base64,");
+    }
+  });
   it("redacts nested credential arrays from provider error details", () => {
     const redacted = truncateSensitiveText(
       "bad secret-one secret-two",

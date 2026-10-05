@@ -123,6 +123,16 @@ function buildSemanticStageRequestBody(
   }
   const body = buildChatRequestBody(options, messages, tokenBudget.maxTokens);
   if (isOpenAIApiProvider(options)) {
+    // Respect explicitly configured JSON mode for APIs without JSON Schema.
+    // The prompt and application parser still enforce the fixed-block contract.
+    if (
+      body.response_format &&
+      typeof body.response_format === "object" &&
+      "type" in body.response_format &&
+      body.response_format.type === "json_object"
+    ) {
+      return Object.assign(body, { response_format: { type: "json_object" } });
+    }
     return Object.assign(body, {
       response_format: buildOpenAiStructuredResponseFormat(
         options,

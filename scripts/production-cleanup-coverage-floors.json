@@ -7,7 +7,7 @@
     "sourceArtifact": ".tmp/production-cleanup-coverage-baseline-node22.json",
     "sourceArtifactSha256": "a0e1199f46a80734d228ff1772b99d1fde2f700321346da77abf9c29795e4c0a",
     "introducedArtifact": ".tmp/production-cleanup-coverage-accepted-node26.json",
-    "introducedArtifactSha256": "710ee036cbe46619038c0d7ec966efc633a2127cea95a8998d2be88954f22380",
+    "introducedArtifactSha256": "7e0f83700cfa1d2c264efbb3bd5b1cd0794927679d2ed1d988ba1893012e46e7",
     "validatedNodeV8": ["22/12.4", "24/13.6", "26/14.6"],
     "vitestVersion": "4.1.11",
     "coverageV8Version": "4.1.11"
@@ -40236,6 +40236,28 @@
         "pct": 100
       }
     },
+    "src/renderer/src/components/settingsModal/ApiSessionFields.tsx": {
+      "lines": {
+        "covered": 25,
+        "total": 45,
+        "pct": 55.55
+      },
+      "statements": {
+        "covered": 26,
+        "total": 49,
+        "pct": 53.06
+      },
+      "functions": {
+        "covered": 8,
+        "total": 19,
+        "pct": 42.1
+      },
+      "branches": {
+        "covered": 18,
+        "total": 30,
+        "pct": 60
+      }
+    },
     "src/renderer/src/components/settingsModal/CodexAccountField.tsx": {
       "lines": {
         "total": 45,
@@ -40256,28 +40278,6 @@
         "total": 35,
         "covered": 27,
         "pct": 77.14
-      }
-    },
-    "src/renderer/src/components/settingsModal/CustomApiProfileFields.tsx": {
-      "lines": {
-        "covered": 25,
-        "total": 45,
-        "pct": 55.55
-      },
-      "statements": {
-        "covered": 26,
-        "total": 49,
-        "pct": 53.06
-      },
-      "functions": {
-        "covered": 8,
-        "total": 19,
-        "pct": 42.1
-      },
-      "branches": {
-        "covered": 18,
-        "total": 30,
-        "pct": 60
       }
     },
     "src/renderer/src/components/settingsModal/EnvironmentBackupSection.tsx": {

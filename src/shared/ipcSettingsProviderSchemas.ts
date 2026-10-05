@@ -80,6 +80,7 @@ export function apiProviderProfileMapSchema<T extends z.ZodTypeAny>(value: T) {
       "google-vertex": value.optional(),
       openrouter: value.optional(),
       ollama: value.optional(),
+      "opencode-go": value.optional(),
     })
     .strict();
 }

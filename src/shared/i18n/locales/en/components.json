@@ -2075,7 +2075,8 @@
         "googleAiStudio": "Google AI Studio",
         "googleVertex": "Google Vertex AI",
         "openRouter": "OpenRouter",
-        "ollama": "Ollama (local)"
+        "ollama": "Ollama (local)",
+        "openCodeGo": "OpenCode GO"
       },
       "providerHintCustom": "Enter a Base URL and model ID. Keys, models, and generation limits are saved separately for each provider.",
       "providerHintVerified": "Only models with verified image input are loaded. Keys, models, and generation limits are saved separately for each provider.",
@@ -2162,11 +2163,6 @@
       },
       "requestIntervalSeconds": "Minimum request interval (seconds)",
       "customProfiles": {
-        "select": "Connection profile",
-        "name": "Profile name",
-        "newName": "New connection",
-        "add": "Add profile",
-        "delete": "Delete profile",
         "session": "Send a conversation session header",
         "header": "Session header name",
         "invalidHeader": "Enter a valid, non-reserved header name that does not conflict with custom headers.",

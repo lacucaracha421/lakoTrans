@@ -22,11 +22,11 @@ import {
   parseEncryptedVault,
 } from "../src/main/settingsSecretVaultCodec";
 import { createSettingsFormValues } from "../src/renderer/src/components/settingsModal/settingsModalFormValues";
-import {
-  selectCustomApiProfile,
-  snapshotCustomApiProfiles,
-} from "../src/renderer/src/components/settingsModal/settingsCustomApiProfiles";
 import { AppSettingsSchema } from "../src/shared/ipcSettingsSchemas";
+import {
+  inferApiProviderPreset,
+  resolveApiProviderBaseUrl,
+} from "../src/shared/apiProviderPresets";
 
 vi.mock("electron", () => ({
   app: { isPackaged: false, getVersion: () => "3.1.1" },
@@ -47,10 +47,63 @@ function fixture() {
     customHeadersJson: '{"x-api-key":"header-secret"}',
   };
   settings.api = { ...settings.api, ...resolveCustomApiProfiles(settings.api) };
+  settings.api.customProfiles = {
+    ...settings.api.customProfiles,
+    "opencode-go": {
+      name: "OpenCode Go",
+      baseUrl: "https://opencode.ai/zen/go/v1",
+      model: "deepseek-v4.1-flash",
+      sessionHeaderEnabled: true,
+      sessionHeaderName: "x-opencode-session",
+    },
+  };
   return settings;
 }
 
 describe("custom API profile contracts", () => {
+  it("stores Go in the existing provider vault independently of custom credentials", () => {
+    const settings = fixture();
+    settings.api = {
+      ...settings.api,
+      provider: "opencode-go",
+      baseUrl: resolveApiProviderBaseUrl({ provider: "opencode-go" }) ?? "",
+      model: "deepseek-v4.1-flash",
+      apiKey: "go-provider-key",
+      customHeadersJson: "{}",
+      sessionHeaderEnabled: true,
+      sessionHeaderName: "x-opencode-session",
+    };
+    settings.api.profiles = {
+      ...settings.api.profiles,
+      "opencode-go": {
+        baseUrl: settings.api.baseUrl,
+        model: settings.api.model,
+        sessionHeaderEnabled: true,
+        sessionHeaderName: "x-opencode-session",
+      },
+    };
+    expect(AppSettingsSchema.safeParse(settings).success).toBe(true);
+    const separated = separateSettingsSecrets(settings);
+    expect(separated.secrets.apiProfiles?.["opencode-go"].apiKey).toBe(
+      "go-provider-key",
+    );
+    expect(separated.secrets.apiProfiles?.["custom:default"].apiKey).toBe(
+      "legacy-secret",
+    );
+    const restored = attachSettingsSecrets(
+      separated.persistentSettings,
+      separated.secrets,
+    );
+    expect(restored.api.apiKey).toBe("go-provider-key");
+    expect(inferApiProviderPreset(settings.api.baseUrl)).toBe("opencode-go");
+    expect(inferApiProviderPreset("https://opencode.ai/zen/v1")).toBe("custom");
+    expect(
+      Object.keys(
+        resolveCustomApiProfiles(resolveDefaultAppSettings().api)
+          .customProfiles,
+      ),
+    ).toEqual(["default"]);
+  });
   it("does not project an inactive profile when the active ID is missing", () => {
     const settings = fixture();
     delete settings.api.activeCustomProfileId;
@@ -203,7 +256,7 @@ describe("custom API profile contracts", () => {
     expect(saved.secrets.apiProfiles?.custom).toBeUndefined();
   });
 
-  it("seeds Go without credentials, preserves selection, and never reseeds a deleted profile", () => {
+  it("preserves a legacy named Go connection without recreating deleted records", () => {
     const settings = fixture();
     expect(settings.api.activeCustomProfileId).toBe("default");
     expect(settings.api.customProfiles?.["opencode-go"]).toMatchObject({
@@ -253,24 +306,6 @@ describe("custom API profile contracts", () => {
     expect(deleted.secrets.apiProfiles?.["custom:default"].apiKey).toBe(
       "legacy-secret",
     );
-  });
-
-  it("keeps draft keys, request settings and token limits isolated during switching", () => {
-    const settings = fixture();
-    settings.modelProvider = "openai-api";
-    let values = createSettingsFormValues(settings);
-    values.apiKey = "edited";
-    values.maxTokens = "1234";
-    values = selectCustomApiProfile(values, "opencode-go");
-    expect(values.apiKey).toBe("");
-    expect(values.apiSessionHeaderEnabled).toBe(true);
-    values.apiModel = "another-model";
-    values = selectCustomApiProfile(values, "default");
-    expect(values.apiKey).toBe("edited");
-    expect(values.maxTokens).toBe("1234");
-    expect(
-      snapshotCustomApiProfiles(values)["opencode-go"].values.apiModel,
-    ).toBe("another-model");
   });
 
   it("can clear an active key without resurrecting the stored mirror", () => {

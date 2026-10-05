@@ -23,13 +23,6 @@ export function resolveCustomApiProfiles(api: AppSettings["api"]): {
   };
   const customProfiles = api.customProfiles ?? {
     default: { ...connection, name: "Default" },
-    "opencode-go": {
-      name: "OpenCode Go",
-      baseUrl: "https://opencode.ai/zen/go/v1",
-      model: "deepseek-v4.1-flash",
-      sessionHeaderEnabled: true,
-      sessionHeaderName: "x-opencode-session",
-    },
   };
   const activeCustomProfileId =
     api.activeCustomProfileId &&

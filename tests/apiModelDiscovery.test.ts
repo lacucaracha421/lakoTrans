@@ -48,6 +48,7 @@ describe("API provider presets", () => {
       "google-vertex",
       "openrouter",
       "ollama",
+      "opencode-go",
     ]);
     expect(record.ollama).toEqual({ provider: "ollama" });
     expect(record.ollama).not.toBe(record.custom);

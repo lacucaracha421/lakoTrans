@@ -35,6 +35,7 @@ const PROVIDER_LABEL_KEYS: Record<ApiProviderPresetId, string> = {
   "google-vertex": "settings.api.providers.googleVertex",
   openrouter: "settings.api.providers.openRouter",
   ollama: "settings.api.providers.ollama",
+  "opencode-go": "settings.api.providers.openCodeGo",
 };
 
 export function ApiProviderConnectionFields(
@@ -92,7 +93,7 @@ function ProviderTemplateFields({
           <ControlTooltip
             floating
             content={t(
-              connection.provider === "custom"
+              !connection.isDiscoverable
                 ? "settings.api.providerHintCustom"
                 : "settings.api.providerHintVerified",
             )}

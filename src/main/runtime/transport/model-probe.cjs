@@ -101,7 +101,7 @@ function buildProbeMessages() {
       content: [
         {
           type: "text",
-          text: "Confirm that you can inspect the attached image. Reply in one short sentence.",
+          text: 'Confirm that you can inspect the attached image. Reply in one short sentence. If JSON output is required, return {"message":"model test ok"}.',
         },
       ],
     },

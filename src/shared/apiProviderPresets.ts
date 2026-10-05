@@ -5,10 +5,14 @@ export const API_PROVIDER_PRESET_IDS = [
   "google-vertex",
   "openrouter",
   "ollama",
+  "opencode-go",
 ] as const;
 
 export type ApiProviderPresetId = (typeof API_PROVIDER_PRESET_IDS)[number];
-export type DiscoverableApiProviderId = Exclude<ApiProviderPresetId, "custom">;
+export type DiscoverableApiProviderId = Exclude<
+  ApiProviderPresetId,
+  "custom" | "opencode-go"
+>;
 
 export function isApiProviderPresetId(
   value: unknown,
@@ -116,6 +120,7 @@ export function resolveApiProviderBaseUrl({
   if (provider === "ollama") {
     return OLLAMA_BASE_URL;
   }
+  if (provider === "opencode-go") return "https://opencode.ai/zen/go/v1";
   return null;
 }
 
@@ -141,6 +146,8 @@ export function inferApiProviderPreset(baseUrl: string): ApiProviderPresetId {
   if (url.hostname === "openrouter.ai") {
     return "openrouter";
   }
+  if (url.hostname === "opencode.ai" && /^\/zen\/go\/v1\/?$/.test(url.pathname))
+    return "opencode-go";
   // Ollama 기본 포트. localhost/127.0.0.1/LAN 호스트 모두 포괄.
   if (url.port === "11434") {
     return "ollama";

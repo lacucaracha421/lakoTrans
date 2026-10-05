@@ -187,7 +187,9 @@ export function createDefaultApiProfileFormValues(
   const model =
     provider === "google-ai-studio"
       ? "gemini-3.5-flash-lite"
-      : DEFAULT_API_MODEL;
+      : provider === "opencode-go"
+        ? "deepseek-v4.1-flash"
+        : DEFAULT_API_MODEL;
   return {
     apiBaseUrl:
       resolveApiProviderBaseUrl({ provider }) ??
@@ -205,10 +207,14 @@ export function createDefaultApiProfileFormValues(
     apiTopP: formatNullableNumberInput(DEFAULT_API_TOP_P),
     apiTopK: formatNullableNumberInput(DEFAULT_API_TOP_K),
     apiReasoningEffort: DEFAULT_API_REASONING_EFFORT ?? "",
-    apiExtraBodyJson: DEFAULT_API_EXTRA_BODY_JSON,
+    apiExtraBodyJson:
+      provider === "opencode-go"
+        ? '{"response_format":{"type":"json_object"}}'
+        : DEFAULT_API_EXTRA_BODY_JSON,
     apiCustomHeadersJson: DEFAULT_API_CUSTOM_HEADERS_JSON,
-    apiSessionHeaderEnabled: false,
-    apiSessionHeaderName: "",
+    apiSessionHeaderEnabled: provider === "opencode-go",
+    apiSessionHeaderName:
+      provider === "opencode-go" ? "x-opencode-session" : "",
   };
 }
 

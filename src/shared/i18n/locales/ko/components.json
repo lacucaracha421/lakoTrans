@@ -2075,7 +2075,8 @@
         "googleAiStudio": "Google AI Studio",
         "googleVertex": "Google Vertex AI",
         "openRouter": "OpenRouter",
-        "ollama": "Ollama (로컬)"
+        "ollama": "Ollama (로컬)",
+        "openCodeGo": "OpenCode GO"
       },
       "providerHintCustom": "Base URL과 모델 ID를 직접 입력합니다. 키·모델·생성 한도는 공급자별로 따로 저장됩니다.",
       "providerHintVerified": "이미지 입력을 확인한 모델만 불러옵니다. 키·모델·생성 한도는 공급자별로 따로 저장됩니다.",
@@ -2162,11 +2163,6 @@
       },
       "requestIntervalSeconds": "최소 호출 간격 (초)",
       "customProfiles": {
-        "select": "연결 프로필",
-        "name": "프로필 이름",
-        "newName": "새 연결",
-        "add": "프로필 추가",
-        "delete": "프로필 삭제",
         "session": "대화별 세션 헤더 전송",
         "header": "세션 헤더 이름",
         "invalidHeader": "인증·전송 제어용이 아닌 유효한 헤더 이름을 입력하세요. 사용자 헤더와 중복될 수 없습니다.",

@@ -7,6 +7,7 @@ const {
   semanticContractError,
 } = require("./values.cjs");
 const {
+  findFixedBlockNumericTextExpansions,
   findFixedBlockTargetLanguageViolations,
 } = require("./fixed-block-quality.cjs");
 const {
@@ -16,7 +17,7 @@ const {
 /**
  * @typedef {{blockId:string;ko:string;textRole?:"ordinary"|"sound";layoutIntent?:"horizontal"|"vertical";fontRole?:string;fontRoleConfidence?:number;visualClusterId?:string}} FixedBlockTranslation
  * @typedef {{items:FixedBlockTranslation[];pageContext?:Record<string,unknown>}} FixedBlockTranslationResult
- * @typedef {{blocks:Array<{blockId:string}>}} FixedBlockPlan
+ * @typedef {{blocks:Array<{blockId:string;jp?:string;ordinaryOnly?:boolean}>}} FixedBlockPlan
  * @typedef {{sourceLanguage?:unknown;targetLanguage?:unknown;collectPageContext?:unknown;autoFontMatching?:unknown;[key:string]:unknown}} FixedBlockOptions
  * @typedef {(value:unknown,index:number,options:FixedBlockOptions)=>FixedBlockTranslation} FixedBlockItemReader
  * @typedef {{translations:FixedBlockTranslationResult;retryBlockIds:string[];retryReasons:Record<string,string[]>;horizontalFallbackTranslations?:FixedBlockTranslationResult;fontIntentFallbackTranslations?:FixedBlockTranslationResult;targetTypographyFallbackTranslations?:FixedBlockTranslationResult;sourceScriptFallbackTranslations?:FixedBlockTranslationResult;readableTextFallbackTranslations?:FixedBlockTranslationResult}} FixedBlockPartialResult
@@ -39,14 +40,8 @@ function parseFixedBlockTranslationPartialResponse(
   readItem,
 ) {
   const raw = parseJsonObject(rawText, "Fixed-block translation");
-  const rawItems = requireItemsArray(raw);
-  const expectedIds = plan.blocks.map((block) => block.blockId);
-  const expectedIdSet = new Set(expectedIds);
-  const claimCounts = countExpectedBlockIdClaims(rawItems, expectedIdSet);
-  const retryReasonById = createInitialRetryReasonIndex(
-    expectedIds,
-    claimCounts,
-  );
+  const { rawItems, expectedIds, expectedIdSet, claimCounts, retryReasonById } =
+    prepareFixedBlockResponseItems(raw, plan);
   const candidates = collectUniqueValidItems(
     rawItems,
     expectedIdSet,
@@ -105,6 +100,28 @@ function parseFixedBlockTranslationPartialResponse(
     sourceScript,
     readableText,
   });
+}
+
+/** @param {Record<string,unknown>} raw @param {FixedBlockPlan} plan */
+function prepareFixedBlockResponseItems(raw, plan) {
+  const originalItems = requireItemsArray(raw);
+  const numericExpansions = new Set(
+    findFixedBlockNumericTextExpansions(originalItems, plan.blocks),
+  );
+  // Exclude rejected text from every advisory/readable fallback as well.
+  const rawItems = originalItems.filter(
+    (item) =>
+      !isRecord(item) || !numericExpansions.has(String(item.blockId).trim()),
+  );
+  const expectedIds = plan.blocks.map((block) => block.blockId);
+  const expectedIdSet = new Set(expectedIds);
+  const claimCounts = countExpectedBlockIdClaims(rawItems, expectedIdSet);
+  const retryReasonById = createInitialRetryReasonIndex(
+    expectedIds,
+    claimCounts,
+    numericExpansions,
+  );
+  return { rawItems, expectedIds, expectedIdSet, claimCounts, retryReasonById };
 }
 
 /**
@@ -206,13 +223,24 @@ function countExpectedBlockIdClaims(rawItems, expectedIds) {
 /**
  * @param {string[]} expectedIds
  * @param {Map<string,number>} claimCounts
+ * @param {Set<string>} numericExpansions
  * @returns {Map<string,Set<string>>}
  */
-function createInitialRetryReasonIndex(expectedIds, claimCounts) {
+function createInitialRetryReasonIndex(
+  expectedIds,
+  claimCounts,
+  numericExpansions,
+) {
   const reasons = new Map();
   for (const blockId of expectedIds) {
     const claimCount = claimCounts.get(blockId) ?? 0;
-    if (claimCount === 0) {
+    if (numericExpansions.has(blockId)) {
+      addRetryReason(
+        reasons,
+        blockId,
+        "fixed-block-translation-numeric-text-expansion",
+      );
+    } else if (claimCount === 0) {
       addRetryReason(reasons, blockId, "fixed-block-translation-missing");
     } else if (claimCount > 1) {
       addRetryReason(reasons, blockId, "fixed-block-translation-duplicate");

@@ -6706,6 +6706,28 @@
         "pct": 87.5
       }
     },
+    "src/main/runtime/semantic-ocr/fixed-block-quality.cjs": {
+      "lines": {
+        "covered": 32,
+        "total": 33,
+        "pct": 96.96
+      },
+      "statements": {
+        "covered": 37,
+        "total": 39,
+        "pct": 94.87
+      },
+      "functions": {
+        "covered": 12,
+        "total": 12,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 25,
+        "total": 29,
+        "pct": 86.2
+      }
+    },
     "src/main/runtime/semantic-ocr/fixed-block-response.cjs": {
       "lines": {
         "covered": 118,

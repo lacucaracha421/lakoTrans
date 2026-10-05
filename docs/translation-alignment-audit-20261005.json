@@ -309,7 +309,7 @@
         "id": "W12-P2",
         "reviewedModels": ["12B", "26B"],
         "image": "visual-review-final/W12-P2.png",
-        "observation": "Ten slots aligned. OCR omits the rank letter; 12B follows the incomplete source while 26B supplies S from context/image."
+        "observation": "Ten slots aligned. OCR omits the rank letter; 12B follows the incomplete source while 26B supplies S. Correction from the subsequent enlarged-image audit: the visible letter is C, so the 26B result was also a semantic error, not a successful visual correction."
       },
       {
         "id": "W13-P2",

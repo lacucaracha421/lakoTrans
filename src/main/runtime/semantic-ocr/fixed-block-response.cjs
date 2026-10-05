@@ -7,6 +7,7 @@ const {
   semanticContractError,
 } = require("./values.cjs");
 const {
+  findFixedBlockNumericTextExpansions,
   validateFixedBlockTargetLanguage,
 } = require("./fixed-block-quality.cjs");
 const {
@@ -24,7 +25,7 @@ const MIN_VERTICAL_LAYOUT_FONT_ROLE_CONFIDENCE = 0.82;
 /**
  * @typedef {{blockId:string;ko:string;textRole?:"ordinary"|"sound";layoutIntent?:"horizontal"|"vertical";fontRole?:string;fontRoleConfidence?:number;visualClusterId?:string}} FixedBlockTranslation
  * @typedef {{items:FixedBlockTranslation[];pageContext?:Record<string,unknown>}} FixedBlockTranslationResult
- * @typedef {{blocks:Array<{blockId:string}>}} FixedBlockPlan
+ * @typedef {{blocks:Array<{blockId:string;jp?:string;ordinaryOnly?:boolean}>}} FixedBlockPlan
  * @typedef {{sourceLanguage?:unknown;targetLanguage?:unknown;collectPageContext?:unknown;autoFontMatching?:unknown;[key:string]:unknown}} FixedBlockOptions
  * @typedef {{translations:FixedBlockTranslationResult;retryBlockIds:string[];retryReasons:Record<string,string[]>;horizontalFallbackTranslations?:FixedBlockTranslationResult;fontIntentFallbackTranslations?:FixedBlockTranslationResult;targetTypographyFallbackTranslations?:FixedBlockTranslationResult;sourceScriptFallbackTranslations?:FixedBlockTranslationResult;readableTextFallbackTranslations?:FixedBlockTranslationResult}} FixedBlockPartialResult
  */
@@ -62,6 +63,16 @@ function parseFixedBlockTranslationDraft(rawText, plan, options = {}) {
   const expectedIds = plan.blocks.map((block) => block.blockId);
   validateFixedBlockPartition(items, expectedIds);
   validateFixedBlockOrder(items, expectedIds);
+  const numericExpansion = findFixedBlockNumericTextExpansions(
+    items,
+    plan.blocks,
+  )[0];
+  if (numericExpansion) {
+    throw semanticContractError(
+      "fixed-block-translation-numeric-text-expansion",
+      `Fixed-block translation ${numericExpansion} invents words for a numeric-only source. Preserve its numerals; do not borrow dialogue from another block.`,
+    );
+  }
   if ("pageContext" in raw && !isRecord(raw.pageContext)) {
     throw semanticContractError(
       "fixed-block-translation-page-context-invalid",

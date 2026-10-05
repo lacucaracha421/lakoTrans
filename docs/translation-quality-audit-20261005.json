@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-05",
+  "baseCommit": "e64b683116b7c96522fe7725372416c032b0de72",
+  "productionVariant": "guarded",
+  "purpose": "Improve visual grounding, conversational Korean and named-term fidelity while preserving the fixed OCR slot ownership established by e64b6831.",
+  "implementation": [
+    "Keep the existing original whole-page image. Read scene context before translating each fixed bbox; clear visible lettering may correct ko despite OCR errors, without rewriting saved source, IDs, geometry or grouping.",
+    "Prioritize visible furigana and established/user-corrected terminology; avoid borrowing neighboring text or inventing missing letters from genre expectations.",
+    "Clarify colloquial intent, idioms, kana word boundaries, relationships and names, with Korean guidance for Japanese-to-Korean translation.",
+    "Reject linguistic expansion of six-or-more digit-only Hayai ordinary slots, including readable/advisory fallbacks. Retry only the affected slot and preserve source with needs_review when repairs fail. Short counts and legacy non-Hayai slots retain their prior policy."
+  ],
+  "method": {
+    "generalWorks": 50,
+    "pagesPerGeneralWork": 2,
+    "generalPages": 100,
+    "reportedNonExplicitIntroPages": 1,
+    "pageWorkflowsPerModel": 101,
+    "development": "W01-W24 plus the reported introduction; nine hard pages / twelve semantic anchors selected from earlier visual review for prompt development.",
+    "heldOut": "W25-W50: 26 additional works / 52 pages. The prompt was frozen before examining these outputs and no examples from them were added to the prompt. W28-P2 exposed a hallucination and informed the numeric guard, so guarded is a regression rerun on these pages, not an untouched held-out estimate.",
+    "selectionLimitations": "Convenience sample from the user-provided local collection, mostly fantasy/reincarnation with romance, comedy, science-fiction, gaming and idol material. Two sampled pages do not cover every chapter or all genres. Some pages are covers or have no eligible ordinary text. This is not human gold or a population accuracy estimate.",
+    "workflow": [
+      "createWorkflowSessions",
+      "detectWorkflowBlocks",
+      "readWorkflowSource",
+      "translateWorkflowPage",
+      "runWholePagePipeline"
+    ],
+    "isolation": "Production modules in isolated Electron userData/library/log/settings roots; existing model/native caches reused. Original images copied, Hayai OCR frozen for paired translation runs. No erase, typeset or export stage, no UI interaction, and no user output overwrite.",
+    "context": "Japanese-to-Korean, cumulative context disabled and an empty per-work glossary/story memory. Cross-chapter name consistency with nonempty memory was not evaluated.",
+    "hardware": "Windows / RTX 4090 24 GB / driver 610.88 / llama.cpp b11146 CUDA 12.4. AMD, Apple Silicon and RTX 20 hardware not exercised; native runtime and GPU settings unchanged.",
+    "baselineReuse": "Previous final runs supply W01-W24 and reported-02 (49 pages/model); fresh baseline supplies W25-W50 (52 pages/model). All three recorded production module hashes match between the reused and fresh baseline.",
+    "baselineCodeHashesMatch": true,
+    "originalFilesRehashed": 100,
+    "originalsUnchanged": true,
+    "corpusManifestSha256": "e6668d72dc049f2bfb2f9421760c8efdb2c7c90ca8c55679b924332594ed0659",
+    "productionPromptSha256": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376"
+  },
+  "modelConfigs": {
+    "12": {
+      "phase": "translate",
+      "variant": "12",
+      "tag": "guarded",
+      "model": {
+        "modelSource": "huggingface",
+        "modelRepo": "HauhauCS/Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced",
+        "modelFile": "Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+        "mmprojRepo": "HauhauCS/Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced",
+        "mmprojFile": "mmproj-Gemma4-12B-QAT-Uncensored-HauhauCS-Balanced-BF16.gguf",
+        "vramMode": "minimum12b",
+        "fitTargetMb": 512,
+        "mmprojOffload": true,
+        "llamaRuntimeProfile": "cuda12"
+      },
+      "ocr": {
+        "pipeline": "hayai",
+        "device": "gpu",
+        "qualityMode": "economy",
+        "gpuBackend": "cuda",
+        "gpuCudaTag": "cu126"
+      },
+      "codeHashes": {
+        "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+        "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+        "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+      },
+      "git": "e64b683116b7c96522fe7725372416c032b0de72",
+      "recordCount": 101
+    },
+    "26": {
+      "phase": "translate",
+      "variant": "26",
+      "tag": "guarded",
+      "model": {
+        "modelSource": "huggingface",
+        "modelRepo": "HauhauCS/Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-MTP",
+        "modelFile": "Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-Q4_K_M.gguf",
+        "mmprojRepo": "HauhauCS/Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-MTP",
+        "mmprojFile": "mmproj-Gemma4-26B-A4B-QAT-Uncensored-HauhauCS-Balanced-BF16.gguf",
+        "vramMode": "economy26b",
+        "fitTargetMb": 512,
+        "mmprojOffload": true,
+        "llamaRuntimeProfile": "cuda12"
+      },
+      "ocr": {
+        "pipeline": "hayai",
+        "device": "gpu",
+        "qualityMode": "economy",
+        "gpuBackend": "cuda",
+        "gpuCudaTag": "cu126"
+      },
+      "codeHashes": {
+        "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+        "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+        "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+      },
+      "git": "e64b683116b7c96522fe7725372416c032b0de72",
+      "recordCount": 101
+    }
+  },
+  "inputVerification": {
+    "12": {
+      "modelPages": 90,
+      "originalOnly": 90,
+      "httpResponses": 93,
+      "repairResponses": 3,
+      "imageTokenBudgets": [[1024, 1024]],
+      "samplingTemperatureTopPTopK": [[0.1, 0.85, 32]]
+    },
+    "26": {
+      "modelPages": 90,
+      "originalOnly": 90,
+      "httpResponses": 95,
+      "repairResponses": 5,
+      "imageTokenBudgets": [[1024, 1024]],
+      "samplingTemperatureTopPTopK": [[0.1, 0.85, 32]]
+    }
+  },
+  "productionSourceHashes": {
+    "fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+    "fixed-block-quality.cjs": "8b904c2e1dbb8bc273e553a5b47d53c10e0919c5505263a6fe0ba074b6b9da47",
+    "fixed-block-response.cjs": "f44db5dd358dc3da8467e33ced54881bdd26153cadfb9a4fbad096f0f7c15739",
+    "fixed-block-partial-response.cjs": "248cca25e23159d9888de2108744aea9c6279bab73063925ceff18c3b12165fc"
+  },
+  "evaluatedRuntimeHashes": {
+    "fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+    "fixed-block-quality.cjs": "8b904c2e1dbb8bc273e553a5b47d53c10e0919c5505263a6fe0ba074b6b9da47",
+    "fixed-block-response.cjs": "f44db5dd358dc3da8467e33ced54881bdd26153cadfb9a4fbad096f0f7c15739",
+    "fixed-block-partial-response.cjs": "248cca25e23159d9888de2108744aea9c6279bab73063925ceff18c3b12165fc"
+  },
+  "parserRefactorParity": {
+    "pages": 360,
+    "responses": 374,
+    "comparisons": 748,
+    "identical": true,
+    "eligible": [
+      {
+        "tag": "final",
+        "model": "12",
+        "id": "W28-P2",
+        "blockId": "B010"
+      },
+      {
+        "tag": "final",
+        "model": "26",
+        "id": "W28-P2",
+        "blockId": "B010"
+      },
+      {
+        "tag": "guarded",
+        "model": "12",
+        "id": "W28-P2",
+        "blockId": "B010"
+      },
+      {
+        "tag": "guarded",
+        "model": "26",
+        "id": "W28-P2",
+        "blockId": "B010"
+      }
+    ],
+    "sourceSha256": "248cca25e23159d9888de2108744aea9c6279bab73063925ceff18c3b12165fc",
+    "evaluatedBuildSha256": "1f5e2da3a9d4bab5452f9527551f63fabbe1eeb29e41feeb00dafb0c31e79c85"
+  },
+  "guardOutputDiff": [
+    {
+      "id": "W28-P2",
+      "model": "26",
+      "slot": 10,
+      "before": "그 프레임은... 잠깐만 기다려 봐.",
+      "after": "00000000000000",
+      "afterReview": "needs_review"
+    }
+  ],
+  "structuralResults": {
+    "baseline": {
+      "12": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 1,
+        "missing": 0,
+        "totalSeconds": 224.237
+      },
+      "26": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 242.428
+      }
+    },
+    "canary": {
+      "12": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 37.011
+      },
+      "26": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 38.801
+      }
+    },
+    "crops": {
+      "12": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 40.979
+      },
+      "26": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 47.112
+      }
+    },
+    "reasoning": {
+      "12": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 38.238
+      },
+      "26": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 38.317
+      }
+    },
+    "korean": {
+      "12": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 37.693
+      },
+      "26": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 37.89
+      }
+    },
+    "budget1120": {
+      "12": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 38.889
+      },
+      "26": {
+        "pages": 9,
+        "requests": 9,
+        "sourceSlots": 82,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 40.522
+      }
+    },
+    "final": {
+      "12": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 1,
+        "missing": 0,
+        "totalSeconds": 211.939
+      },
+      "26": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 233.491
+      }
+    },
+    "guarded": {
+      "12": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 1,
+        "missing": 0,
+        "totalSeconds": 211.443
+      },
+      "26": {
+        "pages": 101,
+        "requests": 90,
+        "sourceSlots": 554,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 1,
+        "missing": 0,
+        "totalSeconds": 236.2
+      }
+    }
+  },
+  "heldOutStructuralResults": {
+    "baseline": {
+      "12": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 1,
+        "seconds": 108.418
+      },
+      "26": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 0,
+        "seconds": 115.165
+      }
+    },
+    "promptOnly": {
+      "12": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 1,
+        "seconds": 100.667
+      },
+      "26": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 0,
+        "seconds": 110.987
+      }
+    },
+    "guarded": {
+      "12": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 1,
+        "seconds": 100.664
+      },
+      "26": {
+        "pages": 52,
+        "requests": 45,
+        "sourceSlots": 271,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "missing": 0,
+        "review": 1,
+        "seconds": 114.139
+      }
+    }
+  },
+  "metricCaveat": "requests counts model-bearing page workflows, not HTTP requests including repairs; missing is relative to submitted slots after existing prefiltering. Source/ID/geometry checks verify the application contract, not semantic correctness. A translation can retain the correct ID and still contain an incorrect meaning or words from another balloon. No claim of zero semantic errors.",
+  "experiments": [
+    {
+      "tag": "canary",
+      "change": "Bounded visual reading and English fidelity instructions; existing image budget 1024.",
+      "decision": "Development comparison only; three Korean guidance lines added for the selected candidate."
+    },
+    {
+      "tag": "crops",
+      "change": "Same English candidate plus a second image containing enlarged, ID-labelled crops; original whole-page image retained. Diagnostic monkeypatch only.",
+      "decision": "Rejected for production: corrected one small C-rank letter in 26B, but did not consistently help 12B and regressed one sentence fragment. Additional image/input/latency cost."
+    },
+    {
+      "tag": "reasoning",
+      "change": "English candidate with enable_thinking=true, reasoning_format=deepseek and requested 512 reasoning tokens. Diagnostic request hook only.",
+      "decision": "Rejected: no returned reasoning_content or observable reasoning-budget evidence; no stable semantic improvement. This is not proof that the underlying model performed a reasoning pass."
+    },
+    {
+      "tag": "korean",
+      "change": "Bounded visual reading plus Korean instructions about intent, kana segmentation, terminology and relationships; original image only, budget 1024.",
+      "decision": "Selected; tested unchanged on all 101 pages per model under tag final."
+    },
+    {
+      "tag": "guarded",
+      "change": "Selected prompt plus the numeric-source expansion guard discovered during visual review.",
+      "decision": "Applied to all 101 pages per model. Only the known 26B decorative-border hallucination changed: three repairs were rejected and source numerals were retained with needs_review. Other completed page text and review flags matched prompt-only final."
+    },
+    {
+      "tag": "budget1120",
+      "change": "Same Korean candidate; process-only minimum/maximum image budget 1120 instead of 1024. Actual result settings verified.",
+      "decision": "Rejected: no reliable missing-letter recovery on hard pages and longer measured latency; production budget unchanged."
+    }
+  ],
+  "experimentCodeHashes": {
+    "baseline": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "f3e17332516be53decf4ff0a1e77ddb5acd4a039fc742bf8c265958e6c0e7b59",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "canary": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "791798deaf3f56af6969ac5f8420ecbfd2bcb4b89c36070520bfc5e1a84f0e5c",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "crops": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "791798deaf3f56af6969ac5f8420ecbfd2bcb4b89c36070520bfc5e1a84f0e5c",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "reasoning": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "791798deaf3f56af6969ac5f8420ecbfd2bcb4b89c36070520bfc5e1a84f0e5c",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "korean": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "budget1120": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "final": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    },
+    "guarded": {
+      "app-runtime/semantic-ocr/fixed-block-translation.cjs": "356ca02ae6a418ded8f60945b6da64fb384f99b60eb25a01c3201f6d906fa376",
+      "main/pageWorkflow/pageWorkflowTranslation.js": "fc0845c0d0f6bf971235a1fdea20329027d1148d7673657165c37248f3c96b51",
+      "main/pipeline/keepBlocksOverlayApply.js": "c4c1b8690aee69ab58100f066b74967181b9fb131f7f45d63eb244ee8ec1b637"
+    }
+  },
+  "visualReview": {
+    "method": "Agent visual inspection of 51 comparison sheets: one dialogue page for every W01-W50 work plus reported-02; each contains the original page and both model outputs. Both sampled pages per work were also compared as text. This is a qualitative audit, not independent human gold or a complete per-slot accuracy score.",
+    "sheetsReviewed": [
+      "W01-P2",
+      "W02-P2",
+      "W03-P2",
+      "W04-P2",
+      "W05-P2",
+      "W06-P2",
+      "W07-P2",
+      "W08-P2",
+      "W09-P2",
+      "W10-P2",
+      "W11-P2",
+      "W12-P2",
+      "W13-P2",
+      "W14-P2",
+      "W15-P2",
+      "W16-P2",
+      "W17-P2",
+      "W18-P2",
+      "W19-P2",
+      "W20-P2",
+      "W21-P2",
+      "W22-P2",
+      "W23-P2",
+      "W24-P2",
+      "W25-P2",
+      "W26-P2",
+      "W27-P2",
+      "W28-P2",
+      "W29-P2",
+      "W30-P2",
+      "W31-P2",
+      "W32-P2",
+      "W33-P2",
+      "W34-P2",
+      "W35-P2",
+      "W36-P2",
+      "W37-P2",
+      "W38-P2",
+      "W39-P2",
+      "W40-P2",
+      "W41-P2",
+      "W42-P2",
+      "W43-P2",
+      "W44-P2",
+      "W45-P2",
+      "W46-P2",
+      "W47-P2",
+      "W48-P2",
+      "W49-P2",
+      "W50-P2",
+      "reported-02"
+    ],
+    "finalGuardReview": "All 202 completed page outputs compared against prompt-only final: only W28-P2, 26B, slot 10 changed. Its guarded sheet was separately opened and inspected. The invented neighboring dialogue became source numerals with needs_review.",
+    "improvements": [
+      {
+        "id": "W08-P2",
+        "model": "12",
+        "slots": [2, 15],
+        "finding": "Older-uncle distinction recovered (younger uncle became older uncle); clipped joking expression became a natural Korean joke rather than kana transliteration."
+      },
+      {
+        "id": "W20-P2",
+        "model": "12",
+        "slots": [5],
+        "finding": "Stepsister address changed from the male-speaker form to the female-speaker form supported by the scene."
+      },
+      {
+        "id": "W28-P2",
+        "model": "12",
+        "slots": [7],
+        "finding": "Elliott spelling improved from a literal kana rendering to a conventional Korean name spelling."
+      },
+      {
+        "id": "W30-P2",
+        "model": "12",
+        "slots": [7],
+        "finding": "A Sino-Japanese idiom became a natural Korean phrase meaning without asking questions."
+      },
+      {
+        "id": "W35-P1",
+        "model": "12",
+        "slots": [1],
+        "finding": "A leading dash misread as the character one no longer produced an unsupported alone."
+      },
+      {
+        "id": "W36-P2",
+        "model": "12",
+        "slots": [2],
+        "finding": "Honorific request better preserved the action being performed for another person."
+      },
+      {
+        "id": "W42-P2",
+        "model": "26",
+        "slots": [3],
+        "finding": "Removed an unnecessary literal Japanese desu ending, yielding natural Korean."
+      },
+      {
+        "id": "W50-P2",
+        "model": "12",
+        "slots": [2],
+        "finding": "A badly mistranslated emperor title and Rudolf name became the correct emperor/Rudolf reading."
+      }
+    ],
+    "existingSuccessesNotCountedAsGains": [
+      {
+        "id": "W13-P2",
+        "model": "26",
+        "slot": 11,
+        "finding": "Recovers the visible repeated title despite wrong OCR; baseline 26B already did this."
+      },
+      {
+        "id": "W18-P2",
+        "model": "26",
+        "slot": 1,
+        "finding": "Recovers visible SE letters omitted by OCR; baseline 26B already did this."
+      },
+      {
+        "id": "reported-02",
+        "models": ["12", "26"],
+        "slot": 9,
+        "finding": "Furigana-backed character name remains correct in both baseline and candidate."
+      }
+    ],
+    "regressionsAndMixedResults": [
+      {
+        "id": "W26-P2",
+        "model": "12",
+        "slot": 6,
+        "finding": "Unlock wording worsened from release to opening/unsealing; 26B retained unlock."
+      },
+      {
+        "id": "W26-P2",
+        "model": "26",
+        "slot": 3,
+        "finding": "A fragment changed from with father to father as grammatical subject, losing the connection to the next block."
+      },
+      {
+        "id": "W28-P2",
+        "model": "26",
+        "slot": 10,
+        "finding": "Prompt-only candidate invented dialogue on a decorative border misrecognized as fourteen zeros. A deterministic numeric-source guard now blocks this, including all repair fallbacks; original OCR noise remains for review."
+      },
+      {
+        "id": "W12-P2",
+        "model": "26",
+        "slot": 8,
+        "finding": "Visible C rank was previously hallucinated as S and now as A. Neither is correct; enlarged-crop experiment recovered C only in 26B, without enough consistent benefit to ship."
+      }
+    ],
+    "remainingErrors": [
+      {
+        "id": "W06-P2",
+        "model": "12",
+        "slot": 6,
+        "finding": "Misinterprets a subject-marking fragment as a contrastive ending."
+      },
+      {
+        "id": "W08-P2",
+        "model": "12",
+        "slot": 5,
+        "finding": "Still translates a rock-bottom idiom literally."
+      },
+      {
+        "id": "W13-P2",
+        "model": "12",
+        "slot": 11,
+        "finding": "Still follows an incorrect OCR title instead of the clear image reading."
+      },
+      {
+        "id": "W15-P2",
+        "model": "12",
+        "slot": 3,
+        "finding": "Apology remains a negative evaluation rather than natural apology."
+      },
+      {
+        "id": "W18-P2",
+        "model": "12",
+        "slot": 1,
+        "finding": "Still omits SE letters absent from OCR."
+      },
+      {
+        "id": "W19-P2",
+        "models": ["12", "26"],
+        "slot": 3,
+        "finding": "All-kana idle-game term remains mistranslated."
+      },
+      {
+        "id": "W29-P2",
+        "models": ["12", "26"],
+        "slots": [6, 7],
+        "finding": "Sarcastic apology and word sense remain problematic; 12B reads beauty as vessel."
+      },
+      {
+        "id": "W31-P2",
+        "model": "12",
+        "slot": 2,
+        "finding": "Passive being called cute becomes active saying cute."
+      },
+      {
+        "id": "W33-P1",
+        "model": "12",
+        "slot": 1,
+        "finding": "Sword-god title remains phonetically transliterated."
+      },
+      {
+        "id": "W40",
+        "model": "26",
+        "finding": "Same character name still has inconsistent spelling across the two independent pages. Cumulative context was disabled; chapter-wide terminology consistency is not proven."
+      },
+      {
+        "id": "W41-P2",
+        "model": "12",
+        "slot": 3,
+        "finding": "Word sense of losing ones mind remains incorrect."
+      },
+      {
+        "id": "W44-P2",
+        "model": "12",
+        "slot": 1,
+        "finding": "Small side lettering was misread by OCR and its error survives in the translation; 26B omits the side lettering."
+      },
+      {
+        "id": "W47-P2",
+        "model": "12",
+        "slot": 2,
+        "finding": "Misrecognized broken exclamation becomes an incorrect likewise/as expected; 26B better uses an alarmed reaction."
+      },
+      {
+        "id": "W50-P2",
+        "models": ["12", "26"],
+        "slot": 7,
+        "finding": "Guilty/caught-red-handed idiom remains incorrectly transliterated as a name-like string."
+      },
+      {
+        "id": "W50-P2",
+        "model": "12",
+        "slot": 6,
+        "finding": "Fishing for information idiom remains merely starting a conversation."
+      }
+    ],
+    "denominatorCaveat": "Page numbers and punctuation-only candidates may be excluded by the existing app before model submission. W35-P2 has no eligible translated ordinary text. Missing=0 is relative to submitted slots, not every OCR detection.",
+    "conclusion": "There are concrete local improvements, persistent failures and local regressions. The guard fixes one reproducible cross-balloon hallucination class. These observations do not establish a net accuracy percentage or perfect translation."
+  },
+  "developmentAnchors": [
+    {
+      "id": "W06-P2",
+      "slot": 6,
+      "expectation": "subject fragment, not a contrastive ending",
+      "outputs": {
+        "baseline-12": "이 세계에서는 주인공인 나뿐이지만!!",
+        "guarded-12": "이 세계에서는 주인공인 나뿐이지만!!",
+        "baseline-26": "이 세계에서는 주인공인 나만이!!",
+        "guarded-26": "이 세계에서는 주인공인 나만이!!"
+      }
+    },
+    {
+      "id": "W08-P2",
+      "slot": 2,
+      "expectation": "older uncle",
+      "outputs": {
+        "baseline-12": "숙부님?",
+        "guarded-12": "큰아버지라고?",
+        "baseline-26": "백부님~?",
+        "guarded-26": "백부님~?"
+      }
+    },
+    {
+      "id": "W08-P2",
+      "slot": 5,
+      "expectation": "fallen to rock bottom idiom",
+      "outputs": {
+        "baseline-12": "「나는 떨어지는 곳까지 떨어진 녀석이다",
+        "guarded-12": "「나는 떨어지는 곳까지 떨어진 녀석이다",
+        "baseline-26": "“나는 바닥까지 떨어졌던 녀석이다",
+        "guarded-26": "“난 바닥까지 떨어졌던 녀석이다"
+      }
+    },
+    {
+      "id": "W08-P2",
+      "slot": 15,
+      "expectation": "joking expression",
+      "outputs": {
+        "baseline-12": "나~앙챠",
+        "guarded-12": "농담이야",
+        "baseline-26": "농담이야",
+        "guarded-26": "농담이야~"
+      }
+    },
+    {
+      "id": "W12-P2",
+      "slot": 8,
+      "expectation": "visible C rank omitted by OCR",
+      "outputs": {
+        "baseline-12": "랭크? 당연히 급이지!!",
+        "guarded-12": "랭크? 당연히 급이야!!",
+        "baseline-26": "랭크? 물론 S급이에요!!",
+        "guarded-26": "랭크? 물론 A급이죠!!"
+      }
+    },
+    {
+      "id": "W13-P2",
+      "slot": 11,
+      "expectation": "visible repeated title misread by OCR",
+      "outputs": {
+        "baseline-12": "사명!!",
+        "guarded-12": "사명!!",
+        "baseline-26": "흑제!!",
+        "guarded-26": "흑제!!"
+      }
+    },
+    {
+      "id": "W15-P2",
+      "slot": 3,
+      "expectation": "apology, not accusation",
+      "outputs": {
+        "baseline-12": "역시 너무해요...!",
+        "guarded-12": "역시 좀 안 좋네요...!",
+        "baseline-26": "역시 죄송합니다...!",
+        "guarded-26": "역시 미안합니다...!"
+      }
+    },
+    {
+      "id": "W18-P2",
+      "slot": 1,
+      "expectation": "visible SE omitted by OCR",
+      "outputs": {
+        "baseline-12": "전생으로 데버그 지옥에는 익숙해.",
+        "guarded-12": "전생에 디버그 지옥에 익숙해져 있어.",
+        "baseline-26": "전생에 SE로서 디버그 지옥에는 익숙해져 있다.",
+        "guarded-26": "전생에 SE로서 디버그 지옥에는 익숙해져 있다."
+      }
+    },
+    {
+      "id": "W18-P2",
+      "slot": 3,
+      "expectation": "natural keyboard mimetic",
+      "outputs": {
+        "baseline-12": "카카카카카카",
+        "guarded-12": "카카카카카카",
+        "baseline-26": "타닥타닥",
+        "guarded-26": "타닥타닥"
+      }
+    },
+    {
+      "id": "W19-P2",
+      "slot": 3,
+      "expectation": "idle-game theory term written in kana",
+      "outputs": {
+        "baseline-12": "호치게 이론까지 가는데 얼마나 걸릴지 모르겠네",
+        "guarded-12": "호치게 이론까지 가려면 시간이 얼마나 걸릴지 모르겠네",
+        "baseline-26": "포칭게의 이론까지 가려면 얼마나 시간이 걸릴는지",
+        "guarded-26": "호칭법의 이론까지 도달하려면 얼마나 시간이 걸릴는지 모르겠네"
+      }
+    },
+    {
+      "id": "W20-P2",
+      "slot": 5,
+      "expectation": "stepsister, not half-brother/sister",
+      "outputs": {
+        "baseline-12": "폴라의 딸이자 아리아의 의붓누나",
+        "guarded-12": "폴라의 딸이자 아리아의 의붓언니",
+        "baseline-26": "폴라의 딸이자 아리아의 의붓언니",
+        "guarded-26": "폴라의 딸이자 아리아의 의붓언니"
+      }
+    },
+    {
+      "id": "reported-02",
+      "slot": 9,
+      "expectation": "furigana-backed name",
+      "outputs": {
+        "baseline-12": "타카세 마나입니다",
+        "guarded-12": "타카세 마나입니다.",
+        "baseline-26": "타카세 마나입니다",
+        "guarded-26": "타카세 마나입니다."
+      }
+    }
+  ],
+  "coverageInventory": {
+    "file": "scripts/production-cleanup-coverage-floors.json",
+    "newlyTouchedExistingSource": "src/main/runtime/semantic-ocr/fixed-block-quality.cjs",
+    "baseline": "Original measurements from .tmp/production-cleanup-coverage-baseline-node22.json after verifying its recorded SHA-256; existing floors and historical provenance unchanged.",
+    "floor": {
+      "lines": "32/33",
+      "statements": "37/39",
+      "functions": "12/12",
+      "branches": "25/29"
+    }
+  },
+  "nextEvaluationPriorities": [
+    "Chapter-contiguous dialogue with cumulative glossary/name context enabled, including the observed cross-page spelling inconsistency.",
+    "A separate, independently judged set for idioms, pronouns, kana segmentation and small omitted rank letters; include regressions as well as apparent wins.",
+    "Confidence-driven targeted visual rereading only if it beats the rejected always-on second-image experiment under paired latency and semantic evaluation."
+  ],
+  "research": [
+    {
+      "url": "https://ai.google.dev/gemma/docs/capabilities/vision",
+      "application": "Official Gemma 4 documentation describes variable image budgets up to 1120 and iterative prompting. A measured 1120-budget trial was performed; documentation alone was not treated as evidence of a quality gain."
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "command": "npm run check (scripts/check.cjs invoked with the same portable Node 26 runtime to avoid PowerShell npm.ps1 stderr formatting)",
+    "startedAt": "2026-10-05T02:07:06.166Z",
+    "completedAt": "2026-10-05T02:12:52.879Z",
+    "wallMs": 346712,
+    "testRun": {
+      "counts": {
+        "numTotalTestSuites": 2237,
+        "numPassedTestSuites": 2237,
+        "numFailedTestSuites": 0,
+        "numPendingTestSuites": 0,
+        "numTotalTests": 10179,
+        "numPassedTests": 10170,
+        "numFailedTests": 0,
+        "numPendingTests": 9,
+        "numTodoTests": 0
+      },
+      "testDigest": "215b9dd2f38620008323b981f17c4aa02ac006a1bd6d9c735d757b37a46eef8b",
+      "coverageDigest": "27b62b60e8d9a482b5597d9d1036b11ff15dd3cfeaeb058eb9e27d9866e411c8",
+      "coverage": {
+        "lines": {
+          "total": 102829,
+          "covered": 89099,
+          "skipped": 0,
+          "pct": 86.64
+        },
+        "statements": {
+          "total": 111159,
+          "covered": 94999,
+          "skipped": 0,
+          "pct": 85.46
+        },
+        "functions": {
+          "total": 28885,
+          "covered": 25343,
+          "skipped": 0,
+          "pct": 87.73
+        },
+        "branches": {
+          "total": 77694,
+          "covered": 61219,
+          "skipped": 0,
+          "pct": 78.79
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      }
+    },
+    "stages": [
+      {
+        "id": "private-workspace",
+        "status": "passed",
+        "durationMs": 121
+      },
+      {
+        "id": "typecheck",
+        "status": "passed",
+        "durationMs": 2652
+      },
+      {
+        "id": "typecheck-electron",
+        "status": "passed",
+        "durationMs": 785
+      },
+      {
+        "id": "typecheck-js",
+        "status": "passed",
+        "durationMs": 618
+      },
+      {
+        "id": "format",
+        "status": "passed",
+        "durationMs": 5095
+      },
+      {
+        "id": "lint",
+        "status": "passed",
+        "durationMs": 44474
+      },
+      {
+        "id": "error-handling",
+        "status": "passed",
+        "durationMs": 4493
+      },
+      {
+        "id": "test-mock-boundaries",
+        "status": "passed",
+        "durationMs": 1804
+      },
+      {
+        "id": "architecture",
+        "status": "passed",
+        "durationMs": 5990
+      },
+      {
+        "id": "maintainability-policy",
+        "status": "passed",
+        "durationMs": 1227
+      },
+      {
+        "id": "duplicates",
+        "status": "passed",
+        "durationMs": 786
+      },
+      {
+        "id": "reexports",
+        "status": "passed",
+        "durationMs": 2035
+      },
+      {
+        "id": "generated",
+        "status": "passed",
+        "durationMs": 197
+      },
+      {
+        "id": "css-structure",
+        "status": "passed",
+        "durationMs": 105
+      },
+      {
+        "id": "script-entrypoints",
+        "status": "passed",
+        "durationMs": 2077
+      },
+      {
+        "id": "deadcode",
+        "status": "passed",
+        "durationMs": 7505
+      },
+      {
+        "id": "deadcode-exports",
+        "status": "passed",
+        "durationMs": 5699
+      },
+      {
+        "id": "prepare-electron",
+        "status": "passed",
+        "durationMs": 147
+      },
+      {
+        "id": "prepare-ffmpeg",
+        "status": "passed",
+        "durationMs": 239
+      },
+      {
+        "id": "prepare-import-source-runner",
+        "status": "passed",
+        "durationMs": 607
+      },
+      {
+        "id": "test-coverage",
+        "status": "passed",
+        "durationMs": 260560
+      },
+      {
+        "id": "production-cleanup-coverage",
+        "status": "passed",
+        "durationMs": 614
+      },
+      {
+        "id": "build",
+        "status": "passed",
+        "durationMs": 23338
+      },
+      {
+        "id": "page-artwork-parity",
+        "status": "passed",
+        "durationMs": 16966
+      },
+      {
+        "id": "image-protocol-smoke",
+        "status": "passed",
+        "durationMs": 1079
+      },
+      {
+        "id": "renderer-bundle",
+        "status": "passed",
+        "durationMs": 81
+      },
+      {
+        "id": "preload-bundle",
+        "status": "passed",
+        "durationMs": 65
+      }
+    ],
+    "initialFailure": {
+      "test": "productionCleanupCoverageGate.test.ts: tracks every coverage-eligible source touched since cleanup start",
+      "reason": "Newly touched existing fixed-block-quality.cjs absent from coverage inventory.",
+      "resolution": "Registered its hash-verified historical baseline floor and updated inventory count; added absent numeric translation/neighbor salvage coverage; full check rerun."
+    },
+    "postBuildSmoke": {
+      "12": {
+        "pages": 1,
+        "requests": 1,
+        "sourceSlots": 10,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 0,
+        "missing": 0,
+        "totalSeconds": 15.358
+      },
+      "26": {
+        "pages": 1,
+        "requests": 1,
+        "sourceSlots": 10,
+        "sourceOrIdMismatch": 0,
+        "geometryChanges": 0,
+        "review": 1,
+        "missing": 0,
+        "totalSeconds": 20.813
+      }
+    },
+    "coverageArtifactSha256": "c754b0eec2f2c65b69c4f2858077655cd9f474b26ae560faceeaa6473d9fa5de"
+  },
+  "privateEvidence": {
+    "root": ".tmp/translation-quality-20261005",
+    "corpus": "corpus-selection.json",
+    "harness": "app-audit.cjs",
+    "runner": "run.cjs",
+    "evaluator": "evaluate.cjs",
+    "promptVisualSheets": "visual-review-final",
+    "finalVisualSheets": "visual-review-guarded",
+    "comparison": "review-text.cjs",
+    "runDirectories": "<variant>-translate-<12|26>/<page-id>/run/pages/<page-id>/attempt-1/result.json",
+    "retention": "Raw manga images, user titles, transcripts and local model outputs remain ignored/local and are not committed."
+  },
+  "limitations": [
+    "Prompt changes cannot guarantee correct translation. 12B retains idiom, OCR-repair and word-sense errors; 26B also misreads small omitted letters and some kana terms.",
+    "The numeric guard deliberately prevents spelling out long numeric-only identifiers as words. It does not detect every hallucination, and it preserves OCR noise for review rather than deleting image regions.",
+    "No exhaustive manual semantic score for every slot, no independent human adjudication, no repeated-seed significance test, and no long-chapter name-consistency test.",
+    "The prior audit observation describing W12-P2 slot 8 as an S rank was wrong. Magnified source shows C; the old 26B S output was also incorrect. The prior report has been corrected."
+  ]
+}

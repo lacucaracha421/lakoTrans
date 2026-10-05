@@ -4,7 +4,7 @@ const {
   isJapaneseLanguageCode,
   resolvePromptLanguageProfile,
 } = require("../simple-page-language-profile.cjs");
-const { semanticContractError } = require("./values.cjs");
+const { isRecord, semanticContractError } = require("./values.cjs");
 
 const LOW_CONFIDENCE_NOISE_REASONS = new Set([
   "ambiguous_low_confidence_shape",
@@ -163,6 +163,43 @@ function findFixedBlockTargetLanguageViolations(items, options) {
   );
 }
 
+/**
+ * A long numeric Hayai reading may be a code or misrecognized decoration.
+ * Neither supplies evidence for dialogue. Reject linguistic expansion so
+ * targeted repair can recover numerals or preserve the source for review.
+ * Short counts and ordinary text retain their normal translation policy.
+ *
+ * @param {unknown[]} items
+ * @param {Array<{blockId:string;jp?:string;ordinaryOnly?:boolean}>} blocks
+ * @returns {string[]}
+ */
+function findFixedBlockNumericTextExpansions(items, blocks) {
+  const numericIds = new Set(
+    blocks
+      .filter(
+        (block) =>
+          block.ordinaryOnly === true &&
+          /^\d{6,}$/u.test(
+            String(block.jp ?? "")
+              .normalize("NFKC")
+              .replace(/\s/gu, ""),
+          ),
+      )
+      .map((block) => block.blockId),
+  );
+  return [
+    ...new Set(
+      items.flatMap((item) => {
+        if (!isRecord(item) || typeof item.blockId !== "string") return [];
+        const blockId = item.blockId.trim();
+        return numericIds.has(blockId) && /\p{L}/u.test(String(item.ko ?? ""))
+          ? [blockId]
+          : [];
+      }),
+    ),
+  ];
+}
+
 /** @param {QualityBlock} block */
 function resolveFixedBlockConfidence(block) {
   if (!block.soundCandidate) return block.confidence;
@@ -172,6 +209,7 @@ function resolveFixedBlockConfidence(block) {
 }
 
 module.exports = {
+  findFixedBlockNumericTextExpansions,
   findFixedBlockTargetLanguageViolations,
   isRejectedLowConfidenceNoiseGroup,
   resolveFixedBlockConfidence,

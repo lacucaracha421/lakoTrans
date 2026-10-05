@@ -345,7 +345,7 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
   const hayaiLocked =
     isKeepBlocksSourceMode(options) || isHayaiLockedRegionMode(options);
   return [
-    `Translate every supplied immutable ${profile.sourceName} manga string into natural ${profile.targetName}.`,
+    `Translate every supplied fixed ${profile.sourceName} manga block into natural ${profile.targetName}.`,
     ...buildFixedBlockSourceLines(options),
     options.autoFontMatching
       ? "Each item requires blockId, textRole, layoutIntent, fontRole, fontRoleConfidence, and ko, and may additionally include visualClusterId. Never output jp, candidateIds, coordinates, bbox, type, confidence, action, or commentary."
@@ -371,17 +371,20 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
     'Use layoutIntent "auto" only when the image provides no useful direction evidence and the application should preserve its existing choice; do not prefer it over the horizontal default. The application will reject unsafe vertical advisories.',
     ...buildFixedBlockFontRoleLines(options),
     'For textRole "sound", translate as compact natural effect lettering instead of an explanatory sentence.',
-    "ko must faithfully translate the complete jp without losing the opening phrase, modifiers, negation, names, numbers, honorifics, register, modality, or final predicate.",
+    "ko must faithfully translate the complete text belonging to its block without losing the opening phrase, modifiers, negation, names, numbers, honorifics, register, modality, or final predicate.",
     "ko must be one plain continuous line with natural target-language spaces. The renderer performs visual wrapping.",
     `Write each ko value in natural ${profile.targetName}, using normal spelling and notation.`,
     ...(profile.isDefaultJapaneseToKorean
       ? [
           "Use normal Korean notation, including Latin letters and Arabic numerals where conventional (Aランク → A랭크, 1856年 → 1856년). Translate Japanese words, but do not phonetically spell out such labels or numbers in Hangul.",
           "Translate colloquial expressions, reactions, and mimetic words by their meaning or a natural Korean equivalent, not by transliterating kana into Hangul (ひそひそ → 소곤소곤, ぷるぷる → 부들부들, なんちゃって → 농담이야). An elongated or clipped spelling still carries that expression's meaning.",
+          "한국어 번역 원칙: 대사를 실제로 말하는 사람의 의도와 상대방의 반응을 함께 읽어 자연스럽게 옮긴다. 도움을 받으며 하는 悪い・すまない는 보통 미안함이나 고마움이며, 상대가 나쁘다는 비난으로 바꾸지 않는다. 관용구는 단어를 하나씩 직역하지 않는다.",
+          "히라가나만 쓰인 문장도 먼저 일본어 단어의 경계와 축약을 해석한다. 예를 들어 げー는 문맥에 따라 ゲーム의 줄임말일 수 있다. 소리가 비슷하다는 이유로 일반 단어를 사람 이름이나 마법 이름으로 만들지 않는다. 효과음은 행동에 맞는 한국어 소리로 옮긴다.",
+          "이름은 보이는 후리가나와 확정된 용어집을 우선하고 같은 인물은 같은 표기로 유지한다. 누나·언니·형·오빠 같은 호칭, 큰아버지·작은아버지, 의붓·이복 관계를 혼동하지 않는다. 잘 보이지 않는 등급 문자나 이름을 흔한 설정으로 추측하지 않는다.",
         ]
       : []),
     "Do not append the original sentence, coordinates, explanations, markdown, or uncertainty notes in ko.",
-    "Before returning, verify that each blockId appears exactly once and that ko translates only that block's supplied jp.",
+    "Before returning, verify that each blockId appears exactly once and that ko translates only the text belonging to that fixed block.",
     options.collectPageContext
       ? 'The top-level JSON object must contain the translation array under the exact key "items"; only "items" and "pageContext" are permitted at the top level. Never rename "items" to "blocks", "translations", "results", or any other key.'
       : 'The top-level JSON object must be exactly {"items":[...]}. The translation array key is "items", never "blocks", "translations", "results", or any other key.',
@@ -410,6 +413,18 @@ function buildFixedBlockTranslationPrompt(plan, options = {}) {
 function buildFixedBlockSourceLines(options) {
   const keepSource = isKeepBlocksSourceMode(options);
   const readFromImage = isHayaiLockedRegionMode(options) && !keepSource;
+  if (keepSource) {
+    return [
+      "The full page image provides the scene and reading context. Each supplied blockId and bbox identifies one fixed translation slot; jp is its saved OCR reading, not a guarantee that every character was recognized correctly.",
+      "Keep every blockId, jp, direction, bbox, block count, and block order unchanged in the application. Never merge, split, add, remove, reorder, relocate, or renumber slots. Return exactly one translation for each blockId.",
+      "Read the whole scene before translating, then translate only the text inside each slot's own bbox. If the image clearly proves an OCR character was missed or misread there, use the visible reading in ko while leaving the stored jp untouched. Do not borrow a neighboring block's words or invent missing text from genre expectations.",
+      "When the lettering is unclear, prefer the supplied jp and established glossary over a guess. Explicit user terminology and corrections take precedence. Use visible furigana to resolve a name's pronunciation, not as extra dialogue; use one consistent target-language spelling for the same person or named term.",
+      "Adjacent blocks may continue the same sentence. Read them together to resolve subjects, negation and particles, but distribute the translation over the original slots without duplicating or moving phrases. Keep unfinished clauses as fragments; final が may mark the subject rather than mean 'but'.",
+      "Translate the speaker's intent in context: distinguish an apology or gratitude from an accusation, and joking from a literal assertion. Render colloquial contractions, all-kana words and mimetic expressions as natural target-language meanings; transliterate only actual names or established loanwords.",
+      "Keep relationship, age and rank distinctions supported by the words: an older uncle is not a younger uncle, a stepsibling is not automatically a half-sibling. Choose forms of address from the speaker/listener context; do not invent a relationship from appearance alone.",
+      "Before answering, compare each ko to its own balloon and check names, numbers, omitted letters, negation, idioms and the connection to adjacent fragments. Return only the requested fields, without commentary or a corrected jp field.",
+    ];
+  }
   return [
     readFromImage
       ? "Image 1 is the authority for correcting the Hayai reading hint inside each already-finalized ordinary-text bbox."
@@ -422,13 +437,6 @@ function buildFixedBlockSourceLines(options) {
     readFromImage
       ? "The supplied jp may be incomplete or empty. Translate every visible main line inside its immutable bbox and use furigana only as pronunciation help."
       : "Translate the exact supplied jp string even when it is short, stylized, noisy, or contains an OCR error.",
-    ...(keepSource
-      ? [
-          "OCR is complete. The image is context only: it cannot replace the supplied jp or change which block owns a phrase.",
-          "Adjacent blocks may form one sentence or share a balloon. Translate each supplied fragment separately; never combine their translations or renumber their blockIds by visual reading order.",
-          "Keep unfinished clauses as fragments. Do not add contrast, an explanation, or an invented sentence ending merely to make a fragment stand alone. A final が may be a subject marker continuing into another block, not a contrastive conjunction.",
-        ]
-      : []),
   ];
 }
 
@@ -458,7 +466,10 @@ function buildFixedBlockTranslationSystemPrompt(options = {}) {
   const envelope = options.collectPageContext
     ? 'Return one JSON object whose translation array is named exactly "items" and whose only other permitted top-level key is "pageContext"; never return a top-level "blocks" key.'
     : 'Return exactly one JSON object shaped {"items":[...]}; never return a top-level "blocks", "translations", or "results" key.';
-  return isHayaiLockedRegionMode(options) && !isKeepBlocksSourceMode(options)
+  if (isKeepBlocksSourceMode(options)) {
+    return `You are a faithful ${profile.sourceName}-to-${profile.targetName} manga translator. Read the whole page for context, then translate each immutable blockId only from its own bbox. Saved jp is an OCR hint: use clear visible lettering to resolve recognition errors in ko, never change source records, slot identities, geometry or grouping. Preserve names, relationships and tone, write natural ${profile.targetName}, and output only ${outputKeys} as valid JSON. ${envelope}`;
+  }
+  return isHayaiLockedRegionMode(options)
     ? `You are a faithful ${profile.sourceName}-to-${profile.targetName} manga translator. Every supplied block is an immutable ordinary-text slot; correct its Hayai reading from the visible bbox, never merge or move slots, return textRole ordinary, write ko in natural ${profile.targetName}, and output only ${outputKeys} as valid JSON. ${envelope}`
     : `You are a faithful ${profile.sourceName}-to-${profile.targetName} manga translator and visual text-role classifier. Source strings, geometry, and grouping are immutable; classify each visible fixed block, write ko in natural ${profile.targetName}, and output only ${outputKeys} as valid JSON. ${envelope}`;
 }

@@ -42,7 +42,7 @@ const baseVariant = {
 };
 
 describe("committed Hayai source ownership", () => {
-  it("locks committed Hayai keep-mode sources without resegmenting or re-OCR", () => {
+  it("keeps source records and slots immutable while allowing bounded visual reading", () => {
     const options = {
       ...baseOptions,
       ocrPipeline: "hayai",
@@ -66,8 +66,9 @@ describe("committed Hayai source ownership", () => {
       options.ocrBboxHints.map((hint) => hint.ocrText),
     );
     const prompt = fixed.buildFixedBlockTranslationPrompt(plan, options);
-    expect(prompt).toContain("OCR is complete");
-    expect(prompt).toContain("Translate the exact supplied jp string");
+    expect(prompt).toContain("leaving the stored jp untouched");
+    expect(prompt).toContain("only the text inside each slot's own bbox");
+    expect(prompt).toContain("prefer the supplied jp and established glossary");
     expect(prompt).toContain("Keep unfinished clauses as fragments");
     expect(prompt).toContain("not by transliterating kana into Hangul");
     expect(prompt).not.toContain("Correct Hayai OCR mistakes");
@@ -111,11 +112,36 @@ describe("committed Hayai source ownership", () => {
     };
     const plan = fixed.buildFixedBlockPlan(options, [baseVariant]);
     expect(fixed.buildFixedBlockTranslationPrompt(plan, options)).toContain(
-      "OCR is complete",
+      "leaving the stored jp untouched",
     );
     expect(fixed.buildFixedBlockTranslationSystemPrompt(options)).not.toContain(
       "correct its Hayai reading",
     );
+  });
+
+  it("applies a visually corrected translation without rewriting its OCR evidence", () => {
+    const options = {
+      ...baseOptions,
+      ocrPipeline: "hayai",
+      keepBlocksMode: true,
+      ocrBboxHints: [
+        semanticHint(8, "思命!!", 600, 100, 680, 300, 1, 1),
+        semanticHint(3, "ここにいる", 400, 100, 480, 300, 1, 1),
+      ],
+    };
+    const plan = fixed.buildFixedBlockPlan(options, [baseVariant]);
+    const before = structuredClone(plan);
+    const payload = fixed.buildFixedBlockOverlayPayload(plan, {
+      items: [
+        { blockId: plan.blocks[1].blockId, ko: "여기 있어" },
+        { blockId: plan.blocks[0].blockId, ko: "흑제!!" },
+      ],
+    });
+    expect(payload.items.map(({ id, jp, ko }) => ({ id, jp, ko }))).toEqual([
+      { id: 8, jp: "思命!!", ko: "흑제!!" },
+      { id: 3, jp: "ここにいる", ko: "여기 있어" },
+    ]);
+    expect(plan).toEqual(before);
   });
 
   it("does not change Paddle, region-crop, or unread keep-mode routing", () => {

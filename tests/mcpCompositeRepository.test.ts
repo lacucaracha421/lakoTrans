@@ -292,50 +292,56 @@ it("publishes imported target metadata and catalog pageCount in one transaction"
   }
 });
 
-it("keeps an old settled capability from releasing a later child's active pin", async () => {
-  const t = await setup();
-  try {
-    const prepared = await t.repository.create(
-      newCompositeRecord(false, true),
-      t.guard,
-    );
-    const bound = await t.repository.save(
-      compositeBound(prepared),
-      prepared.version,
-      t.guard,
-    );
-    const first = await t.repository.reserve(
-      compositeReserved(bound),
-      bound.version,
-      t.guard,
-    );
-    const outcome = compositeOutcome(first.record);
-    const settled = await first.settlement.finish(outcome);
-    const advanced = structuredClone(settled);
-    advanced.phases[0].status = "completed";
-    advanced.status = "prepared";
-    advanced.version += 1;
-    delete advanced.stopReason;
-    const saved = await t.repository.save(advanced, settled.version, t.guard);
-    const boundNext = await t.repository.save(
-      compositeBound(saved, 1),
-      saved.version,
-      t.guard,
-    );
-    const next = await t.repository.reserve(
-      compositeReserved(boundNext, 1),
-      boundNext.version,
-      t.guard,
-    );
-    await first.settlement.finish(outcome);
-    await first.settlement.hold("interrupted");
-    expect(t.repository.isActive(prepared.id)).toBe(true);
-    await next.settlement.hold("interrupted");
-    expect(t.repository.isActive(prepared.id)).toBe(false);
-    expect(
-      (await t.repository.load(compositeOwner, prepared.id)).used.admissions,
-    ).toBe(2);
-  } finally {
-    await t.f.close();
-  }
-});
+// Two consecutive children require eight durable metadata transactions. Allow
+// Windows CI disk flush latency without changing settlement/ownership assertions.
+it(
+  "keeps an old settled capability from releasing a later child's active pin",
+  { timeout: 45_000 },
+  async () => {
+    const t = await setup();
+    try {
+      const prepared = await t.repository.create(
+        newCompositeRecord(false, true),
+        t.guard,
+      );
+      const bound = await t.repository.save(
+        compositeBound(prepared),
+        prepared.version,
+        t.guard,
+      );
+      const first = await t.repository.reserve(
+        compositeReserved(bound),
+        bound.version,
+        t.guard,
+      );
+      const outcome = compositeOutcome(first.record);
+      const settled = await first.settlement.finish(outcome);
+      const advanced = structuredClone(settled);
+      advanced.phases[0].status = "completed";
+      advanced.status = "prepared";
+      advanced.version += 1;
+      delete advanced.stopReason;
+      const saved = await t.repository.save(advanced, settled.version, t.guard);
+      const boundNext = await t.repository.save(
+        compositeBound(saved, 1),
+        saved.version,
+        t.guard,
+      );
+      const next = await t.repository.reserve(
+        compositeReserved(boundNext, 1),
+        boundNext.version,
+        t.guard,
+      );
+      await first.settlement.finish(outcome);
+      await first.settlement.hold("interrupted");
+      expect(t.repository.isActive(prepared.id)).toBe(true);
+      await next.settlement.hold("interrupted");
+      expect(t.repository.isActive(prepared.id)).toBe(false);
+      expect(
+        (await t.repository.load(compositeOwner, prepared.id)).used.admissions,
+      ).toBe(2);
+    } finally {
+      await t.f.close();
+    }
+  },
+);

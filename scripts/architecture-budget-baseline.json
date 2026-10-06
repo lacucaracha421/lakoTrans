@@ -143,8 +143,8 @@
       "reason": "Block OCR source selection and effect-region evidence map through the existing pixel conversion. Two actual boundary consumers reuse the authoritative geometry; global limits remain unchanged. Structure policy projects before/after source and display rectangles using the canonical geometry and existing source-rect validation. Pixel conversions are not copied; native undo/redo rendering parity is required. The source raster adapter uses canonical coordinate normalization after source-bound validation. Selected-region OCR projects native source bounds and reports overlaps using the canonical geometry authority; no display-geometry reinterpretation."
     },
     "src/shared/richTextMarkup.ts": {
-      "maxImportedBy": 32,
-      "reason": "Merged direct consumers include Codex treatment serialization, image lettering prompts, blind readback and literal font specimens, plus master's conditionalBatchTypography rich-run scaling. Preserve both features on the canonical grammar without duplication or alias gateways; parser/serializer ownership remains unchanged. Source-only MCP editing is one additional consumer of plain-text parsing to pin the existing legacy render frame before changing source geometry. Lettering change-scope and new inline-font validation use the existing parser, with visible-text preservation and recovery tests."
+      "maxImportedBy": 33,
+      "reason": "Merged direct consumers include Codex treatment serialization, image lettering prompts, blind readback and literal font specimens, plus master's conditionalBatchTypography rich-run scaling. Preserve both features on the canonical grammar without duplication or alias gateways; parser/serializer ownership remains unchanged. Source-only MCP editing is one additional consumer of plain-text parsing to pin the existing legacy render frame before changing source geometry. Lettering change-scope and new inline-font validation use the existing parser, with visible-text preservation and recovery tests. Automatic dialogue-size comparison parses styled text with the canonical grammar; sourceFontSizeCap tests cover manual intent and read-only targets. No parser copy or relocation."
     },
     "src/shared/ipcSchemaPrimitives.ts": {
       "maxRuntimeImports": 16,
@@ -225,8 +225,8 @@
       "reason": "MCP desktop controls use the existing trusted main-window IPC boundary; remote clients cannot approve connections or change local permissions. Hayai workflow preflight, execution and resume use the trusted IPC boundary. Environment backup uses the existing trusted sender and schema validation boundary. Master integration: MCP desktop controls, page workflow and environment backup share the established trusted sender and schema boundary. The merged runtime-consumer count is exactly 28; global limits are unchanged."
     },
     "src/renderer/src/components/PageArtwork.tsx": {
-      "maxRuntimeImports": 13,
-      "reason": " Prepared blank blocks share a single display-text contract across canvas and exports."
+      "maxRuntimeImports": 14,
+      "reason": " Prepared blank blocks share a single display-text contract across canvas and exports. Page-local automatic dialogue sizing shares the exact editor/export calculation; sourceFontSizeCap tests and production wide/narrow PNG QA cover parity. No global selector or algorithm relocation."
     },
     "src/renderer/src/lib/toastStore.ts": {
       "maxImportedBy": 26,
@@ -384,6 +384,10 @@
     "src/shared/modelPresets.ts": {
       "maxImportedBy": 26,
       "reason": " Custom API seeding reuses canonical connection defaults; no copied model catalog."
+    },
+    "src/renderer/src/lib/bubbleBlockTextLayout.ts": {
+      "maxRuntimeImports": 13,
+      "reason": "Automatic legacy balloon layout directly reuses the sizing-intent predicate in sourceFontSizeMatching. narrowDialogueBubble and sourceFontSizeCap regression tests preserve manual sizes; no algorithm relocation or global budget change."
     }
   }
 }

@@ -4,11 +4,128 @@ import { resolveBlockTextLayout } from "../src/renderer/src/lib/overlayLayout";
 import { resolvePageSourceFontFaceFallbacks } from "../src/renderer/src/lib/sourceFontSizeMatching";
 import type { TranslationBlock } from "../src/shared/textTypes";
 import { MIN_READABLE_FONT_SIZE_PX } from "../src/shared/readableTextBox";
+import { resolvePageDialogueFontSizes } from "../src/renderer/src/lib/dialogueFontSizeMatching";
+import { resolveBlockFontSizeAtNaturalPageScale } from "../src/renderer/src/lib/blockFontSizeAdjustment";
+import narrowDialogue from "./fixtures/narrowDialogueBubble.json";
 
 const originalDocument = globalThis.document;
 const pageSize = { width: 1000, height: 1000 };
 
 describe("source-matched font-size cap", () => {
+  it("keeps legacy automatic dialogue readable across discontinuous balloon slots", () => {
+    installCanvasMeasureMock();
+    const block = narrowDialogue.block as TranslationBlock;
+    const size = { width: narrowDialogue.width, height: narrowDialogue.height };
+    const layout = resolveBlockTextLayout(
+      block,
+      block.translatedText,
+      size,
+      size,
+      DEFAULT_BLOCK_FONT_CATALOG,
+    );
+    expect(layout.fontSizePx).toBeGreaterThanOrEqual(20);
+    expect(layout.overflow).toBe(false);
+    expect(
+      layout.lines
+        ?.map((line) => line.runs.map((run) => run.text).join(""))
+        .join("")
+        .replace(/\s/g, ""),
+    ).toBe(block.translatedText.replace(/\s/g, ""));
+    const manual = resolveBlockTextLayout(
+      {
+        ...block,
+        autoFitText: false,
+        fontSizeIntent: "manual",
+        fontSizePx: 11,
+      },
+      block.translatedText,
+      size,
+      size,
+      DEFAULT_BLOCK_FONT_CATALOG,
+      { dialogueFontSizePx: 25 },
+    );
+    expect(manual.fontSizePx).toBe(11);
+  });
+  it("derives consistent dialogue sizes without changing source evidence or manual/emphasis blocks", () => {
+    installCanvasMeasureMock();
+    const peers = [24, 25, 26, 27].map((face, index) =>
+      makeMeasuredPeer(`peer-${index}`, face, {
+        textRole: "ordinary",
+        fontRole: "dialogue",
+        fontSizeIntent: "source-match",
+        autoFitText: false,
+      }),
+    );
+    const manual = makeMeasuredPeer("manual", 26, {
+      textRole: "ordinary",
+      fontRole: "dialogue",
+      fontSizeIntent: "manual",
+      autoFitText: false,
+      fontSizePx: 42,
+    });
+    const emphasis = makeMeasuredPeer("emphasis", 50, {
+      textRole: "ordinary",
+      fontRole: "dialogue",
+      fontSizeIntent: "source-match",
+    });
+    const blocks = [...peers, manual, emphasis];
+    const snapshot = JSON.stringify(blocks);
+    const targets = resolvePageDialogueFontSizes(
+      blocks,
+      pageSize,
+      DEFAULT_BLOCK_FONT_CATALOG,
+    );
+    expect(targets.size).toBeGreaterThan(0);
+    expect(targets.has("manual")).toBe(false);
+    expect(targets.has("emphasis")).toBe(false);
+    expect(JSON.stringify(blocks)).toBe(snapshot);
+    for (const block of peers) {
+      const rendered = resolveBlockTextLayout(
+        block,
+        block.translatedText,
+        pageSize,
+        pageSize,
+        DEFAULT_BLOCK_FONT_CATALOG,
+        { dialogueFontSizePx: targets.get(block.id) },
+      );
+      expect(rendered.overflow).toBe(false);
+      expect(
+        resolveBlockFontSizeAtNaturalPageScale(
+          block,
+          pageSize,
+          DEFAULT_BLOCK_FONT_CATALOG,
+          undefined,
+          blocks,
+        ),
+      ).toBe(rendered.fontSizePx);
+    }
+    expect(
+      resolveBlockTextLayout(
+        manual,
+        manual.translatedText,
+        pageSize,
+        pageSize,
+        DEFAULT_BLOCK_FONT_CATALOG,
+        { dialogueFontSizePx: 10 },
+      ).fontSizePx,
+    ).toBe(42);
+  });
+
+  it("does not infer a dialogue consensus from sparse evidence", () => {
+    installCanvasMeasureMock();
+    const block = makeMeasuredPeer("only", 25, {
+      textRole: "ordinary",
+      fontRole: "dialogue",
+      fontSizeIntent: "source-match",
+    });
+    expect(
+      resolvePageDialogueFontSizes(
+        [block],
+        pageSize,
+        DEFAULT_BLOCK_FONT_CATALOG,
+      ).size,
+    ).toBe(0);
+  });
   it.each(["", "  \n  "])(
     "keeps an untranslated generated balloon empty without overflow: %j",
     (translatedText) => {

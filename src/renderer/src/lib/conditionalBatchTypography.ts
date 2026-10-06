@@ -121,6 +121,7 @@ export function createConditionalBatchFontSizeResolver(
       page,
       catalog,
       cached.fallbacks.get(block.id),
+      page.blocks,
     );
     cached.sizes.set(block, size);
     return size;

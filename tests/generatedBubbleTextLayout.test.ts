@@ -50,7 +50,7 @@ describe("generated bubble text layout", () => {
     expect(block.wordBreak).toBe("break-word");
   });
 
-  it("uses the same auto-fit result for detected and manual bubble geometry", () => {
+  it("balances detected automatic dialogue while preserving manual bubble geometry behavior", () => {
     installCanvasMeasureMock();
     const base = makeQualityGateBlock();
     const manualCandidate: TranslationBlock = {
@@ -107,7 +107,14 @@ describe("generated bubble text layout", () => {
     expect(generated.rect).toEqual(ungatedCandidate.rect);
     expect(generated.rect).not.toEqual(baseline.rect);
     expect(generated.fontSizePx).toBe(ungatedCandidate.fontSizePx);
-    expect(lineTexts(generated)).toEqual(lineTexts(ungatedCandidate));
+    expect(lineTexts(generated)).toEqual([
+      "이전에",
+      "쓰던",
+      "것보다",
+      "좋은",
+      "무기를",
+      "골라.",
+    ]);
     expect(generated.lines?.every((line) => line.slot)).toBe(true);
     expect(manualCandidate.translatedText).toBe(base.translatedText);
     expect(manualCandidate.wordBreak).toBe(base.wordBreak);

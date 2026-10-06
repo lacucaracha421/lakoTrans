@@ -21,6 +21,7 @@ import type {
 import { logPipelineInfo } from "./pipelineLogger";
 import { withFontChapterC18Worker } from "./fontChapterC18Lifecycle";
 import { runLocalInference } from "../runtimeSupport/localInferenceSection";
+import { prepareFontGlyphVerificationAssets } from "./fontGlyphVerificationAssets";
 
 const resultSchema = z.object({
   version: z.literal("c23.0"),
@@ -78,6 +79,18 @@ async function prepareChapter(
     ocrRuntimeDir: paths.ocrRuntimeDir,
     workingDir: paths.dataRoot,
   };
+  const glyphVerificationAssets =
+    options.ocrDevice !== "gpu"
+      ? await prepareFontGlyphVerificationAssets({
+          dataRoot: paths.dataRoot,
+          signal,
+          onProgress: (progress) =>
+            first.pageOptions.onProgress?.({
+              ...progress,
+              phase: "font_matching_downloading",
+            }),
+        })
+      : undefined;
   await writeFile(manifestPath, JSON.stringify(manifest));
   await writeFile(
     request,
@@ -89,6 +102,7 @@ async function prepareChapter(
       workingDir: paths.dataRoot,
       hayaiScript: join(paths.runtimeDir, "hayai-bboxes.py"),
       ocrDevice: options.ocrDevice === "gpu" ? "gpu" : "cpu",
+      glyphVerificationAssets,
     }),
   );
   signal.throwIfAborted();

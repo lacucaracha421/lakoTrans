@@ -73,6 +73,7 @@ export function useStablePanelSessionValue(
       selectionKey: value.selectionKey,
       selectedBlock: value.selectedBlock,
       selectedBlockCount: value.selectedBlockCount,
+      selectedPageBlocks: value.selectedPageBlocks,
       selectedBlockSourceFontFaceFallbackPx:
         value.selectedBlockSourceFontFaceFallbackPx,
       selectedPageSize,
@@ -99,6 +100,7 @@ export function useStablePanelSessionValue(
       value.selectedBlock,
       value.selectedBlockCount,
       value.selectedBlockSourceFontFaceFallbackPx,
+      value.selectedPageBlocks,
       value.showDetachControls,
       value.transformMode,
     ],

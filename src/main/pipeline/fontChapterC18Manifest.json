@@ -466,6 +466,10 @@
       "sha256": "45f09bf9f5bdd0dcd7a9ca8b9259a6d5d1b7524346656dfcf4410bb2a4f85cea"
     },
     {
+      "path": "glyph-fast-verification.py",
+      "sha256": "4667af569bf177a75cd614b3c268f7e968ce0bb3131d7100a482dde45cfe4eb7"
+    },
+    {
       "path": "group-source-metric.py",
       "sha256": "bcdabdaa5285064b73ab53bbf26db53e6b688b76df03d8b5e79862e61a168e12"
     },
@@ -475,7 +479,7 @@
     },
     {
       "path": "hayai-pool.py",
-      "sha256": "a8979ce114c8632d9a52d4df6274d316a4e7f346073acabd099d3b7ac946db0f"
+      "sha256": "35a1a33ae1344bd50009a84fadac8b181396a70a5fc47d931d5a69d92da99a75"
     },
     {
       "path": "infer-source-region-chapter.py",
@@ -503,7 +507,7 @@
     },
     {
       "path": "worker.py",
-      "sha256": "31a1dd426cb3b252387f095ff1ded2c553358bf4a2ce734966951efdfd194ae9"
+      "sha256": "d07c2817e46ed64be3d2e8e07df26772cd39901f3f28b35317c4d752c3b5f1fd"
     }
   ],
   "assetDirectory": "font-chapter-c18/c23-v1"

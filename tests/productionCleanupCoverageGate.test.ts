@@ -549,7 +549,7 @@ describe("production cleanup coverage floor gate", () => {
     expect(manifest.deletedFiles).toEqual(scope.deleted);
     expect(scope.existing).toHaveLength(827);
     // Includes MCP and master additions; the renderer gatherText floor follows its shared owner.
-    expect(scope.added).toHaveLength(1344);
+    expect(scope.added).toHaveLength(1346);
     expect(scope.deleted).toHaveLength(12);
   });
 });

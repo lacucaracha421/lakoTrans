@@ -1,5 +1,8 @@
 # 폰트 자동 맞춤 프로덕션 인계서
 
+> 2026-10-07 기본 앱의 작은 글자 회귀, CPU 글자 verifier와 NVIDIA GPU batch 검증은
+> [C23 CPU/GPU 및 글자 크기 후속 기록](font-chapter-c23-cpu-performance.md#2026-10-07-기본-앱-경로-재검증)을 먼저 읽는다.
+
 > 2026-09-09 C23 CPU 실행 최적화와 결과 보존 검증은
 > [C23 CPU 실행 최적화](font-chapter-c23-cpu-performance.md)를 본다.
 

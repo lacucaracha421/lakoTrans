@@ -60,6 +60,8 @@ export type PanelSyncState = {
   selectedPageSize: { width: number; height: number } | null;
   /** Page-peer OCR face fallback used to reproduce the canvas font-size cap. */
   selectedBlockSourceFontFaceFallbackPx?: number | null;
+  /** Peers needed for the same automatic dialogue size in detached inspectors. */
+  selectedPageBlocks?: readonly TranslationBlock[];
   blockStylePresets: BlockStylePresetSummary[];
 };
 

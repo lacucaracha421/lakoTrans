@@ -1,3 +1,4 @@
+import { resolvePageDialogueFontSizes } from "../lib/dialogueFontSizeMatching";
 import { resolveBlockDisplayText } from "../../../shared/blockDisplayText";
 import React from "react";
 import {
@@ -196,6 +197,10 @@ export function PageArtwork({
     () => ({ width: page.width, height: page.height }),
     [page.height, page.width],
   );
+  const dialogueSizes = React.useMemo(
+    () => resolvePageDialogueFontSizes(page.blocks, pageSize, fontCatalog),
+    [page.blocks, pageSize, fontCatalog],
+  );
   const sourceFontFaceFallbacks = React.useMemo(
     () => resolvePageSourceFontFaceFallbacks(page.blocks, pageSize),
     [page.blocks, pageSize],
@@ -225,6 +230,7 @@ export function PageArtwork({
           pageSize={pageSize}
           showBlockChrome={showBlockChrome}
           sourceFontFaceFallbackPx={sourceFontFaceFallbacks.get(block.id)}
+          dialogueFontSizePx={dialogueSizes.get(block.id)}
           visualSize={visualSize}
         />
       ))}
@@ -238,6 +244,7 @@ function PageArtworkBlock({
   pageSize,
   showBlockChrome,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   visualSize,
 }: {
   block: TranslationBlock;
@@ -245,6 +252,7 @@ function PageArtworkBlock({
   pageSize: ViewportSize;
   showBlockChrome: boolean;
   sourceFontFaceFallbackPx?: number;
+  dialogueFontSizePx?: number;
   visualSize: ViewportSize;
 }): React.JSX.Element {
   const displayText = resolveBlockDisplayText(block);
@@ -254,6 +262,7 @@ function PageArtworkBlock({
     fontCatalog,
     pageSize,
     sourceFontFaceFallbackPx,
+    dialogueFontSizePx,
     visualSize,
   });
   const model = resolveOverlayBlockRenderModel({
@@ -291,6 +300,7 @@ function useArtworkBlockLayout({
   fontCatalog,
   pageSize,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   visualSize,
 }: {
   block: TranslationBlock;
@@ -298,6 +308,7 @@ function useArtworkBlockLayout({
   fontCatalog: BlockFontCatalog;
   pageSize: ViewportSize;
   sourceFontFaceFallbackPx?: number;
+  dialogueFontSizePx?: number;
   visualSize: ViewportSize;
 }): BlockTextLayout {
   return React.useMemo(
@@ -308,7 +319,11 @@ function useArtworkBlockLayout({
         pageSize,
         visualSize,
         fontCatalog,
-        { sourceFontFaceFallbackPx, textLayoutStageSize: pageSize },
+        {
+          sourceFontFaceFallbackPx,
+          dialogueFontSizePx,
+          textLayoutStageSize: pageSize,
+        },
       ),
     [
       block,
@@ -316,6 +331,7 @@ function useArtworkBlockLayout({
       fontCatalog,
       pageSize,
       sourceFontFaceFallbackPx,
+      dialogueFontSizePx,
       visualSize,
     ],
   );

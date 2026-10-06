@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2] / 'src/main/runtime/font-chapter-c18'
@@ -31,6 +32,10 @@ def normalize_batch_item(item):
 def release_gpu_memory():
     pass
 
+def dialogue_hint(region, text, chunks):
+    assert chunks == [(0, text)]
+    return {'id': region['id'], 'ocrText': text, 'bbox': region['bbox']}
+
 def process_page(**args):
     assert (args['batch_size'], args['max_new_tokens'], args['max_num_patches']) == (8, 96, 256)
     item = json.loads(args['region_path'].read_text())
@@ -50,6 +55,32 @@ def process_page(**args):
 
 
 class HayaiCpuPoolTests(unittest.TestCase):
+    def test_large_cuda_batch_requires_sufficient_free_and_total_vram(self):
+        device = SimpleNamespace(type='cuda')
+        runtime = SimpleNamespace(torch=SimpleNamespace(version=SimpleNamespace(cuda='12.6'),
+            cuda=SimpleNamespace(mem_get_info=lambda _: (12 * 1024 ** 3, 24 * 1024 ** 3))))
+        self.assertEqual(pool_module.resolve_batch_size(runtime, device), 32)
+        runtime.torch.cuda.mem_get_info = lambda _: (7 * 1024 ** 3, 24 * 1024 ** 3)
+        self.assertEqual(pool_module.resolve_batch_size(runtime, device), 8)
+        runtime.torch.cuda.mem_get_info = lambda _: (10 * 1024 ** 3, 12 * 1024 ** 3)
+        self.assertEqual(pool_module.resolve_batch_size(runtime, device), 8)
+        runtime.torch.version.cuda = None
+        self.assertEqual(pool_module.resolve_batch_size(runtime, device), 8)
+        self.assertEqual(pool_module.resolve_batch_size(runtime, SimpleNamespace(type='cpu')), 8)
+
+    def test_fast_verified_glyphs_merge_with_fallback_in_original_order(self):
+        batch, items = self.batch('mixed', [{'items': [{'id': 'b', 'ocrText': 'fallback'}]}])
+        items[0].update(fastGlyphs=[{'region': {'id': 'a', 'bbox': [1, 2, 3, 4]}, 'text': 'exact'}],
+                        glyphOrder=['a', 'b'])
+        batch.write_text(json.dumps({'items': items}))
+        with pool_module.HayaiPool(self.request) as run:
+            run(batch)
+        result = json.loads(Path(items[0]['output']).read_text())
+        self.assertEqual(result['items'], [{'id': 'a', 'ocrText': 'exact', 'bbox': [1, 2, 3, 4]},
+                                           {'id': 'b', 'ocrText': 'fallback'}])
+        self.assertEqual(result['textEvidenceCount'], 2)
+        self.assertFalse(result['noTextDetected'])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

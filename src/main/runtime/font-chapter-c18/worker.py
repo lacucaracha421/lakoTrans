@@ -1,7 +1,8 @@
 """Chapter C18 execution adapter. All learned inference and shape matching use CPU.
 
-Frozen algorithm modules retain producer receipts. Hayai is the only OCR engine;
-its existing installed runtime/cache/device is supplied by the application.
+Frozen algorithm modules retain producer receipts. Hayai owns line OCR and
+uncertain glyphs; an optional exact-match CPU glyph verifier can bypass accepted
+single glyphs. Installed runtimes and pinned assets are supplied by the application.
 The worker writes only its new job directory, never source pages or the library.
 """
 import contextlib

@@ -77,6 +77,7 @@ export function buildPanelSyncState({
         : "select",
     selectedPageSize,
     selectedBlockSourceFontFaceFallbackPx,
+    selectedPageBlocks: derivedState.selectedPage?.blocks,
   };
 }
 

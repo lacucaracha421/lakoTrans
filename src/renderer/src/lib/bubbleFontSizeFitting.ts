@@ -1,3 +1,4 @@
+import { isAutomaticFontSize } from "./sourceFontSizeMatching";
 import type { TranslationBlock } from "../../../shared/textTypes";
 import { parseRichText } from "../../../shared/richTextMarkup";
 import { isGeneratedBubbleLayout } from "../../../shared/bubbleLayout";
@@ -6,7 +7,6 @@ import {
   assessWrappedTextQuality,
   type SlottedWrappedTextMeasurement,
 } from "./bubbleTextWrapping";
-import { SOURCE_MATCH_OPTICAL_SCALE } from "./sourceFontSizeMatching";
 
 type ParagraphDamage = { splits: number; punctuation: number; orphans: number };
 
@@ -23,15 +23,21 @@ export function selectSourceMatchedParagraphSize(
     bestDamage = measureDamage(plainText, measure(best));
   }
   if (!bestDamage || isUndamaged(bestDamage)) return best;
-  const hasBrokenBoundary = bestDamage.splits > 0 || bestDamage.punctuation > 0;
-  const tolerance = hasBrokenBoundary ? 0.8 : 0.92;
+  // Korean emergency syllable wrapping is preferable to tiny dialogue.
+  // Allow a larger adjustment only to reattach a punctuation-only row.
+  const tolerance =
+    bestDamage.punctuation > 0 ? 0.85 : bestDamage.splits > 0 ? 0.92 : 0.96;
   const minimum = Math.max(
     MIN_READABLE_FONT_SIZE_PX,
-    Math.floor((best * tolerance) / SOURCE_MATCH_OPTICAL_SCALE),
+    Math.ceil(best * tolerance),
   );
   for (let size = Math.floor(best) - 1; size >= minimum; size--) {
     const damage = measureDamage(plainText, measure(size));
-    if (damage && compareDamage(damage, bestDamage) < 0) {
+    if (
+      damage &&
+      damage.punctuation <= bestDamage.punctuation &&
+      compareDamage(damage, bestDamage) < 0
+    ) {
       best = size;
       bestDamage = damage;
       if (isUndamaged(damage)) break;
@@ -86,7 +92,7 @@ export function resolveSourceMatchedBubbleFontSize(
 ): number {
   if (
     !measure ||
-    block.fontSizeIntent !== "source-match" ||
+    !isAutomaticFontSize(block) ||
     !isGeneratedBubbleLayout(block.bubbleLayout) ||
     block.renderDirection !== "horizontal" ||
     /[\r\n]/u.test(text)

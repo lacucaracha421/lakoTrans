@@ -60,6 +60,7 @@ export type PanelSessionValue = {
   selectedPageSize: { width: number; height: number } | null;
   /** Optional page-peer OCR face fallback used by source-size matching. */
   selectedBlockSourceFontFaceFallbackPx?: number | null;
+  selectedPageBlocks?: readonly TranslationBlock[];
   blockStylePresets: BlockStylePresetSummary[];
   canCreateStylePreset: boolean;
   /** Adjusts every selected block's font size by one relative step. */

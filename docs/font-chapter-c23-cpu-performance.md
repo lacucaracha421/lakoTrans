@@ -83,3 +83,109 @@ manifest binding 및 chapter 선택의 실제 적용 경계를 검사한다.
 
 롤백은 이 실행 어댑터/정책 변경과 manifest binding을 함께 되돌린다. 원격 release,
 모델, 사용자 library, 원본, 기존 출력은 변경하지 않는다.
+
+## 2026-10-07 기본 앱 경로 재검증
+
+실험 워크트리의 후보를 기본 저장소의 `createFontChapterC18Port`에 통합했다.
+보관함 스냅샷과 원본 이미지를 입력으로 정상 AppPaths, managed installer,
+실제 JSON worker, Hayai runtime, C23 resolver를 실행했다. 번역/인페인팅 전체를
+다시 실행한 시험은 아니며, 기존 library·원본·출력물에는 쓰지 않았다.
+
+### 선택적 글자 검증 가속
+
+줄 OCR은 Hayai를 유지한다. 정렬이 끝난 한 글자 atlas에서만
+PP-OCRv6 manga v0.2의 결과가 예상 문자와 NFKC 기준으로 정확히 같고,
+confidence >= 0.995, 잉크 bbox의 폭/높이가 0.8~1.3인 경우 빠른 결과를 쓴다.
+빈 그림, 좁은 글자, 다문자 조각, 불일치, 저신뢰도는 기존 Hayai로 처리한다.
+OCR payload는 기존 `dialogue_hint`로 만들고 원래 region 순서를 복구한다.
+모델 설치/추론 실패도 Hayai로 돌아가며 취소는 정상 전파한다.
+
+- upstream: <https://huggingface.co/Kellenok/PP-OCRv6_manga> (Apache-2.0)
+- revision: `ba1d479e8a61a20e8318c9758c73fbbbd290b98d`
+- managed directory: `models/font-glyph-ppocr-v02-r1`
+- `manga_rec_v0.2.onnx`: 21,167,540 bytes, SHA-256 `de12c84c63e62c80339e882e675983d886670dcb6f0147e1ed041afd6fa81888`
+- `ppocrv6_dict.txt`: 74,947 bytes, SHA-256 `b5f2bfe2bdd9448429e3e82b51c789775d9b42f2403d082b00662eb77e401c5d`
+- 설치 계약: 위 두 개별 파일을 기존 `ensureRemoteFile`로 받고 byte/hash를 확인한다.
+  worker에서도 다시 검증한다. GitHub release/기존 자산 덮어쓰기는 없다.
+- 실행: 기존 검증된 font native dependencies (ORT 1.21.0, OpenCV 4.11.0,
+  NumPy 1.26.4)의 CPU ORT 한 스레드. Hayai 자식 의존 경로는 그대로다.
+- rollback: `fontChapterC18.ts`에서 `glyphVerificationAssets` 전달을 빼면
+  기존 Hayai 전체 검증 경로로 돌아간다. model cache나 library 삭제는 필요 없다.
+
+CPU 정상 앱 worker의 3개 만화 각 10페이지 비교:
+
+| 작품 식별자 | 기존 worker | 가속 worker |  단축 |
+| ----------- | ----------: | ----------: | ----: |
+| f4ff3df3    |   191.831초 |   139.914초 | 27.1% |
+| 3998fffc    |   233.711초 |   173.433초 | 25.8% |
+| 901f740a    |   175.488초 |   120.844초 | 31.1% |
+
+최종 188개 resolver style 결과가 모두 같다. 첫 CPU 기준 실행의 런타임
+신규 설치 시간과 가속 모델 다운로드는 위 worker 시간에 넣지 않았다.
+로컬 각 1회 실행이므로 반복 측정의 신뢰구간/모든 기기 속도 보장은 아니다.
+GPU 기본 설정의 결과는 후속 기록에서 별도로 구분한다.
+
+### 자동 글자 크기와 작은 대사 회귀
+
+기존 저장 페이지의 legacy auto-fit에도 검증된 문단 배치를 적용한다.
+말풍선 슬롯의 fit 여부는 글자 크기에 대해 단조적이지 않으므로, 자동 생성
+말풍선에서는 위에서부터 탐색해 실제로 가능한 큰 크기를 놓치지 않는다.
+90페이지 보관함 비교에서 좁고 긴 풍선의 대사가 기존 11px에서 26px로
+복구됐다. 수동 크기와 수동 줄바꿈/세로 방향은 유지한다.
+
+단어를 온전히 쓰려고 글자를 과하게 줄이지 않도록 추가 문단 보정의 축소를
+제한했다(단어 분절은 최대 8%, 문장부호만의 줄은 최대 15%, 짧은 고립 행은
+최대 4%). 더 작게 해야만 실제로 들어가는 긴 대사의 물리적 맞춤과는 별개다.
+더 작게 만들면서 문장부호만의 행을 새로 만드는 후보는 채택하지 않는다.
+
+`dialogueFontSizeMatching.ts`는 같은 페이지의 신뢰 가능한 일반 대사에
+대해 실제 한글 face height와 같은 굵기의 가까운 source-size peer를 비교한다.
+4개 미만, 수동 크기, 세로/곡선, 강조 크기는 제외한다. 중앙값 조정은
+2px/15% 이내이며 새 overflow/단어 경계 손상/고립 행은 거부한다.
+타깃 크기는 렌더링에서만 계산하고 library의 원문 계측이나 수동 intent를
+다시 쓰지 않는다. 편집기, PNG exporter, 크기 표시와 +/-가 같은 계산을 쓴다.
+자동 세로 전환은 독립 사례가 충분하지 않아 승격하지 않았다.
+
+검증 자료는 기본 저장소 `.tmp/font-production-20261007/`에 보존한다.
+90페이지 측정 스크립트는 UTF-8 문서와 로드 완료된 실제 앱 폰트로 측정한다.
+이전 중간 측정의 인코딩이 빠진 probe 수치와 최종 수치를 섞지 않는다.
+넓은/좁은 실제 `PageArtwork` 캡처는 `C:/tmp/font-production-*-20261007-ready.png`.
+새 Python 검증과 실제 child-process 혼합 결과 순서 테스트, 작은 말풍선
+회귀와 manual intent 보존 테스트가 추가됐다. 수동 시각 검증은 human gold
+정답률로 해석하지 않으며 기존 v11/evaluation 및 1,347/training 권위는 그대로다.
+
+### GPU 기본 설정 결과와 승격 범위
+
+저장된 실제 설정은 Hayai / CUDA cu126 / GPU였고, GPU는 RTX 4090 24 GiB다.
+GPU에 PP 글자 verifier를 붙인 후보는 worker 80.078→74.461,
+96.759→108.356, 68.905→70.078초로 일관되게 우세하지 않아 제외했다.
+PP verifier는 CPU 실행에만 사용한다.
+
+GPU는 기존 Hayai F32 모델의 batch를 8→32로 늘렸다. NVIDIA CUDA이며
+시작 시 전체 VRAM >=16 GiB, 여유 >=8 GiB일 때만 적용한다. 저용량 GPU,
+ROCm과 CPU는 8을 유지한다. 실행 중 메모리 부족은 기존 Hayai의 재귀 batch
+분할을 사용한다. 모델/processor revision, 토큰 한도, patch 한도는 그대로다.
+`hayai-pool.py::resolve_batch_size`를 8로 고정하면 이 변경만 rollback할 수 있다.
+
+3개 화에서 글자 atlas 384개와 줄 81개, 총 465개 결과를 batch 8/16/32/8
+순서로 비교했다. 16과 32의 모든 OCR item payload가 8과 같았다. 재측정된
+마지막 batch 8 대비 batch 32의 인식 시간은 글자에서 30.0~51.0%, 줄에서
+44.6~51.0% 짧았다. 모델 로딩을 제외한 구간 측정이다.
+
+| 작품     | 기존 GPU worker | batch 32 worker | 준비 포함 기존→후보 |
+| -------- | --------------: | --------------: | ------------------: |
+| f4ff3df3 |        80.078초 |        62.292초 |     96.918→75.097초 |
+| 3998fffc |        96.759초 |        75.033초 |    111.065→86.383초 |
+| 901f740a |        68.905초 |        61.942초 |     83.255→73.675초 |
+
+GPU 역시 최종 188개 선택/서식 payload가 모두 같았다. 전체 시간은 각 1회
+로컬 실행이며 일부 다른 검증 프로세스도 실행 중이었다. 위 미세 구간의
+반복 결과와 구분하며 전체 시간의 정확한 개선율을 보편적 보장으로 쓰지 않는다.
+
+최종 9작품 90페이지/682영역에서 크기 145개(확대 84, 축소 61)가 바뀌고,
+새 overflow는 0개였다. 한 글자/문장부호의 고립 행은 126→103, 어절 중간
+분절은 149→175였다. 큰 글자를 우선한 결과 일부 한국어 어절 분절이 늘어난
+것이며, 모든 줄바꿈 지표가 개선됐다고 주장하지 않는다. 사용자가 지정한
+수동 크기와 자동 세로 전환의 기존 설정은 바꾸지 않는다. 예제 그림과 실제
+wide/narrow 화면을 함께 검토한다. library chapter 9개와 원본 90개의 SHA-256
+99개가 초기 selection과 모두 같음을 별도 `source-preservation.json`에 기록했다.

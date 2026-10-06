@@ -133,6 +133,10 @@ export const PanelSyncStateSchema = z
       .max(100000)
       .nullable()
       .optional(),
+    selectedPageBlocks: z
+      .array(TranslationBlockSchema)
+      .max(MAX_SELECTED_BLOCK_COUNT)
+      .optional(),
     blockStylePresets: z
       .array(BlockStylePresetSummarySchema)
       .max(MAX_BLOCK_STYLE_PRESETS),

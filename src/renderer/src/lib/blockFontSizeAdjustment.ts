@@ -1,3 +1,4 @@
+import { resolvePageDialogueFontSizes } from "./dialogueFontSizeMatching";
 import { resolveBlockDisplayText } from "../../../shared/blockDisplayText";
 import type { ChapterSnapshot, MangaPage } from "../../../shared/libraryTypes";
 import type { TranslationBlock } from "../../../shared/textTypes";
@@ -93,6 +94,7 @@ function adjustBlockFontSize(
         naturalPageSize,
         fontCatalog,
         sourceFontFaceFallbackPx,
+        page.blocks,
       )
     : block.fontSizePx;
   const fontSizePx = clampFontSizePx(
@@ -124,7 +126,13 @@ export function resolveBlockFontSizeAtNaturalPageScale(
   pageSize: Readonly<{ width: number; height: number }>,
   fontCatalog: BlockFontCatalog,
   sourceFontFaceFallbackPx?: number,
+  pageBlocks?: readonly TranslationBlock[],
 ): number {
+  const dialogueFontSizePx = pageBlocks
+    ? resolvePageDialogueFontSizes(pageBlocks, pageSize, fontCatalog).get(
+        block.id,
+      )
+    : undefined;
   const displayText = resolveBlockDisplayText(block) || "...";
   return resolveBlockTextLayout(
     block,
@@ -132,6 +140,6 @@ export function resolveBlockFontSizeAtNaturalPageScale(
     pageSize,
     pageSize,
     fontCatalog,
-    { sourceFontFaceFallbackPx },
+    { sourceFontFaceFallbackPx, dialogueFontSizePx },
   ).fontSizePx;
 }

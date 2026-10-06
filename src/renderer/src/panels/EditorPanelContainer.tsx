@@ -21,12 +21,14 @@ export function EditorPanelContainer(): React.JSX.Element {
       session.selectedPageSize,
       catalog,
       session.selectedBlockSourceFontFaceFallbackPx ?? undefined,
+      session.selectedPageBlocks,
     );
   }, [
     catalog,
     session.selectedBlock,
     session.selectedBlockSourceFontFaceFallbackPx,
     session.selectedPageSize,
+    session.selectedPageBlocks,
   ]);
   return (
     <>

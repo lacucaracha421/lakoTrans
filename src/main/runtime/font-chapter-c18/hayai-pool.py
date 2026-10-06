@@ -1,8 +1,9 @@
 """Chapter transport for the unchanged Hayai page/batch inference contract.
 
-Each child owns one model. Whole pages retain their original order, crops and
-minibatches; only independent pages run concurrently. The pool lives for one
-chapter and remains in the app worker's process tree for cancellation.
+Each child owns one model. Line crops retain their original order and minibatches.
+An optional exact-match verifier removes accepted single glyphs before dispatch;
+the original glyph order is restored through the runtime's normal hint contract.
+The pool lives for one chapter in the app worker's cancellation process tree.
 """
 import concurrent.futures
 import contextlib
@@ -24,6 +25,13 @@ class HayaiPool:
         self.limit = (max(1, int(os.environ.get('C18_HAYAI_CPU_WORKERS', '1')))
                       if self.device == 'cpu' else 1)
         self.children = []
+        self.verifier = None
+        self.fast_module = None
+        if self.device == 'cpu' and request.get('glyphVerificationAssets'):
+            spec = importlib.util.spec_from_file_location('glyph_fast', Path(__file__).with_name('glyph-fast-verification.py'))
+            self.fast_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.fast_module)
+            self.verifier = self.fast_module.create(request['glyphVerificationAssets'])
 
     def __enter__(self):
         return self.run
@@ -83,6 +91,8 @@ class HayaiPool:
                 return
             print(json.dumps({'phase': 'start', 'index': index, 'total': total,
                               'output': item['output'], 'count': 0}), file=sys.stderr, flush=True)
+            if self.verifier is not None:
+                item = self.fast_module.prepare_or_fallback(self.verifier, item)
             child.stdin.write(json.dumps(item) + '\n')
             child.stdin.flush()
             line = child.stdout.readline()
@@ -118,6 +128,17 @@ class HayaiPool:
         self.children.clear()
 
 
+def resolve_batch_size(runtime, device):
+    torch = getattr(runtime, 'torch', None)
+    version = getattr(torch, 'version', None)
+    if getattr(device, 'type', None) != 'cuda' or not getattr(version, 'cuda', None):
+        return 8
+    free, total = torch.cuda.mem_get_info(device)
+    # Keep low-memory/ROCm/CPU defaults. The existing runtime recursively splits
+    # a batch on CUDA OOM if another application consumes VRAM after this check.
+    return 32 if free >= 8 * 1024 ** 3 and total >= 16 * 1024 ** 3 else 8
+
+
 def serve(script, device):
     # Embedded Python ignores PYTHONPATH. Use the same engine-owned directory
     # supplied by the managed runtime, never the font worker's dependency stack.
@@ -128,15 +149,26 @@ def serve(script, device):
     with contextlib.redirect_stdout(sys.stderr):
         spec.loader.exec_module(runtime)
         model, tokenizer, processor, device = runtime.load_runtime(SimpleNamespace(device=device))
+        batch_size = resolve_batch_size(runtime, device)
     for line in sys.stdin:
-        item = runtime.normalize_batch_item(json.loads(line))
+        command = json.loads(line)
+        item = runtime.normalize_batch_item(command)
         with contextlib.redirect_stdout(sys.stderr):
             payload = runtime.process_page(
                 image_path=Path(item['image']), region_path=Path(item['regions']),
                 output_path=Path(item['output']), model=model, tokenizer=tokenizer,
-                processor=processor, device=device, batch_size=8,
+                processor=processor, device=device, batch_size=batch_size,
                 max_new_tokens=96, max_num_patches=256,
             )
+            if command.get('fastGlyphs'):
+                by_id = {row['id']: row for row in payload['items']}
+                for fast in command['fastGlyphs']:
+                    region, text = fast['region'], fast['text']
+                    by_id[region['id']] = runtime.dialogue_hint(region, text, [(0, text)])
+                payload['items'] = [by_id[key] for key in command['glyphOrder']]
+                payload['textEvidenceCount'] = sum(bool(row.get('ocrText')) for row in payload['items'])
+                payload['noTextDetected'] = not payload['items']
+                Path(item['output']).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', 'utf-8')
             runtime.release_gpu_memory()
         print(json.dumps({'ok': True, 'output': item['output'],
                           'count': len(payload['items'])}), flush=True)

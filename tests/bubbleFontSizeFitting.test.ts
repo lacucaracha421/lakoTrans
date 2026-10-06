@@ -18,6 +18,24 @@ function paragraph(parts: string[]): SlottedWrappedTextMeasurement {
 }
 
 describe("source matched paragraph size", () => {
+  it("preserves readable glyphs when an intact long word requires a large reduction", () => {
+    expect(
+      selectSourceMatchedParagraphSize("예상하고 있었으니까", 32, (size) =>
+        paragraph(
+          size >= 26
+            ? ["예상하", "고 ", "있었으", "니까"]
+            : ["예상하고 ", "있었으니까"],
+        ),
+      ),
+    ).toBe(32);
+  });
+  it("does not shrink a readable long word just to put its ellipsis on a separate row", () => {
+    expect(
+      selectSourceMatchedParagraphSize("그렇구나…", 24, (size) =>
+        paragraph(size >= 22 ? ["그렇구", "나…"] : ["그렇구나", "…"]),
+      ),
+    ).toBe(24);
+  });
   it("keeps the largest undamaged paragraph even if a smaller one uses fewer lines", () => {
     expect(
       selectSourceMatchedParagraphSize("온전한 문단 유지", 30, (size) =>

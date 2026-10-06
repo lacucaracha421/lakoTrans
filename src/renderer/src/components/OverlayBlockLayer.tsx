@@ -1,4 +1,5 @@
 import React from "react";
+import { resolvePageDialogueFontSizes } from "../lib/dialogueFontSizeMatching";
 import { useFonts } from "../fonts/useFonts";
 import { useBlockFontReadiness } from "../hooks/useBlockFontReadiness";
 import type { BlockFontCatalog } from "../lib/fonts";
@@ -67,15 +68,17 @@ const OverlayBlockLayerView = React.memo(function OverlayBlockLayerView({
   );
   const stableStageSize = useStableViewportSize(stageSize);
   const stableTextLayoutStageSize = useStableViewportSize(textLayoutStageSize);
-  const sourceFontFaceFallbacks = React.useMemo(
-    () => resolvePageSourceFontFaceFallbacks(page.blocks, pageSize),
-    [page.blocks, pageSize],
-  );
   const handleBlockPointerDown = useLatestBlockPointerDown(onBlockPointerDown);
   const fontsReady = useBlockFontReadiness(
     page.blocks,
     fontCatalog,
     fontCatalogReady,
+  );
+  const { dialogueSizes, sourceFontFaceFallbacks } = useDialogueSizes(
+    page,
+    pageSize,
+    fontCatalog,
+    fontsReady,
   );
   if (!imageDataUrl || !stableStageSize || !fontsReady) {
     return null;
@@ -99,6 +102,7 @@ const OverlayBlockLayerView = React.memo(function OverlayBlockLayerView({
           showChrome={showBlockChrome}
           shapeEditMode={stageTool === "bubble" && block.id === selectedBlockId}
           sourceFontFaceFallbackPx={sourceFontFaceFallbacks.get(block.id)}
+          dialogueFontSizePx={dialogueSizes.get(block.id)}
           textLayoutStageSize={stableTextLayoutStageSize}
           pointerDisabled={!showTextBlocks || (blockPointerDisabled ?? false)}
           editingDisabled={blockEditingDisabled}
@@ -188,5 +192,25 @@ function useStableViewportSize(size: ViewportSize | null): ViewportSize | null {
   return React.useMemo(
     () => (width !== null && height !== null ? { width, height } : null),
     [height, width],
+  );
+}
+
+function useDialogueSizes(
+  page: OverlayBlockLayerProps["page"],
+  pageSize: ViewportSize,
+  catalog: BlockFontCatalog,
+  ready: boolean,
+) {
+  return React.useMemo(
+    () => ({
+      sourceFontFaceFallbacks: resolvePageSourceFontFaceFallbacks(
+        page.blocks,
+        pageSize,
+      ),
+      dialogueSizes: ready
+        ? resolvePageDialogueFontSizes(page.blocks, pageSize, catalog)
+        : new Map<string, number>(),
+    }),
+    [ready, page.blocks, pageSize, catalog],
   );
 }

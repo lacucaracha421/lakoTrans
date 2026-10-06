@@ -1,3 +1,4 @@
+import { isAutomaticFontSize } from "./sourceFontSizeMatching";
 import { parseRichText } from "../../../shared/richTextMarkup";
 import { isGeneratedBubbleLayout } from "../../../shared/bubbleLayout";
 import { measureStyledGraphemes } from "./overlayTextWrapping";
@@ -123,7 +124,7 @@ function shouldBalanceParagraph(
   plainText: string,
 ): boolean {
   return (
-    block.fontSizeIntent === "source-match" &&
+    isAutomaticFontSize(block) &&
     isGeneratedBubbleLayout(block.bubbleLayout) &&
     renderDirection === "horizontal" &&
     !/[\r\n]/u.test(plainText) &&

@@ -11,7 +11,7 @@ const MAX_MATCHED_FONT_SIZE_PX = 200;
 const MAX_PROBE_GRAPHEMES = 80;
 const MAX_CACHE_ENTRIES = 4_096;
 // One small optical step, proportional to the source rather than page pixels.
-export const SOURCE_MATCH_OPTICAL_SCALE = 1.06;
+const SOURCE_MATCH_OPTICAL_SCALE = 1.06;
 const MIN_CORNER_FRAGMENT_GRAPHEMES = 8;
 const MAX_CORNER_FRAGMENT_AREA_SHARE = 1 / 8;
 const CENTRAL_HALF_MAX_CENTER_OFFSET = 1 / 4;
@@ -306,4 +306,12 @@ function rememberRatio(key: string, ratio: number): void {
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+/** Legacy auto-fit and source matching share automatic sizing; manual values are authoritative. */
+export function isAutomaticFontSize(block: TranslationBlock): boolean {
+  return (
+    block.fontSizeIntent === "source-match" ||
+    (block.fontSizeIntent !== "manual" && block.autoFitText !== false)
+  );
 }

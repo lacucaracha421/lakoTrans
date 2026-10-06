@@ -16,6 +16,7 @@ type LayoutInput = {
   fontCatalog: BlockFontCatalog;
   pageSize: ViewportSize;
   sourceFontFaceFallbackPx?: number;
+  dialogueFontSizePx?: number;
   stageSize: ViewportSize;
   textLayoutStageSize: ViewportSize | null;
 };
@@ -27,6 +28,7 @@ export function usePreviewAwareBlockLayout({
   fontCatalog,
   pageSize,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   stageSize,
   textLayoutStageSize,
 }: Omit<LayoutInput, "block"> & {
@@ -40,6 +42,7 @@ export function usePreviewAwareBlockLayout({
     fontCatalog,
     pageSize,
     sourceFontFaceFallbackPx,
+    dialogueFontSizePx,
     stageSize,
     textLayoutStageSize,
   });
@@ -48,6 +51,7 @@ export function usePreviewAwareBlockLayout({
     displayText,
     pageSize,
     sourceFontFaceFallbackPx,
+    dialogueFontSizePx,
     stageSize,
     textLayoutStageSize,
   });
@@ -66,6 +70,7 @@ export function usePreviewAwareBlockLayout({
     fontCatalog,
     pageSize,
     sourceFontFaceFallbackPx,
+    dialogueFontSizePx,
     stageSize,
     textLayoutStageSize,
   });
@@ -81,6 +86,7 @@ function useCanonicalLayout({
   fontCatalog,
   pageSize,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   stageSize,
   textLayoutStageSize,
 }: LayoutInput): BlockTextLayout {
@@ -93,6 +99,7 @@ function useCanonicalLayout({
         fontCatalog,
         pageSize,
         sourceFontFaceFallbackPx,
+        dialogueFontSizePx,
         stageSize: layoutStageSize,
         textLayoutStageSize: layoutStageSize,
       }),
@@ -103,6 +110,7 @@ function useCanonicalLayout({
       layoutStageSize,
       pageSize,
       sourceFontFaceFallbackPx,
+      dialogueFontSizePx,
     ],
   );
 }
@@ -114,6 +122,7 @@ function usePreviewLayout({
   fontCatalog,
   pageSize,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   stageSize,
   textLayoutStageSize,
 }: LayoutInput & { canReuseCanonical: boolean }): BlockTextLayout | null {
@@ -128,6 +137,7 @@ function usePreviewLayout({
             fontCatalog,
             pageSize,
             sourceFontFaceFallbackPx,
+            dialogueFontSizePx,
             stageSize: layoutStageSize,
             textLayoutStageSize: layoutStageSize,
           }),
@@ -139,6 +149,7 @@ function usePreviewLayout({
       layoutStageSize,
       pageSize,
       sourceFontFaceFallbackPx,
+      dialogueFontSizePx,
     ],
   );
 }
@@ -149,6 +160,7 @@ function resolveInputLayout({
   fontCatalog,
   pageSize,
   sourceFontFaceFallbackPx,
+  dialogueFontSizePx,
   stageSize,
   textLayoutStageSize,
 }: LayoutInput): BlockTextLayout {
@@ -160,6 +172,7 @@ function resolveInputLayout({
     fontCatalog,
     {
       sourceFontFaceFallbackPx,
+      dialogueFontSizePx,
       textLayoutStageSize: textLayoutStageSize ?? undefined,
     },
   );

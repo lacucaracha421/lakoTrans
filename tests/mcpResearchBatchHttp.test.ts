@@ -76,12 +76,17 @@ it("registers actual batch tools, isolates owners and reconstructs held plans ov
     expect(
       (await f.call("carrot_run_research_batch", command)).result.isError,
     ).toBe(false);
-    await vi.waitFor(async () => {
-      const result = (
-        await f.call("carrot_get_research_batch", { id: plan.id })
-      ).result.structuredContent;
-      expect(result).toMatchObject({ status: "partial", attemptsUsed: 0 });
-    });
+    // The run response acknowledges scheduling; durable writes complete later.
+    // A shared CI disk can take longer than waitFor's default one-second budget.
+    await vi.waitFor(
+      async () => {
+        const result = (
+          await f.call("carrot_get_research_batch", { id: plan.id })
+        ).result.structuredContent;
+        expect(result).toMatchObject({ status: "partial", attemptsUsed: 0 });
+      },
+      { timeout: 10_000 },
+    );
     expect(
       (await f.call("carrot_discard_retained", { id: plan.id, confirm: true }))
         .result.structuredContent.error,

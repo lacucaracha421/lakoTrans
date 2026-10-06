@@ -441,7 +441,9 @@ module.exports = {
   verifyKoharuImageSmokes,
 };
 
-if (require.main === module) {
+// Electron keeps its bootstrap as require.main when launching a script file.
+// The explicit child mode must therefore also enter the smoke CLI.
+if (require.main === module || process.argv[2] === "--koharu-smoke") {
   const [, , mode, appPath, workRoot, imagesJson] = process.argv;
   if (mode !== "--koharu-smoke" || !appPath || !workRoot || !imagesJson) {
     throw new Error(

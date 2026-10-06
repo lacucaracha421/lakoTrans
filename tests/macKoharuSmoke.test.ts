@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,6 +7,10 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { ensureKoharuWorkerLaunch } from "../src/main/inpainting/koharuAssets";
 
 const require = createRequire(import.meta.url);
+const { ensureElectronExecutable } =
+  require("../scripts/electron-executable.cjs") as {
+    ensureElectronExecutable(root: string): string;
+  };
 type LaunchOptions = Parameters<typeof ensureKoharuWorkerLaunch>[0];
 type Launch = Awaited<ReturnType<typeof ensureKoharuWorkerLaunch>>;
 type RunOptions = { env?: NodeJS.ProcessEnv; input?: string; timeout?: number };
@@ -39,6 +44,35 @@ afterEach(() => {
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
 });
+
+it.skipIf(!["win32", "darwin"].includes(process.platform))(
+  "enters the smoke CLI under real Electron and reports a missing packaged module instead of hanging",
+  { timeout: 45_000 },
+  () => {
+    const root = mkdtempSync(join(tmpdir(), "mac-koharu-entry-"));
+    roots.push(root);
+    const result = spawnSync(
+      ensureElectronExecutable(join(__dirname, "..")),
+      [
+        join(__dirname, "..", "scripts", "verify-mac-runtime-smokes.cjs"),
+        "--koharu-smoke",
+        join(root, "missing.app"),
+        root,
+        "{}",
+      ],
+      {
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: undefined },
+        encoding: "utf8",
+        timeout: 30_000,
+        windowsHide: true,
+      },
+    );
+    expect(result.error, result.stderr).toBeUndefined();
+    expect(result.status, result.stderr).toBe(1);
+    expect(result.stderr).toContain("Cannot find module");
+    expect(result.stderr).toContain("koharuAssets.js");
+  },
+);
 
 function fixture(reply: "ok" | "error" | "missing" = "ok") {
   const root = mkdtempSync(join(tmpdir(), "mac-koharu-smoke-"));

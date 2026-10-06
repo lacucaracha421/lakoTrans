@@ -15,16 +15,20 @@ function latch() {
 it("pauses after the admitted child settles and explicitly resumes only remaining works", async () => {
   const f = await researchBatchFixture();
   const gate = latch();
+  const admitted = latch();
   try {
     const native = f.research.getMockImplementation();
     if (!native) throw new Error("Missing provider boundary");
     f.research.mockImplementationOnce(async (...args) => {
+      admitted.release();
       await gate.promise;
       return native(...args);
     });
     const plan = await f.prepare();
     await f.run(plan.id);
-    await vi.waitFor(() => expect(f.research).toHaveBeenCalledOnce());
+    // Admission follows durable writes; synchronize on entry, not a one-second poll.
+    await admitted.promise;
+    expect(f.research).toHaveBeenCalledOnce();
     await expect(
       f.invoke("carrot_pause_research_batch", { id: plan.id }, f.auth("other")),
     ).rejects.toThrow();
@@ -56,7 +60,8 @@ it("pauses after the admitted child settles and explicitly resumes only remainin
 it("keeps cancellation running until the admitted provider cleanup finishes and does not start the next work", async () => {
   const f = await researchBatchFixture();
   const cleanup = latch();
-  let aborted = false;
+  const admitted = latch();
+  const aborted = latch();
   try {
     f.research.mockImplementationOnce(async (_request, signal) => {
       if (!signal) throw new Error("Missing native signal");
@@ -64,13 +69,14 @@ it("keeps cancellation running until the admitted provider cleanup finishes and 
         signal.addEventListener(
           "abort",
           () => {
-            aborted = true;
+            aborted.release();
             resolve();
           },
           { once: true },
         );
+        admitted.release();
         if (signal.aborted) {
-          aborted = true;
+          aborted.release();
           resolve();
         }
       });
@@ -80,9 +86,10 @@ it("keeps cancellation running until the admitted provider cleanup finishes and 
     });
     const plan = await f.prepare();
     await f.run(plan.id);
-    await vi.waitFor(() => expect(f.research).toHaveBeenCalledOnce());
+    await admitted.promise;
+    expect(f.research).toHaveBeenCalledOnce();
     await f.invoke("carrot_cancel_research_batch", { id: plan.id });
-    await vi.waitFor(() => expect(aborted).toBe(true));
+    await aborted.promise;
     expect(await f.get(plan.id)).toMatchObject({
       status: "running",
       cancellationRequested: true,

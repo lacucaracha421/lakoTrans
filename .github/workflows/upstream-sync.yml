@@ -1,0 +1,90 @@
+# Fork-only workflow: keeps `master` as an exact mirror of the upstream project
+# and opens a pull request that brings new upstream commits into `main`
+# (this fork's customized branch). See FORK_CHANGES.md.
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: "17 21 * * *" # 06:17 KST daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: ucx0204/CarrotMangaTranslator
+  UPSTREAM_BRANCH: master
+  MIRROR_BRANCH: master
+  CUSTOM_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # GITHUB_TOKEN cannot push commits that touch .github/workflows.
+          # An optional fine-grained PAT (Contents, Workflows, Pull requests:
+          # read/write on this fork) removes that limit.
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
+          git fetch --no-tags origin "${MIRROR_BRANCH}" "${CUSTOM_BRANCH}"
+
+      - name: Fast-forward mirror branch
+        id: mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          upstream_sha=$(git rev-parse "upstream/${UPSTREAM_BRANCH}")
+          mirror_sha=$(git rev-parse "origin/${MIRROR_BRANCH}")
+          if [ "$upstream_sha" = "$mirror_sha" ]; then
+            echo "Mirror already up to date."
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor "$mirror_sha" "$upstream_sha"; then
+            echo "::error::${MIRROR_BRANCH} has commits that are not upstream. It must stay an exact mirror."
+            exit 1
+          fi
+          if git push origin "${upstream_sha}:refs/heads/${MIRROR_BRANCH}"; then
+            exit 0
+          fi
+          # Usually: upstream changed a workflow file and no PAT is configured.
+          title="Upstream sync needs a manual 'Sync fork'"
+          body="Pushing upstream \`${upstream_sha:0:7}\` to \`${MIRROR_BRANCH}\` failed (likely a workflow-file change without \`UPSTREAM_SYNC_TOKEN\`). Press **Sync fork** on the \`${MIRROR_BRANCH}\` branch page, then re-run this workflow."
+          existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -z "$existing" ]; then
+            gh issue create --title "$title" --body "$body"
+          fi
+          exit 1
+
+      - name: Open upstream pull request into custom branch
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
+        run: |
+          git fetch --no-tags origin "${MIRROR_BRANCH}"
+          if git merge-base --is-ancestor "origin/${MIRROR_BRANCH}" "origin/${CUSTOM_BRANCH}"; then
+            echo "${CUSTOM_BRANCH} already contains upstream."
+            exit 0
+          fi
+          existing=$(gh pr list --base "${CUSTOM_BRANCH}" --head "${MIRROR_BRANCH}" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Pull request #${existing} is already open; it updates itself."
+            exit 0
+          fi
+          count=$(git rev-list --count "origin/${CUSTOM_BRANCH}..origin/${MIRROR_BRANCH}")
+          gh pr create \
+            --base "${CUSTOM_BRANCH}" \
+            --head "${MIRROR_BRANCH}" \
+            --title "Upstream sync: ${count} new commit(s)" \
+            --body "Brings the latest \`${UPSTREAM_REPO}\` changes into \`${CUSTOM_BRANCH}\`. Merge with a **merge commit** (not squash/rebase) so future syncs stay clean. If GitHub reports conflicts, resolve them on a separate branch from \`${CUSTOM_BRANCH}\`; never commit to \`${MIRROR_BRANCH}\`."

@@ -547,9 +547,11 @@ describe("production cleanup coverage floor gate", () => {
     expect(Object.keys(manifest.floors)).toEqual(scope.existing);
     expect(Object.keys(manifest.introducedFloors)).toEqual(scope.added);
     expect(manifest.deletedFiles).toEqual(scope.deleted);
-    expect(scope.existing).toHaveLength(832);
+    // Fork (lakotrans): +1 endpointSession.ts for the translation trace.
+    expect(scope.existing).toHaveLength(833);
     // Includes MCP and master additions; the renderer gatherText floor follows its shared owner.
-    expect(scope.added).toHaveLength(1354);
+    // Fork (lakotrans): +2 translation trace modules.
+    expect(scope.added).toHaveLength(1356);
     expect(scope.deleted).toHaveLength(12);
   });
 });

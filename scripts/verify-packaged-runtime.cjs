@@ -157,7 +157,8 @@ const allowedElectronLocales = new Set([
 // replacements do not change the count. The audited thin payload is 374 files.
 // v3.2.2 adds font-chapter-c18/glyph-fast-verification.py for optional CPU
 // glyph verification. This single runtime leaf makes the thin payload 375 files.
-const MAX_PACKAGED_FILES = 375;
+// Fork (lakotrans): transport/translation-trace.cjs adds one runtime file (376).
+const MAX_PACKAGED_FILES = 376;
 // The trained font matching runtime bundle (~467 MiB) is externalized out of
 // the installer and downloaded into the data-root cache on first use, so the
 // unpacked payload is ~745 MiB (Electron + app.asar + tools, no bundle) and the

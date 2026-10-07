@@ -282,8 +282,9 @@ describe("Windows installer clean uninstall option", () => {
     expect(packagedRuntimeVerifier).toContain(
       "const MAX_PACKAGED_BYTES = 1450 * 1024 * 1024;",
     );
+    // Fork (lakotrans): +1 runtime file for the translation trace.
     expect(packagedRuntimeVerifier).toContain(
-      "const MAX_PACKAGED_FILES = 375;",
+      "const MAX_PACKAGED_FILES = 376;",
     );
     expect(packagedRuntimeVerifier).toContain(
       "const mainRuntimeSmokeMessage = runPackagedMainRuntimeSmoke();",

@@ -155,7 +155,9 @@ const allowedElectronLocales = new Set([
 // lock, api-conversation.cjs, api-http-failure.cjs and ffmpeg-runtime.json (+5).
 // Electron 44 removes libEGL.dll and libGLESv2.dll (-2); ONNX/Python lock version
 // replacements do not change the count. The audited thin payload is 374 files.
-const MAX_PACKAGED_FILES = 374;
+// v3.2.2 adds font-chapter-c18/glyph-fast-verification.py for optional CPU
+// glyph verification. This single runtime leaf makes the thin payload 375 files.
+const MAX_PACKAGED_FILES = 375;
 // The trained font matching runtime bundle (~467 MiB) is externalized out of
 // the installer and downloaded into the data-root cache on first use, so the
 // unpacked payload is ~745 MiB (Electron + app.asar + tools, no bundle) and the

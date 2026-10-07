@@ -142,7 +142,6 @@ function registerHandler(dependencies: ImageProtocolDependencies): void {
       if (
         image.originalUrl &&
         image.thumbnailMaxEdge &&
-        image.contentType !== "image/webp" &&
         dependencies.serveThumbnail
       ) {
         const response = await tryThumbnailResponse(

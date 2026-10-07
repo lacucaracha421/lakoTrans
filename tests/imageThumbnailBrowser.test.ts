@@ -1,7 +1,10 @@
 import { runInNewContext } from "node:vm";
 import { PNG } from "pngjs";
 import { describe, expect, it, vi } from "vitest";
-import { buildImageThumbnailScript } from "../src/main/imageThumbnailBrowser";
+import {
+  buildImageThumbnailScript,
+  thumbnailWebpAllowed,
+} from "../src/main/imageThumbnailBrowser";
 
 function pngHeader(width = 3001, height = 4003, extra?: string): Buffer {
   const png = PNG.sync.write(new PNG({ width: 2, height: 3 }));
@@ -31,6 +34,30 @@ function jpegHeader(width = 600, height = 400, icc = false): Buffer {
     jpegSegment(0xc0, frame),
     Buffer.from([0xff, 0xda]),
   ]);
+}
+function webpHeader(
+  chunk: "VP8 " | "VP8L" | "VP8X",
+  width = 3001,
+  height = 4003,
+  flags = 0,
+): Buffer {
+  const bytes = Buffer.alloc(30);
+  bytes.write("RIFF", 0, "ascii");
+  bytes.write("WEBP", 8, "ascii");
+  bytes.write(chunk, 12, "ascii");
+  if (chunk === "VP8 ") {
+    bytes.set([0x9d, 0x01, 0x2a], 23);
+    bytes.writeUInt16LE(width, 26);
+    bytes.writeUInt16LE(height, 28);
+  } else if (chunk === "VP8L") {
+    bytes[20] = 0x2f;
+    bytes.writeUInt32LE(((height - 1) << 14) | (width - 1), 21);
+  } else {
+    bytes[20] = flags;
+    bytes.writeUIntLE(width - 1, 24, 3);
+    bytes.writeUIntLE(height - 1, 27, 3);
+  }
+  return bytes;
 }
 function browserFixture(
   bytes: Buffer,
@@ -93,7 +120,7 @@ async function execute(bytes: Buffer, mime: string) {
 }
 
 describe("serialized browser thumbnail guards", () => {
-  it.each(["acTL", "iCCP", "cICP", "cHRM"])(
+  it.each(["acTL", "cICP", "cHRM"])(
     "retains PNG %s originals before allocating a raster",
     async (chunk) => {
       const fixture = await execute(pngHeader(3001, 4003, chunk), "image/png");
@@ -107,10 +134,12 @@ describe("serialized browser thumbnail guards", () => {
     ["PNG zero dimension", pngHeader(0, 4000), "image/png"],
     ["PNG incomplete header", pngHeader().subarray(0, 32), "image/png"],
     ["JPEG above32M", jpegHeader(8001, 4000), "image/jpeg"],
-    ["JPEG ICC", jpegHeader(600, 400, true), "image/jpeg"],
     ["JPEG absent frame", Buffer.from([0xff, 0xd8, 0xff, 0xda]), "image/jpeg"],
     ["JPEG truncated segment", jpegHeader().subarray(0, 8), "image/jpeg"],
-    ["WebP", Buffer.alloc(16), "image/webp"],
+    ["WebP unknown header", Buffer.alloc(16), "image/webp"],
+    ["WebP animated", webpHeader("VP8X", 3001, 4003, 0x02), "image/webp"],
+    ["WebP above32M", webpHeader("VP8X", 8001, 4000), "image/webp"],
+    ["WebP lossless above32M", webpHeader("VP8L", 8001, 4000), "image/webp"],
   ])("keeps %s original", async (_name, bytes, mime) => {
     const fixture = await execute(bytes, mime);
     expect(fixture.result).toBeNull();
@@ -119,6 +148,11 @@ describe("serialized browser thumbnail guards", () => {
   it.each([
     [pngHeader(8000, 4000), "image/png"],
     [jpegHeader(8000, 4000), "image/jpeg"],
+    [pngHeader(8000, 4000, "iCCP"), "image/png"],
+    [jpegHeader(8000, 4000, true), "image/jpeg"],
+    [webpHeader("VP8 ", 8000, 4000), "image/webp"],
+    [webpHeader("VP8L", 8000, 4000), "image/webp"],
+    [webpHeader("VP8X", 8000, 4000, 0x30), "image/webp"],
   ])(
     "accepts a header at the exact32M boundary and runs the complete isolated script",
     async (bytes, mime) => {
@@ -173,5 +207,38 @@ describe("serialized browser thumbnail guards", () => {
       credentials: "omit",
     });
     expect(fixture.globals).not.toHaveProperty("injected");
+  });
+});
+
+describe("WebP thumbnail header guard", () => {
+  it.each([
+    ["lossy", webpHeader("VP8 "), true],
+    ["lossless", webpHeader("VP8L"), true],
+    ["extended with ICC and alpha", webpHeader("VP8X", 3001, 4003, 0x30), true],
+    ["exact32M lossless", webpHeader("VP8L", 8000, 4000), true],
+    ["animated", webpHeader("VP8X", 3001, 4003, 0x02), false],
+    ["above32M extended", webpHeader("VP8X", 8001, 4000), false],
+    ["above32M lossless", webpHeader("VP8L", 8001, 4000), false],
+    ["zero-size lossy", webpHeader("VP8 ", 0, 4003), false],
+    ["truncated", webpHeader("VP8 ").subarray(0, 29), false],
+    [
+      "not RIFF",
+      Buffer.concat([Buffer.from("RIFX"), webpHeader("VP8 ").subarray(4)]),
+      false,
+    ],
+  ])("%s", (_name, bytes, expected) => {
+    expect(thumbnailWebpAllowed(Uint8Array.from(bytes))).toBe(expected);
+  });
+
+  it("rejects a bad lossy start code, lossless signature or unknown chunk", () => {
+    const lossy = webpHeader("VP8 ");
+    lossy[23] = 0;
+    const lossless = webpHeader("VP8L");
+    lossless[20] = 0;
+    const unknown = webpHeader("VP8 ");
+    unknown.write("ALPH", 12, "ascii");
+    for (const bytes of [lossy, lossless, unknown]) {
+      expect(thumbnailWebpAllowed(Uint8Array.from(bytes))).toBe(false);
+    }
   });
 });

@@ -10,6 +10,7 @@ export function buildImageThumbnailScript(
     readThumbnailJpegSegment,
     thumbnailJpegFrameAllowed,
     thumbnailJpegAllowed,
+    thumbnailWebpAllowed,
     readThumbnailBlob,
     drawThumbnailBlob,
     renderThumbnailInPage,
@@ -48,7 +49,8 @@ function thumbnailPngAllowed(prefix: Uint8Array): boolean {
     const type = String.fromCharCode(
       ...prefix.subarray(offset + 4, offset + 8),
     );
-    if (["acTL", "iCCP", "cICP", "cHRM"].includes(type)) return false;
+    // Fork: iCCP is allowed; Chromium color-manages it into the sRGB canvas.
+    if (["acTL", "cICP", "cHRM"].includes(type)) return false;
     if (type === "IDAT") return true;
     if (offset + 12 + size > prefix.length) return false;
     offset += 12 + size;
@@ -107,16 +109,9 @@ function thumbnailJpegAllowed(prefix: Uint8Array): boolean {
   while (offset < prefix.length) {
     const segment = readThumbnailJpegSegment(prefix, offset);
     if (!segment) return false;
-    const { marker, size } = segment;
+    const { marker } = segment;
     if (marker === 0xda) return foundFrameSize;
-    if (
-      marker === 0xe2 &&
-      size >= 14 &&
-      String.fromCharCode(
-        ...prefix.subarray(segment.offset + 2, segment.offset + 14),
-      ) === "ICC_PROFILE\0"
-    )
-      return false;
+    // Fork: ICC profiles are allowed; Chromium color-manages them on draw.
     if (
       [
         0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce,
@@ -127,6 +122,43 @@ function thumbnailJpegAllowed(prefix: Uint8Array): boolean {
       foundFrameSize = true;
     }
     offset = segment.nextOffset;
+  }
+  return false;
+}
+
+/**
+ * Fork: static WebP (lossy, lossless, extended); animation stays original.
+ * Exported only so in-process tests can cover it; it is still serialized.
+ */
+export function thumbnailWebpAllowed(prefix: Uint8Array): boolean {
+  const tag = (offset: number) =>
+    String.fromCharCode(...prefix.subarray(offset, offset + 4));
+  if (prefix.length < 30 || tag(0) !== "RIFF" || tag(8) !== "WEBP")
+    return false;
+  const chunk = tag(12);
+  if (chunk === "VP8 ") {
+    if (prefix[23] !== 0x9d || prefix[24] !== 0x01 || prefix[25] !== 0x2a)
+      return false;
+    return thumbnailRasterAllowed(
+      (prefix[26] | (prefix[27] << 8)) & 0x3fff,
+      (prefix[28] | (prefix[29] << 8)) & 0x3fff,
+    );
+  }
+  if (chunk === "VP8L") {
+    if (prefix[20] !== 0x2f) return false;
+    const bits =
+      prefix[21] | (prefix[22] << 8) | (prefix[23] << 16) | (prefix[24] << 24);
+    return thumbnailRasterAllowed(
+      (bits & 0x3fff) + 1,
+      ((bits >>> 14) & 0x3fff) + 1,
+    );
+  }
+  if (chunk === "VP8X") {
+    if (prefix[20] & 0x02) return false;
+    return thumbnailRasterAllowed(
+      (prefix[24] | (prefix[25] << 8) | (prefix[26] << 16)) + 1,
+      (prefix[27] | (prefix[28] << 8) | (prefix[29] << 16)) + 1,
+    );
   }
   return false;
 }
@@ -143,7 +175,7 @@ async function readThumbnailBlob(originalUrl: string): Promise<Blob | null> {
   const declared = Number(response.headers.get("content-length"));
   if (
     !response.ok ||
-    !["image/png", "image/jpeg"].includes(mime) ||
+    !["image/png", "image/jpeg", "image/webp"].includes(mime) ||
     declared > 64 * 1024 * 1024
   ) {
     await response.body?.cancel();
@@ -155,7 +187,9 @@ async function readThumbnailBlob(originalUrl: string): Promise<Blob | null> {
   const allowed =
     mime === "image/png"
       ? thumbnailPngAllowed(prefix)
-      : thumbnailJpegAllowed(prefix);
+      : mime === "image/webp"
+        ? thumbnailWebpAllowed(prefix)
+        : thumbnailJpegAllowed(prefix);
   return allowed ? blob : null;
 }
 

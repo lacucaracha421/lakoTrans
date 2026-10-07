@@ -358,8 +358,15 @@ describe("image protocol integration", () => {
     });
     serveThumbnail.mockClear();
     const webp = controller.createLibraryImageUrl(virtual.paths[1], 128);
+    serveThumbnail.mockResolvedValueOnce(new Response("derived webp"));
+    expect(await (await handler({ url: webp })).text()).toBe("derived webp");
+    expect(serveThumbnail).toHaveBeenLastCalledWith(
+      codec.createUrl(virtual.paths[1]),
+      128,
+    );
+    // An animated WebP is rejected by the renderer and keeps the original.
+    serveThumbnail.mockResolvedValueOnce(null);
     expect(await (await handler({ url: webp })).text()).toBe("original bytes");
-    expect(serveThumbnail).not.toHaveBeenCalled();
     const documentUrl = "mgt-image://library/_thumbnail-renderer";
     const document = await handler({ url: documentUrl });
     expect(document.headers.get("Content-Type")).toBe(

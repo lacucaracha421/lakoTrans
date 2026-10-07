@@ -27,7 +27,7 @@ export type ImageThumbnailRenderer = ((
 };
 
 /** Fork: hidden renderers working in parallel; each still runs one raster. */
-export function defaultThumbnailLaneCount(): number {
+function defaultThumbnailLaneCount(): number {
   return Math.max(1, Math.min(3, availableParallelism() - 1));
 }
 

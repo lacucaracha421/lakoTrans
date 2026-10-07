@@ -100,7 +100,7 @@ def execute(request):
     make_chapter(request, chapter)
     transport = module('hayai-pool').HayaiPool(request)
     with transport as recognize:
-        module('prepare-line-probe').build(chapter, chapter / 'line-probe')
+        module('prepare-line-probe').build(chapter, chapter / 'line-probe', diagnostic_overlays=False)
         recognize(chapter / 'line-probe/batch.json', request)
         module('align-hayai-glyphs').run(chapter, chapter / 'line-probe', assets, chapter / 'aligned-glyphs', [])
         recognize(chapter / 'aligned-glyphs/batch.json', request)
@@ -121,7 +121,7 @@ def recover_source_evidence(chapter, assets, request, recognize=hayai):
     if not zero_keys:
         return supported
     recovery = chapter / 'recovery'
-    module('prepare-line-probe').build(chapter, recovery / 'line-probe', only_keys=zero_keys, dark_core=True)
+    module('prepare-line-probe').build(chapter, recovery / 'line-probe', only_keys=zero_keys, dark_core=True, diagnostic_overlays=False)
     recognize(recovery / 'line-probe/batch.json', request)
     module('align-hayai-glyphs').run(chapter, recovery / 'line-probe', assets, recovery / 'aligned', [])
     recognize(recovery / 'aligned/batch.json', request)

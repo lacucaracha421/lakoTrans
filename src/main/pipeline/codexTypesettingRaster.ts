@@ -89,29 +89,32 @@ export async function sourceRegionCrops(
       const original = nativeImage.createFromBuffer(
         await readFile(page.imagePath),
       );
+      const size = original.getSize();
+      if (size.width !== page.width || size.height !== page.height)
+        throw new Error(`원본 해상도가 페이지 정보와 다릅니다: ${page.name}`);
       return reading.regions
         .filter((region) => region.action !== "keep")
         .map((region) => {
-          let source = original;
-          const excluded = readingEditProtection(reading, page, region.id);
-          if (excluded) {
-            const pixels = PNG.sync.read(source.toPNG());
-            if (pixels.width !== page.width || pixels.height !== page.height)
-              throw new Error(
-                `원본 해상도가 페이지 정보와 다릅니다: ${page.name}`,
-              );
-            pixels.data = flattenImageRedaction(pixels.data, excluded);
-            source = nativeImage.createFromBuffer(PNG.sync.write(pixels));
-          }
           const rect = includeContext
             ? codexSourceContextRect(region, page)
             : normalizedRegionToPixelRect(region.sourceBbox, page);
-          const crop = source.crop({
+          const excluded = readingEditProtection(
+            reading,
+            page,
+            region.id,
+            rect,
+          );
+          let crop = original.crop({
             x: rect.x,
             y: rect.y,
             width: rect.w,
             height: rect.h,
           });
+          if (excluded) {
+            const pixels = PNG.sync.read(crop.toPNG());
+            pixels.data = flattenImageRedaction(pixels.data, excluded);
+            crop = nativeImage.createFromBuffer(PNG.sync.write(pixels));
+          }
           return {
             label: `${region.id}; original ${includeContext ? "context" : "source"} crop ${rect.w}x${rect.h}; ${region.direction}; sourceText=${JSON.stringify(region.sourceText)}; native page=${page.width}x${page.height}; page-pixel crop=${JSON.stringify(rect)}; input-image boundaries (not necessarily physical page edges)=${JSON.stringify({ left: rect.x === 0, top: rect.y === 0, right: rect.x + rect.w === page.width, bottom: rect.y + rect.h === page.height })}${excluded ? "; User-excluded reference pixels have been blanked white. Ignore those areas when identifying source lettering; the blanking is not a cutout to reproduce in the generated lettering." : ""}`,
             dataUrl: crop.toDataURL(),

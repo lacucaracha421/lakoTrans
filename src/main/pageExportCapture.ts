@@ -36,6 +36,7 @@ export type PageExportCaptureOptions = {
   format: "png" | "jpeg" | "webp";
   quality?: number;
   resolutionMode?: PageExportResolutionMode | "strict-safe";
+  visibleBlockIds?: string[];
 };
 
 export type PageExportCaptureRuntime = {

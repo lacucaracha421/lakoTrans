@@ -1,5 +1,4 @@
 import { nativeImage } from "electron";
-import { PNG } from "pngjs";
 import {
   McpImageEditMaskGetSchema,
   McpImageColorSampleSchema,
@@ -78,19 +77,21 @@ function maskPng(
   width: number,
   height: number,
 ) {
-  const png = new PNG({ width, height });
+  const bitmap = Buffer.alloc(width * height * 4);
   for (let i = 0; i < mask.length; i++) {
-    png.data[i * 4] = mask[i] ? 255 : 0;
-    png.data[i * 4 + 1] = mask[i] ? 255 : 0;
-    png.data[i * 4 + 2] = mask[i] || protectedMask[i] ? 255 : 0;
-    png.data[i * 4 + 3] = 255;
+    bitmap[i * 4] = mask[i] || protectedMask[i] ? 255 : 0;
+    bitmap[i * 4 + 1] = mask[i] ? 255 : 0;
+    bitmap[i * 4 + 2] = mask[i] ? 255 : 0;
+    bitmap[i * 4 + 3] = 255;
   }
   const scale = Math.min(1, 1600 / Math.max(width, height));
-  const preview = nativeImage.createFromBuffer(PNG.sync.write(png)).resize({
-    width: Math.max(1, Math.round(width * scale)),
-    height: Math.max(1, Math.round(height * scale)),
-    quality: "best",
-  });
+  const preview = nativeImage
+    .createFromBitmap(bitmap, { width, height })
+    .resize({
+      width: Math.max(1, Math.round(width * scale)),
+      height: Math.max(1, Math.round(height * scale)),
+      quality: "best",
+    });
   const bytes = preview.toPNG();
   if (bytes.length > 4 * 1024 * 1024)
     throw new McpEditError(

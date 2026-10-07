@@ -49,6 +49,7 @@ import {
   type PageExportTempOwner,
 } from "./pageExportTemp";
 import type { ImageDecodeFallback } from "./regionCrop";
+import { createProductionPsdFontResolver } from "./psdFontResolver";
 
 const MAX_EXPORT_VIEWPORT_SIDE_PX = 4096;
 const PAGE_LOAD_TIMEOUT_MS = 15_000;
@@ -80,6 +81,10 @@ export type PageExportRenderSession = {
     captureOptions?: PageExportCaptureOptions,
   ) => Promise<Buffer>;
   inspectLastLayout?: (this: void) => Promise<PageExportLayoutEvidence>;
+  resolvePsdFontName?: (
+    this: void,
+    fontId: string | undefined,
+  ) => string | null;
   cancel?: (this: void) => void;
   close: (this: void) => void;
 };
@@ -120,6 +125,12 @@ class ManagedPageExportRenderSession implements PageExportRenderSession {
   private active = false;
   private closed = false;
   private lastRenderFailure: { error: unknown } | null = null;
+  private psdFontResolver?: ReturnType<typeof createProductionPsdFontResolver>;
+
+  readonly resolvePsdFontName = (fontId: string | undefined): string | null => {
+    this.psdFontResolver ??= createProductionPsdFontResolver();
+    return this.psdFontResolver(fontId);
+  };
 
   readonly applyWorkflowRules = async (
     request: PageWorkflowRuleRenderRequest,
@@ -375,13 +386,13 @@ async function renderPageInSession(
     page,
     resolutionMode,
     transparentBackground,
+    visibleBlockIds: captureOptions.visibleBlockIds,
   });
   // Serialized renders share one short, private file name.
   const htmlPath = join(renderDir, "page.html");
-  const htmlUrl = pathToFileURL(htmlPath).toString();
   const viewport = resolveExportViewportSize(plannedOutputSize);
   windowState.win.setContentSize(viewport.width, viewport.height);
-  windowState.setAllowedHtmlUrl(htmlUrl);
+  windowState.setAllowedHtmlUrl(pathToFileURL(htmlPath).toString());
   try {
     await writeFile(htmlPath, html, "utf8");
     throwIfAborted(signal);
@@ -432,6 +443,7 @@ function buildRenderSessionHtml({
   page,
   resolutionMode,
   transparentBackground,
+  visibleBlockIds,
 }: {
   image: ResolvedPageExportImage;
   options: PageExportRenderOptions;
@@ -439,6 +451,7 @@ function buildRenderSessionHtml({
   page: MangaPage;
   resolutionMode: NonNullable<PageExportCaptureOptions["resolutionMode"]>;
   transparentBackground: boolean;
+  visibleBlockIds?: string[];
 }): string {
   const htmlOptions = {
     resolutionMode:
@@ -447,6 +460,7 @@ function buildRenderSessionHtml({
         : ("safe-downscale" as const),
     sourceSize: image.size,
     transparentBackground,
+    visibleBlockIds,
   };
   return options.htmlSource
     ? options.htmlSource.buildHtml(page, image.src, outputSize, htmlOptions)

@@ -64,7 +64,7 @@ describe("useImportShareActions", () => {
           translateAddedPages,
         }),
       );
-      expect(openChapter).toHaveBeenCalledWith(latest.id);
+      expect(openChapter).toHaveBeenCalledWith(latest.id, latest.workId);
       expect(applyChapter).toHaveBeenCalledWith(latest, expect.any(String));
       if (translateAddedPages)
         expect(openTranslateOptions).toHaveBeenCalledWith({

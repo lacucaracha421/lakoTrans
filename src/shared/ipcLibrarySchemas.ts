@@ -1,3 +1,4 @@
+import { PageProcessingTimingSchema } from "./ipcPageTimingSchemas";
 import { PageOutputNameSchema } from "./pageOrganization";
 import { ImportSourceIdentitySchema } from "./importSourceIdentity";
 import { PageWorkflowReceiptSchema } from "./pageWorkflowReceipt";
@@ -108,51 +109,6 @@ const FontContinuityMetadataSchema = z
     savedAt: z.string().datetime(),
   })
   .strict();
-const LegacyPageProcessingTimingStagesSchema = z
-  .object({
-    preparing: z.number().int().min(0).max(604_800_000).optional(),
-    ocr: z.number().int().min(0).max(604_800_000).optional(),
-    translation: z.number().int().min(0).max(604_800_000).optional(),
-    postprocessing: z.number().int().min(0).max(604_800_000).optional(),
-    typography: z.number().int().min(0).max(604_800_000).optional(),
-    inpainting: z.number().int().min(0).max(604_800_000).optional(),
-    bubbleLayout: z.number().int().min(0).max(604_800_000).optional(),
-  })
-  .strict();
-const PageProcessingTimingStagesSchema = z
-  .object({
-    preparing: z.number().int().min(0).max(604_800_000).optional(),
-    ocr: z.number().int().min(0).max(604_800_000).optional(),
-    translation: z.number().int().min(0).max(604_800_000).optional(),
-    typography: z.number().int().min(0).max(604_800_000).optional(),
-    inpainting: z.number().int().min(0).max(604_800_000).optional(),
-  })
-  .strict();
-const LegacyPageProcessingTimingSchema = z
-  .object({
-    version: z.literal(1),
-    stages: LegacyPageProcessingTimingStagesSchema,
-    measuredAt: z.string().datetime(),
-    translationJobId: z.string().min(1).max(200).optional(),
-    inpaintingJobId: z.string().min(1).max(200).optional(),
-  })
-  .strict();
-const PageProcessingTimingV2Schema = z
-  .object({
-    version: z.literal(2),
-    stages: PageProcessingTimingStagesSchema,
-    measuredAt: z.string().datetime(),
-    sessionId: z.string().min(1).max(200),
-    state: z.enum(["running", "interrupted", "completed"]),
-    checkpoint: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
-    translationJobId: z.string().min(1).max(200).optional(),
-    inpaintingJobId: z.string().min(1).max(200).optional(),
-  })
-  .strict();
-const PageProcessingTimingSchema = z.union([
-  LegacyPageProcessingTimingSchema,
-  PageProcessingTimingV2Schema,
-]);
 const ChapterStatusSchema = z.enum([
   "idle",
   "running",
@@ -349,9 +305,14 @@ export const DeleteWorkRequestSchema = z.object({ workId: uuid }).strict();
 export const DeleteChapterRequestSchema = z
   .object({ chapterId: uuid })
   .strict();
-export const OpenChapterRequestSchema = z.object({ chapterId: uuid }).strict();
+export const OpenChapterRequestSchema = z
+  .object({ chapterId: uuid, workId: uuid.optional() })
+  .strict();
 export const ImageDataUrlRequestSchema = z
-  .object({ imagePath: filePath })
+  .object({
+    imagePath: filePath,
+    thumbnailMaxEdge: z.number().int().min(64).max(2048).optional(),
+  })
   .strict();
 const SavePageBlocksUpdateSchema = z
   .object({

@@ -1,4 +1,5 @@
 import { resolveBlockDisplayText } from "../../shared/blockDisplayText";
+import type { PageExportLayoutEvidence } from "../../shared/pageExportContracts";
 import {
   writePsdBuffer,
   type Layer,
@@ -18,6 +19,7 @@ import { getActiveGeneratedLettering } from "../../shared/generatedLettering";
 type PagePsdTextLayerInput = {
   block: TranslationBlock;
   png: Buffer;
+  layout?: PageExportLayoutEvidence[number];
 };
 
 export type BuildPagePsdInput = {
@@ -26,6 +28,7 @@ export type BuildPagePsdInput = {
   originalBackgroundPng: Buffer;
   page: MangaPage;
   textLayers: PagePsdTextLayerInput[];
+  resolveFontName?: (fontId: string | undefined) => string | null;
 };
 
 export function buildPagePsd({
@@ -34,6 +37,7 @@ export function buildPagePsd({
   originalBackgroundPng,
   page,
   textLayers,
+  resolveFontName,
 }: BuildPagePsdInput): Buffer {
   const composite = decodePagePng(compositePng, page);
   const original = decodePagePng(originalBackgroundPng, page);
@@ -53,13 +57,31 @@ export function buildPagePsd({
       imageData: decodePagePng(cleanedBackgroundPng, page),
     });
   }
-  children.push(...buildTextLayers(page, textLayers));
+  const text = buildTextLayers(page, textLayers, resolveFontName);
+  children.push(...text.rasters);
 
   const psd: Psd = {
     width: page.width,
     height: page.height,
     imageData: composite,
-    children,
+    children: [
+      {
+        name: "개별 이미지 · 편집 시 표시 (Raster layers)",
+        hidden: true,
+        opened: false,
+        children,
+      },
+      {
+        name: "편집용 글자 · 글꼴 설치 필요 (Editable text)",
+        hidden: true,
+        opened: false,
+        children: text.editable,
+      },
+      {
+        name: "완성 이미지 · 편집 시 숨김 (Exact output)",
+        imageData: composite,
+      },
+    ],
     imageResources: {
       versionInfo: {
         hasRealMergedData: true,
@@ -80,8 +102,10 @@ export function buildPagePsd({
 function buildTextLayers(
   page: MangaPage,
   inputs: PagePsdTextLayerInput[],
-): Layer[] {
-  return inputs.flatMap((input, index) => {
+  resolveFontName?: BuildPagePsdInput["resolveFontName"],
+): { rasters: Layer[]; editable: Layer[] } {
+  const editable: Layer[] = [];
+  const rasters = inputs.flatMap((input, index) => {
     const full = decodePagePng(input.png, page);
     const cropped = cropTransparentPixelData(full);
     if (!cropped) return [];
@@ -91,25 +115,42 @@ function buildTextLayers(
       );
     }
     const displayText = resolveBlockDisplayText(input.block);
-    const text = resolveEditablePsdText(input.block, page, displayText);
-    return [
-      {
-        name: formatTextLayerName(index, displayText, Boolean(text)),
+    const text = resolveEditablePsdText(
+      input.block,
+      page,
+      displayText,
+      resolveFontName?.(input.block.fontFamily),
+      input.layout,
+    );
+    if (text)
+      editable.push({
+        name: formatTextLayerName(index, displayText, true),
         left: cropped.left,
         top: cropped.top,
         imageData: cropped.imageData,
-        ...(text ? { text } : {}),
+        text,
+      });
+    return [
+      {
+        name: formatTextLayerName(index, displayText, false),
+        left: cropped.left,
+        top: cropped.top,
+        imageData: cropped.imageData,
       } satisfies Layer,
     ];
   });
+  return { rasters, editable };
 }
 
 export function resolveEditablePsdText(
   block: TranslationBlock,
   page: Pick<MangaPage, "width" | "height">,
   displayText = resolveBlockDisplayText(block),
+  resolvedFontName?: string | null,
+  layout?: PageExportLayoutEvidence[number],
 ): LayerTextData | null {
-  if (!supportsEditablePsdText(block, displayText)) return null;
+  if (resolvedFontName === null || !supportsEditablePsdText(block, displayText))
+    return null;
   const bbox = resolveBlockRenderBbox(block, page);
   const left = (bbox.x / 1000) * page.width;
   const top = (bbox.y / 1000) * page.height;
@@ -120,7 +161,7 @@ export function resolveEditablePsdText(
   const radians = ((block.rotationDeg ?? 0) * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
-  const fontSize = Math.max(1, block.fontSizePx);
+  const fontSize = Math.max(1, layout?.fontSizePx ?? block.fontSizePx);
   const bounds = {
     top: { units: "Pixels" as const, value: top },
     left: { units: "Pixels" as const, value: left },
@@ -128,7 +169,7 @@ export function resolveEditablePsdText(
     bottom: { units: "Pixels" as const, value: bottom },
   };
   return {
-    text: displayText,
+    text: layout?.lines?.length ? layout.lines.join("\r") : displayText,
     transform: [cos, sin, -sin, cos, left, top],
     left,
     top,
@@ -140,35 +181,38 @@ export function resolveEditablePsdText(
     orientation: "horizontal",
     shapeType: "box",
     boxBounds: [0, 0, width, height],
-    style: {
-      font: { name: resolvePsdFontName(block.fontFamily) },
-      fontSize,
-      fauxBold: Boolean(block.bold),
-      fauxItalic: Boolean(block.italic),
-      autoLeading: false,
-      leading: fontSize * Math.max(0.5, block.lineHeight || 1),
-      horizontalScale: Math.max(1, (block.fontWidthScale ?? 1) * 100),
-      tracking: (block.letterSpacing ?? 0) * 1000,
-      fillColor: parseHexColor(block.textColor, { r: 17, g: 17, b: 17 }),
-      ...(block.outlineColor
-        ? {
-            strokeColor: parseHexColor(block.outlineColor, {
-              r: 255,
-              g: 255,
-              b: 255,
-            }),
-            strokeFlag: true,
-            fillFlag: true,
-            // Preserve the legacy PSD contract for untouched scale-based
-            // blocks. Only manually converted blocks use absolute pixels.
-            outlineWidth:
-              block.outlineWidthPx === undefined
-                ? Math.max(0, block.outlineWidthScale ?? 1)
-                : resolveEffectiveTextOutlineWidthPx(block, fontSize),
-          }
-        : {}),
-    },
+    style: resolveEditablePsdTextStyle(block, fontSize, resolvedFontName),
     paragraphStyle: { justification: block.textAlign },
+  };
+}
+
+function resolveEditablePsdTextStyle(
+  block: TranslationBlock,
+  fontSize: number,
+  resolvedFontName: string | null | undefined,
+): NonNullable<LayerTextData["style"]> {
+  return {
+    font: { name: resolvedFontName ?? resolvePsdFontName(block.fontFamily) },
+    fontSize,
+    fauxBold: Boolean(block.bold),
+    fauxItalic: Boolean(block.italic),
+    autoLeading: false,
+    leading: fontSize * Math.max(0.5, block.lineHeight || 1),
+    horizontalScale: Math.max(0.01, block.fontWidthScale ?? 1),
+    tracking: (block.letterSpacing ?? 0) * 1000,
+    fillColor: parseHexColor(block.textColor, { r: 17, g: 17, b: 17 }),
+    ...(block.outlineColor
+      ? {
+          strokeColor: parseHexColor(block.outlineColor, {
+            r: 255,
+            g: 255,
+            b: 255,
+          }),
+          strokeFlag: true,
+          fillFlag: true,
+          outlineWidth: resolveEffectiveTextOutlineWidthPx(block, fontSize),
+        }
+      : {}),
   };
 }
 

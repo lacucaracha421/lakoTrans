@@ -12,6 +12,7 @@ type OpenChapterOptions = Pick<
   | "clearPendingInpaintingMasks"
   | "currentChapterRef"
   | "dirty"
+  | "library"
   | "hasPendingInpaintingMask"
   | "patternMaskStrokesByPage"
   | "askConfirm"
@@ -30,6 +31,7 @@ export function useOpenChapterAction({
   clearPendingInpaintingMasks,
   currentChapterRef,
   dirty,
+  library,
   hasPendingInpaintingMask,
   patternMaskStrokesByPage,
   onChapterOpened,
@@ -58,6 +60,7 @@ export function useOpenChapterAction({
           clearPendingInpaintingMasks,
           currentChapterRef,
           dirty,
+          library,
           readPendingMask,
           isLatestRequest,
           onChapterOpened,
@@ -79,6 +82,7 @@ export function useOpenChapterAction({
       clearPendingInpaintingMasks,
       currentChapterRef,
       dirty,
+      library,
       readPendingMask,
       askConfirm,
       onChapterOpened,
@@ -100,6 +104,7 @@ type PerformOpenChapterRequestOptions = Pick<
   | "clearPendingInpaintingMasks"
   | "currentChapterRef"
   | "dirty"
+  | "library"
   | "onChapterOpened"
   | "resetSaveBaseline"
   | "saveNow"
@@ -125,7 +130,13 @@ async function performOpenChapterRequest(
   if (!(await saveDirtyChapter(options))) {
     return;
   }
-  const chapter = await libraryGateway.openChapter(options.chapterId);
+  const owner = options.library.works.find((work) =>
+    work.chapterOrder.includes(options.chapterId),
+  );
+  const chapter = await libraryGateway.openChapter(
+    options.chapterId,
+    owner?.id,
+  );
   if (!options.isLatestRequest()) {
     return;
   }
@@ -139,14 +150,7 @@ async function performOpenChapterRequest(
   ) {
     return;
   }
-  options.clearDirtyTracking();
-  options.currentChapterRef.current = chapter;
-  options.resetSaveBaseline(chapter);
-  options.setCurrentChapter(chapter);
-  options.setSelectedPageId(chapter.pages[0]?.id ?? null);
-  options.setSelectedBlockId(null);
-  options.clearPendingInpaintingMasks?.();
-  options.onChapterOpened?.();
+  installOpenedChapter(options, chapter);
 }
 
 async function confirmPendingMaskDiscard(
@@ -183,4 +187,18 @@ async function saveDirtyChapter(
   }
   await options.saveNow();
   return options.isLatestRequest();
+}
+
+function installOpenedChapter(
+  options: PerformOpenChapterRequestOptions,
+  chapter: Awaited<ReturnType<typeof libraryGateway.openChapter>>,
+): void {
+  options.clearDirtyTracking();
+  options.currentChapterRef.current = chapter;
+  options.resetSaveBaseline(chapter);
+  options.setCurrentChapter(chapter);
+  options.setSelectedPageId(chapter.pages[0]?.id ?? null);
+  options.setSelectedBlockId(null);
+  options.clearPendingInpaintingMasks?.();
+  options.onChapterOpened?.();
 }

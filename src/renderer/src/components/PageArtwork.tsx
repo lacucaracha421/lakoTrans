@@ -184,6 +184,7 @@ export function PageArtwork({
   page,
   showImage = true,
   showBlockChrome = false,
+  visibleBlockIds,
   visualSize,
 }: {
   fontCatalog: BlockFontCatalog;
@@ -191,6 +192,7 @@ export function PageArtwork({
   page: PageArtworkSnapshot;
   showImage?: boolean;
   showBlockChrome?: boolean;
+  visibleBlockIds?: string[];
   visualSize: ViewportSize;
 }): React.JSX.Element {
   const pageSize = React.useMemo(
@@ -222,18 +224,22 @@ export function PageArtwork({
           width={visualSize.width}
         />
       ) : null}
-      {page.blocks.map((block) => (
-        <PageArtworkBlock
-          block={block}
-          fontCatalog={fontCatalog}
-          key={block.id}
-          pageSize={pageSize}
-          showBlockChrome={showBlockChrome}
-          sourceFontFaceFallbackPx={sourceFontFaceFallbacks.get(block.id)}
-          dialogueFontSizePx={dialogueSizes.get(block.id)}
-          visualSize={visualSize}
-        />
-      ))}
+      {page.blocks
+        .filter(
+          (block) => !visibleBlockIds || visibleBlockIds.includes(block.id),
+        )
+        .map((block) => (
+          <PageArtworkBlock
+            block={block}
+            fontCatalog={fontCatalog}
+            key={block.id}
+            pageSize={pageSize}
+            showBlockChrome={showBlockChrome}
+            sourceFontFaceFallbackPx={sourceFontFaceFallbacks.get(block.id)}
+            dialogueFontSizePx={dialogueSizes.get(block.id)}
+            visualSize={visualSize}
+          />
+        ))}
     </div>
   );
 }

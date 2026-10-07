@@ -116,8 +116,8 @@ def run(chapter, alignment, original, output):
     verified = {(v['key'], v['lineId'], v['characterIndex']): v for v in prior['verification']}
     cutoff = prior['summary']['cutoff']
     baseline = helpers.read_json(chapter / 'ocr-baseline/baseline-report.json')
-    pages = {p['pageId']: Image.open(chapter / 'ocr-baseline' / p['ocrImagePath'] if p.get('ocrImagePath') else Path(p['imagePath'])).convert('L') for p in baseline['pages']}
-    items, line_audit = collect(aligned, verified, pages)
+    with helpers.PageImageCache(helpers.baseline_page_paths(chapter, baseline), "L") as pages:
+        items, line_audit = collect(aligned, verified, pages)
     corroborate(items, cutoff)
     selected, tensors, blocks, audit = {}, {}, [], []
     for item in items:

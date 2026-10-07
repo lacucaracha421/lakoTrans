@@ -5,6 +5,7 @@ import {
   fontCandidateSupportsText,
 } from "../src/main/fontCoverage";
 import { inspectCustomFontBuffer } from "../src/main/customFontInspection";
+import { readFontPostScriptName } from "../src/main/fontPostScriptName";
 
 type CmapGroup = readonly [
   startCodePoint: number,
@@ -13,6 +14,27 @@ type CmapGroup = readonly [
 ];
 
 describe("custom font inspection", () => {
+  it("extracts the PostScript name instead of an application font ID", () => {
+    const name = Buffer.from("DoHyeon-Regular", "utf16le").swap16();
+    const table = Buffer.alloc(18 + name.length);
+    table.writeUInt16BE(1, 2);
+    table.writeUInt16BE(18, 4);
+    [3, 1, 0x409, 6, name.length, 0].forEach((value, index) =>
+      table.writeUInt16BE(value, 6 + index * 2),
+    );
+    name.copy(table, 18);
+    expect(readFontPostScriptName(makeSfnt([["name", table]]))).toBe(
+      "DoHyeon-Regular",
+    );
+    expect(
+      readFontPostScriptName(makeSfnt([["name", table.subarray(0, 12)]])),
+    ).toBeNull();
+    expect(
+      readFontPostScriptName(makeSfnt([["name", Buffer.alloc(2)]])),
+    ).toBeNull();
+    table.writeUInt16BE(0xffff, 16);
+    expect(readFontPostScriptName(makeSfnt([["name", table]]))).toBeNull();
+  });
   it("reads format 4 coverage exactly and extracts safe style metrics", () => {
     const cmap = makeCmap([
       {

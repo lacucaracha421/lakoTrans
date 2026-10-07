@@ -54,6 +54,29 @@ def select_kind(score, weights):
     return kind
 
 
+def extract_short_group_glyphs(groups, rows, candidates, pages):
+    # Extraction is independent of selection. Preserve decisions/audit in the
+    # original group order while visiting each source page only once here.
+    by_page = defaultdict(list)
+    for group in groups:
+        if len(group['members']) == 1:
+            key = group['members'][0]
+            if 1 <= len(letters(rows[key]['sourceText'])) <= 3:
+                by_page[key.split('/')[0]].append(key)
+    extracted = {}
+    paths = {pid: page['imagePath'] for pid, page in pages.items()}
+    with glyph.PageImageCache(paths) as images:
+        for pid, keys in by_page.items():
+            source = images[pid]
+            for key in keys:
+                candidate = candidates[key]
+                box = candidate['bbox']
+                extracted[key] = glyph.extract_line(
+                    source, {'id': 0, 'bbox': [box['x1'], box['y1'], box['x2'], box['y2']]},
+                    rows[key]['sourceText'], candidate['direction'])
+    return extracted
+
+
 def run(chapter, prediction, groups, verified, output):
     output.mkdir(parents=True, exist_ok=False)
     (output / 'protocol.json').write_text(json.dumps(POLICY, ensure_ascii=False, indent=2), 'utf-8')
@@ -92,6 +115,7 @@ def run(chapter, prediction, groups, verified, output):
         p = chapter / 'baseline' / page_id / 'font-page.json'
         if p.exists():
             candidates.update({page_id + '/' + r['candidate']['candidateId']: r['candidate'] for r in read(p)['inputs']})
+    extracted_by_key = extract_short_group_glyphs(original['groups'], rows, candidates, pages)
     audit = []
     attachments = {}
     for group in original['groups']:
@@ -101,10 +125,7 @@ def run(chapter, prediction, groups, verified, output):
         text = rows[key]['sourceText']
         if not 1 <= len(letters(text)) <= 3:
             continue
-        candidate = candidates[key]
-        box = candidate['bbox']
-        with Image.open(pages[key.split('/')[0]]['imagePath']) as source:
-            extracted = glyph.extract_line(source, {'id': 0, 'bbox': [box['x1'], box['y1'], box['x2'], box['y2']]}, text, candidate['direction'])
+        extracted = extracted_by_key[key]
         witnesses = {}
         for observed in extracted:
             for other_key, other_text, tensor in references[observed['character']]:

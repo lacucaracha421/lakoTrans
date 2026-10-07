@@ -36,6 +36,7 @@ export type PageExportHtmlOptions = {
   resolutionMode?: PageExportResolutionMode;
   sourceSize?: PageExportRasterSize;
   transparentBackground?: boolean;
+  visibleBlockIds?: string[];
 };
 
 export type PageExportHtmlDependencies = {
@@ -44,7 +45,10 @@ export type PageExportHtmlDependencies = {
   fonts: {
     list: () => CustomFont[];
     readPreferences: (fonts: readonly CustomFont[]) => FontPreferences;
-    resolveFilePath: (id: string) => string | null;
+    resolveFilePath: (
+      id: string,
+      fonts?: readonly CustomFont[],
+    ) => string | null;
   };
 };
 
@@ -112,6 +116,9 @@ function buildPageExportHtmlWith(
       blocks: page.blocks,
     },
     ...(options?.transparentBackground ? { transparentBackground: true } : {}),
+    ...(options?.visibleBlockIds
+      ? { visibleBlockIds: options.visibleBlockIds }
+      : {}),
   };
   return `<!doctype html>
 <html>
@@ -132,11 +139,11 @@ function buildPageExportHtmlWith(
 
 function buildCustomFontFaces(
   fonts: CustomFont[],
-  resolveFilePath: (id: string) => string | null,
+  resolveFilePath: (id: string, fonts?: readonly CustomFont[]) => string | null,
 ): string {
   return fonts
     .flatMap((font) => {
-      const fontPath = resolveFilePath(font.id);
+      const fontPath = resolveFilePath(font.id, fonts);
       if (!fontPath) return [];
       const fileUrl = pathToFileURL(fontPath).toString();
       return `@font-face { font-family: "${escapeCssString(font.family)}"; src: url("${escapeCssString(fileUrl)}"); font-display: swap; }`;

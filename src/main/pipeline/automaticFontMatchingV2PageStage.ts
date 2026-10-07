@@ -29,6 +29,7 @@ export async function runAutomaticFontMatchingV2PageStage({
   items,
   inferenceBlocks,
   port,
+  loadRaster,
 }: {
   jobId: string;
   page: MangaPage;
@@ -36,6 +37,9 @@ export async function runAutomaticFontMatchingV2PageStage({
   items: readonly OverlayItem[];
   inferenceBlocks?: readonly FontMatchingPageInferenceBlock[];
   port?: FontMatchingPageInferencePort;
+  loadRaster?: Parameters<
+    FontMatchingPageInferencePort["inferPage"]
+  >[0]["loadRaster"];
 }): Promise<FontMatchingPageInferenceResult> {
   const blocks = buildPageInferenceBlocks({
     page,
@@ -58,6 +62,7 @@ export async function runAutomaticFontMatchingV2PageStage({
       parentSignal: pageOptions.abortSignal,
       request: {
         page,
+        ...(loadRaster ? { loadRaster } : {}),
         blocks,
         candidates: pageOptions.fontMatchingCandidates,
         targetLanguage: pageOptions.targetLanguage,

@@ -118,12 +118,13 @@ function useUnavailableChapterImageRecovery(
     read: ReturnType<typeof libraryGateway.openChapter>;
   } | null>(null);
   return useEventCallback(async (pageId, imagePath) => {
-    const chapterId = core.currentChapterRef.current?.id;
-    if (!chapterId) return true;
+    const currentChapter = core.currentChapterRef.current;
+    if (!currentChapter || !currentChapter.id) return true;
+    const chapterId = currentChapter.id;
     const read =
       imageRecoveryRead.current?.chapterId === chapterId
         ? imageRecoveryRead.current.read
-        : libraryGateway.openChapter(chapterId);
+        : libraryGateway.openChapter(chapterId, currentChapter.workId);
     imageRecoveryRead.current = { chapterId, read };
     try {
       const latest = await read;

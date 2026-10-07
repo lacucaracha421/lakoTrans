@@ -50,6 +50,7 @@ describe("PSD runner original-resolution capture (#109)", () => {
     "keeps every plane on the original pixel grid (omitText=%s)",
     async (omitText) => {
       const page = makePage();
+      page.blocks.push({ ...page.blocks[0], id: "peer-2", fontSizePx: 6 });
       const background = new PNG({ width: page.width, height: page.height });
       background.data.fill(255);
       const text = new PNG({ width: page.width, height: page.height });
@@ -64,6 +65,18 @@ describe("PSD runner original-resolution capture (#109)", () => {
       const renderSession = {
         renderPage,
         renderTransparentPage,
+        inspectLastLayout: vi.fn(async () => {
+          expect(renderPage).toHaveBeenCalledTimes(1);
+          return page.blocks.map((block) => ({
+            blockId: block.id,
+            fontSizePx: 7,
+            lines: ["measured", "lines"],
+            innerWidth: 5,
+            innerHeight: 8,
+            overflow: false,
+          }));
+        }),
+        resolvePsdFontName: () => "FixturePS-Regular",
         close: unexpected,
       };
       const writePsd = vi.fn(async (_path: string, _bytes: Buffer) => {});
@@ -109,9 +122,11 @@ describe("PSD runner original-resolution capture (#109)", () => {
       if (omitText) {
         expect(renderTransparentPage).not.toHaveBeenCalled();
       } else {
-        expect(renderTransparentPage).toHaveBeenCalledExactlyOnceWith(
-          page,
-          options,
+        expect(renderTransparentPage.mock.calls).toEqual(
+          page.blocks.map((block) => [
+            page,
+            { ...options, visibleBlockIds: [block.id] },
+          ]),
         );
       }
       expect(writePsd).toHaveBeenCalledOnce();
@@ -121,7 +136,16 @@ describe("PSD runner original-resolution capture (#109)", () => {
         skipThumbnail: true,
       });
       expect([psd.width, psd.height]).toEqual([page.width, page.height]);
-      expect(psd.children).toHaveLength(omitText ? 2 : 3);
+      expect(psd.children).toHaveLength(3);
+      expect(psd.children?.[0].children).toHaveLength(omitText ? 2 : 4);
+      expect(renderSession.inspectLastLayout).toHaveBeenCalledTimes(
+        omitText ? 0 : 1,
+      );
+      if (!omitText)
+        expect(psd.children?.[1].children?.[0].text).toMatchObject({
+          text: "measured\nlines",
+          style: { fontSize: 7, font: { name: "FixturePS-Regular" } },
+        });
     },
   );
 });

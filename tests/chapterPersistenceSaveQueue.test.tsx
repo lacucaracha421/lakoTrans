@@ -34,13 +34,13 @@ type HarnessApi = {
   updateTwoPages: (firstText: string, secondText: string) => void;
 };
 
-const savePagesBlocksMock =
+const savePagesBlocksPatchMock =
   vi.fn<(request: SavePagesBlocksRequest) => Promise<ChapterSnapshot>>();
 
 beforeEach(() => {
-  savePagesBlocksMock.mockReset();
+  savePagesBlocksPatchMock.mockReset();
   window.mangaApi = createTestMangaGatewayStub({
-    savePagesBlocks: savePagesBlocksMock,
+    savePagesBlocksPatch: savePagesBlocksPatchMock,
   });
 });
 
@@ -77,7 +77,7 @@ describe("chapter persistence save queue", () => {
         .fn<SavePagesBlocksMutationRuntime["commitChapterAndWork"]>()
         .mockResolvedValue(undefined);
       const logWarning = vi.fn();
-      savePagesBlocksMock.mockImplementation(
+      savePagesBlocksPatchMock.mockImplementation(
         createSavePagesBlocksMutation({
           findChapterLocation: async () => ({
             workId: initial.workId,
@@ -91,7 +91,7 @@ describe("chapter persistence save queue", () => {
       );
       await act(async () => api.current.saveNow());
 
-      expect(savePagesBlocksMock.mock.calls[0][0]).toMatchObject({
+      expect(savePagesBlocksPatchMock.mock.calls[0][0]).toMatchObject({
         chapterId: initial.id,
         pages: [
           {
@@ -123,11 +123,11 @@ describe("chapter persistence save queue", () => {
       api.current.getPersistence().syncSavedPageVersion(completed, "page-1");
       api.current.refreshSameChapter();
     });
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapter("local edit after translation", "2026-01-01T00:00:03.000Z"),
     );
     await act(async () => api.current.saveNow());
-    expect(savePagesBlocksMock.mock.calls[0][0].pages[0]).toMatchObject({
+    expect(savePagesBlocksPatchMock.mock.calls[0][0].pages[0]).toMatchObject({
       baseUpdatedAt: completed.pages[0].updatedAt,
       baseBlocksHash: hashTranslationBlocks(completed.pages[0].blocks),
       blocks: [{ translatedText: "local edit after translation" }],
@@ -140,7 +140,7 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await expect(api.current.saveNow()).rejects.toThrow("페이지");
     });
-    expect(savePagesBlocksMock).not.toHaveBeenCalled();
+    expect(savePagesBlocksPatchMock).not.toHaveBeenCalled();
     expect(api.current.getDirty()).toBe(true);
   });
   it("preserves the draft when a save response omits its page", async () => {
@@ -148,18 +148,18 @@ describe("chapter persistence save queue", () => {
     act(() => api.current.updateText("keep this draft"));
     const saved = makeChapter("server", "2026-01-01T00:00:01.000Z");
     saved.pages = saved.pages.filter((page) => page.id !== "page-1");
-    savePagesBlocksMock.mockResolvedValue(saved);
+    savePagesBlocksPatchMock.mockResolvedValue(saved);
     await act(async () => {
       await expect(api.current.saveNow()).rejects.toThrow("페이지");
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     expect(api.current.getChapter()?.pages[0].blocks[0].translatedText).toBe(
       "keep this draft",
     );
     expect(api.current.getDirty()).toBe(true);
   });
   it("does not rehash unchanged clean pages after a local edit and saves the latest blocks", async () => {
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapter("latest local edit", "2026-01-01T00:00:01.000Z"),
     );
     const initialChapter = makeChapter("base", "2026-01-01T00:00:00.000Z");
@@ -181,8 +181,8 @@ describe("chapter persistence save queue", () => {
       await api.current.saveNow();
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
-    expect(savePagesBlocksMock.mock.calls[0][0]).toMatchObject({
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock.mock.calls[0][0]).toMatchObject({
       pages: [
         {
           baseUpdatedAt: "2026-01-01T00:00:00.000Z",
@@ -201,7 +201,7 @@ describe("chapter persistence save queue", () => {
   it("serializes overlapping manual saves and resaves the latest chapter state", async () => {
     const firstSave = createDeferred<ChapterSnapshot>();
     const secondSave = createDeferred<ChapterSnapshot>();
-    savePagesBlocksMock
+    savePagesBlocksPatchMock
       .mockReturnValueOnce(firstSave.promise)
       .mockReturnValueOnce(secondSave.promise);
     const { api } = renderHarness();
@@ -212,9 +212,9 @@ describe("chapter persistence save queue", () => {
     const firstSaveNow = api.current.saveNow();
 
     await waitFor(() => {
-      expect(savePagesBlocksMock).toHaveBeenCalledTimes(1);
+      expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(1);
     });
-    expect(savePagesBlocksMock.mock.calls[0][0]).toMatchObject({
+    expect(savePagesBlocksPatchMock.mock.calls[0][0]).toMatchObject({
       dirtyVersion: 1,
       pages: [
         {
@@ -225,7 +225,8 @@ describe("chapter persistence save queue", () => {
       saveReason: "manual",
     });
     expect(
-      savePagesBlocksMock.mock.calls[0][0].pages[0]?.blocks[0]?.translatedText,
+      savePagesBlocksPatchMock.mock.calls[0][0].pages[0]?.blocks[0]
+        ?.translatedText,
     ).toBe("first");
 
     act(() => {
@@ -234,7 +235,7 @@ describe("chapter persistence save queue", () => {
     const secondSaveNow = api.current.saveNow();
     await flushMicrotasks();
 
-    expect(savePagesBlocksMock).toHaveBeenCalledTimes(1);
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       firstSave.resolve(makeChapter("first", "2026-01-01T00:00:01.000Z"));
@@ -242,9 +243,9 @@ describe("chapter persistence save queue", () => {
     });
 
     await waitFor(() => {
-      expect(savePagesBlocksMock).toHaveBeenCalledTimes(2);
+      expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(2);
     });
-    expect(savePagesBlocksMock.mock.calls[1][0]).toMatchObject({
+    expect(savePagesBlocksPatchMock.mock.calls[1][0]).toMatchObject({
       dirtyVersion: 2,
       pages: [
         {
@@ -255,7 +256,8 @@ describe("chapter persistence save queue", () => {
       saveReason: "manual",
     });
     expect(
-      savePagesBlocksMock.mock.calls[1][0].pages[0]?.blocks[0]?.translatedText,
+      savePagesBlocksPatchMock.mock.calls[1][0].pages[0]?.blocks[0]
+        ?.translatedText,
     ).toBe("second");
 
     await act(async () => {
@@ -271,7 +273,7 @@ describe("chapter persistence save queue", () => {
 
   it("coalesces identical overlapping manual saves into one persistence call", async () => {
     const saveGate = createDeferred<ChapterSnapshot>();
-    savePagesBlocksMock.mockReturnValue(saveGate.promise);
+    savePagesBlocksPatchMock.mockReturnValue(saveGate.promise);
     const { api } = renderHarness();
 
     act(() => {
@@ -281,14 +283,14 @@ describe("chapter persistence save queue", () => {
     const duplicateSave = api.current.saveNow();
 
     await waitFor(() => {
-      expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+      expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     });
     await act(async () => {
       saveGate.resolve(makeChapter("one draft", "2026-01-01T00:00:01.000Z"));
       await Promise.all([firstSave, duplicateSave]);
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     expect(api.current.getDirty()).toBe(false);
     expect(api.current.getChapter()?.pages[0].blocks[0].translatedText).toBe(
       "one draft",
@@ -297,7 +299,7 @@ describe("chapter persistence save queue", () => {
 
   it("rejects every waiter on queue failure and allows a later retry", async () => {
     const failure = new Error("storage unavailable");
-    savePagesBlocksMock
+    savePagesBlocksPatchMock
       .mockRejectedValueOnce(failure)
       .mockResolvedValueOnce(
         makeChapter("retry draft", "2026-01-01T00:00:01.000Z"),
@@ -313,7 +315,7 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await expect(Promise.all([firstSave, waitingSave])).rejects.toBe(failure);
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     expect(api.current.getDirty()).toBe(true);
     expect(api.current.getPersistence().saveStatus).toBe("error");
     expect(api.current.getChapter()?.pages[0].blocks[0].translatedText).toBe(
@@ -324,8 +326,8 @@ describe("chapter persistence save queue", () => {
       await api.current.saveNow();
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledTimes(2);
-    expect(savePagesBlocksMock.mock.calls[1][0]).toMatchObject({
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(2);
+    expect(savePagesBlocksPatchMock.mock.calls[1][0]).toMatchObject({
       dirtyVersion: 1,
       pages: [
         {
@@ -340,7 +342,7 @@ describe("chapter persistence save queue", () => {
   });
 
   it("persists every dirty page in one batch request", async () => {
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapterWithPageTexts(
         "first page saved",
         "second page saved",
@@ -356,8 +358,8 @@ describe("chapter persistence save queue", () => {
       await api.current.saveNow();
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
-    expect(savePagesBlocksMock.mock.calls[0][0]).toMatchObject({
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock.mock.calls[0][0]).toMatchObject({
       dirtyVersion: 2,
       pages: [
         {
@@ -381,7 +383,7 @@ describe("chapter persistence save queue", () => {
   });
 
   it("hands off only the requested page and leaves another page's draft dirty", async () => {
-    savePagesBlocksMock.mockResolvedValueOnce(
+    savePagesBlocksPatchMock.mockResolvedValueOnce(
       makeChapterWithPageTexts("base", "B saved", "2026-01-01T00:00:01.000Z"),
     );
     const { api } = renderHarness();
@@ -392,7 +394,9 @@ describe("chapter persistence save queue", () => {
         .savePageNow("22222222-2222-4222-8222-222222222222", "page-2");
     });
     expect(
-      savePagesBlocksMock.mock.calls[0][0].pages.map((page) => page.pageId),
+      savePagesBlocksPatchMock.mock.calls[0][0].pages.map(
+        (page) => page.pageId,
+      ),
     ).toEqual(["page-2"]);
     expect(api.current.getChapter()?.pages.map(firstTranslatedText)).toEqual([
       "A draft",
@@ -410,13 +414,13 @@ describe("chapter persistence save queue", () => {
         .getPersistence()
         .savePageNow("different-chapter", "page-1");
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
   });
 
   it("lets a queued page handoff retry after another page's failed save", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const failedSave = createDeferred<ChapterSnapshot>();
-    savePagesBlocksMock
+    savePagesBlocksPatchMock
       .mockReturnValueOnce(failedSave.promise)
       .mockResolvedValueOnce(
         makeChapterWithPageTexts("base", "B draft", "2026-01-01T00:00:01.000Z"),
@@ -427,7 +431,9 @@ describe("chapter persistence save queue", () => {
       .getPersistence()
       .savePageNow("22222222-2222-4222-8222-222222222222", "page-1");
     const rejected = expect(first).rejects.toThrow("A save failed");
-    await waitFor(() => expect(savePagesBlocksMock).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce(),
+    );
     const handoff = api.current
       .getPersistence()
       .savePageNow("22222222-2222-4222-8222-222222222222", "page-2");
@@ -436,9 +442,11 @@ describe("chapter persistence save queue", () => {
       await rejected;
       await handoff;
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledTimes(2);
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(2);
     expect(
-      savePagesBlocksMock.mock.calls[1][0].pages.map((page) => page.pageId),
+      savePagesBlocksPatchMock.mock.calls[1][0].pages.map(
+        (page) => page.pageId,
+      ),
     ).toEqual(["page-2"]);
     expect(api.current.getChapter()?.pages.map(firstTranslatedText)).toEqual([
       "A draft",
@@ -453,7 +461,7 @@ describe("chapter persistence save queue", () => {
     const staleError = Object.assign(new Error("stale version"), {
       code: "STALE_PAGE_SAVE",
     });
-    savePagesBlocksMock.mockRejectedValue(staleError);
+    savePagesBlocksPatchMock.mockRejectedValue(staleError);
     const { api } = renderHarness();
 
     act(() => {
@@ -468,7 +476,7 @@ describe("chapter persistence save queue", () => {
       });
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     expect(api.current.getDirty()).toBe(true);
     expect(api.current.getPersistence().saveStatus).toBe("conflict");
     expect(api.current.getChapter()?.pages[0].blocks[0].translatedText).toBe(
@@ -490,12 +498,12 @@ describe("chapter persistence save queue", () => {
       await vi.advanceTimersByTimeAsync(500);
     });
 
-    expect(savePagesBlocksMock).not.toHaveBeenCalled();
+    expect(savePagesBlocksPatchMock).not.toHaveBeenCalled();
   });
 
   it("does not postpone autosave when unrelated session state rerenders", async () => {
     vi.useFakeTimers();
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapter("stable timer draft", "2026-01-01T00:00:01.000Z"),
     );
     const { api } = renderHarness();
@@ -513,12 +521,12 @@ describe("chapter persistence save queue", () => {
       await vi.advanceTimersByTimeAsync(150);
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
   });
 
   it("does not postpone autosave for a same-chapter job snapshot refresh", async () => {
     vi.useFakeTimers();
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapter("stable timer draft", "2026-01-01T00:00:01.000Z"),
     );
     const { api } = renderHarness();
@@ -536,12 +544,12 @@ describe("chapter persistence save queue", () => {
       await vi.advanceTimersByTimeAsync(150);
     });
 
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
   });
 
   it("still debounces from the latest semantic edit", async () => {
     vi.useFakeTimers();
-    savePagesBlocksMock.mockResolvedValue(
+    savePagesBlocksPatchMock.mockResolvedValue(
       makeChapter("second edit", "2026-01-01T00:00:01.000Z"),
     );
     const { api } = renderHarness();
@@ -558,12 +566,12 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(150);
     });
-    expect(savePagesBlocksMock).not.toHaveBeenCalled();
+    expect(savePagesBlocksPatchMock).not.toHaveBeenCalled();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(250);
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
   });
 
   it("keeps the persistence action boundary stable on unrelated root rerenders", () => {
@@ -585,7 +593,9 @@ describe("chapter persistence save queue", () => {
     vi.useFakeTimers();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const onSaveError = vi.fn();
-    savePagesBlocksMock.mockRejectedValue(new Error("storage unavailable"));
+    savePagesBlocksPatchMock.mockRejectedValue(
+      new Error("storage unavailable"),
+    );
     const { api } = renderHarness(onSaveError);
 
     act(() => {
@@ -594,7 +604,7 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(400);
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledOnce();
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledOnce();
     expect(onSaveError).toHaveBeenCalledWith("storage unavailable");
 
     act(() => {
@@ -603,7 +613,7 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(400);
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledTimes(2);
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(2);
     expect(onSaveError).toHaveBeenCalledOnce();
 
     await act(async () => {
@@ -615,7 +625,7 @@ describe("chapter persistence save queue", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(400);
     });
-    expect(savePagesBlocksMock).toHaveBeenCalledTimes(3);
+    expect(savePagesBlocksPatchMock).toHaveBeenCalledTimes(3);
     expect(onSaveError).toHaveBeenCalledTimes(2);
   });
 });

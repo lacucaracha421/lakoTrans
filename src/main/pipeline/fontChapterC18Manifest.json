@@ -451,15 +451,15 @@
   "runtimeSources": [
     {
       "path": "align-hayai-glyphs.py",
-      "sha256": "08c24481de486720ddd4071c1cd842cd92667b67cb0e17fe53a37a90cdc7898a"
+      "sha256": "e59070e91b39896f660bc3bf176156a84dc00cb408d919e900f4dcec75d8a0a0"
     },
     {
       "path": "analyze-matched-glyphs.py",
-      "sha256": "0d9a96b962361b7b4669235dcabffab1521faaecc74e7436840b0c4f0f6ef374"
+      "sha256": "db5839f6b46b170846cc99a29cb2cf7370fd47227dfb04c5f9847e23788a6d94"
     },
     {
       "path": "assign-coherent-source-palette.py",
-      "sha256": "c9358a38f82eb4aeecaccb63c61e23e9a2170fcb0ebdf40cbc481f4b332d8b5d"
+      "sha256": "3739dbb99e1539cad39b11a472a2ece36814e03cb27b4a70ecb5995fcb3ac41a"
     },
     {
       "path": "assign-source-region-palette.py",
@@ -475,7 +475,7 @@
     },
     {
       "path": "group-verified-glyphs.py",
-      "sha256": "900ae23e5b18c782ab886d7393e146520b112e161b489482c805220e1275ac2f"
+      "sha256": "0c5a7fd5063782da24a7480066cc68f4b7e52433fdf6e2c668c3a578b85f4697"
     },
     {
       "path": "hayai-pool.py",
@@ -495,7 +495,7 @@
     },
     {
       "path": "prepare-line-probe.py",
-      "sha256": "c3e70a1f59fd9a4fb462fb5563fc2c8f2519395ecc8be88e03760ce1f5828e7c"
+      "sha256": "7bd24f78cd004f7a9280097c8c423e8f1776c3d5af0130a9013fc5a18942c27e"
     },
     {
       "path": "recover-zero-glyph-evidence.py",
@@ -503,11 +503,11 @@
     },
     {
       "path": "refine-line-supported-glyphs.py",
-      "sha256": "2e36fe3ebb5a1361e5c23e8c08012598cfeadaf367bf7ea1c60c2ebf88f57bb7"
+      "sha256": "de1b54cbbce67ff8b1c459a6c5daa16b37a53db7ec25e3995de5d217d44e4dfb"
     },
     {
       "path": "worker.py",
-      "sha256": "d07c2817e46ed64be3d2e8e07df26772cd39901f3f28b35317c4d752c3b5f1fd"
+      "sha256": "4e048eaf740f45856c4206bdab408d2072879a5af81bdaca6e1b033f7434474e"
     }
   ],
   "assetDirectory": "font-chapter-c18/c23-v1"

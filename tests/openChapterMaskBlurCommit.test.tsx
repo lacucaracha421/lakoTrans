@@ -67,6 +67,7 @@ function Harness({
     clearDirtyTracking: persistence.clearDirtyTracking,
     currentChapterRef,
     dirty: persistence.dirty,
+    library: { works: [], workOrder: [] },
     hasPendingInpaintingMask: Object.values(masks).some(
       (strokes) => strokes.length > 0,
     ),
@@ -134,21 +135,23 @@ function setup() {
   const errors: string[] = [];
   let api: Api | undefined;
   let disk = structuredClone(original);
-  const savePagesBlocks = vi.fn(async (request: SavePagesBlocksRequest) => {
-    disk = {
-      ...disk,
-      pages: disk.pages.map((page) => {
-        const update = request.pages.find(
-          (candidate) => candidate.pageId === page.id,
-        );
-        return update ? { ...page, blocks: update.blocks } : page;
-      }),
-    };
-    return structuredClone(disk);
-  });
+  const savePagesBlocksPatch = vi.fn(
+    async (request: SavePagesBlocksRequest) => {
+      disk = {
+        ...disk,
+        pages: disk.pages.map((page) => {
+          const update = request.pages.find(
+            (candidate) => candidate.pageId === page.id,
+          );
+          return update ? { ...page, blocks: update.blocks } : page;
+        }),
+      };
+      return structuredClone(disk);
+    },
+  );
   window.mangaApi = createTestMangaGatewayStub({
     openChapter: async () => reading.promise,
-    savePagesBlocks,
+    savePagesBlocksPatch,
   });
   render(
     <Harness
@@ -166,7 +169,7 @@ function setup() {
     reading,
     committed,
     errors,
-    savePagesBlocks,
+    savePagesBlocksPatch,
     disk: () => disk,
     api: () => {
       if (!api) throw new Error("Chapter harness did not initialize");
@@ -194,7 +197,7 @@ async function openWithPendingNumericDraft(h: ReturnType<typeof setup>) {
   expect(h.committed).toEqual([45]);
   expect(h.api().current()?.pages[0].blocks[0].rotationDeg).toBe(45);
   expect(h.api().dirty).toBe(true);
-  expect(h.savePagesBlocks).not.toHaveBeenCalled();
+  expect(h.savePagesBlocksPatch).not.toHaveBeenCalled();
   return { opening };
 }
 
@@ -205,9 +208,9 @@ it("saves the real blur commit triggered by the mask confirmation before install
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await opening;
   });
-  expect(h.savePagesBlocks).toHaveBeenCalledOnce();
+  expect(h.savePagesBlocksPatch).toHaveBeenCalledOnce();
   expect(
-    h.savePagesBlocks.mock.calls[0][0].pages[0].blocks[0].rotationDeg,
+    h.savePagesBlocksPatch.mock.calls[0][0].pages[0].blocks[0].rotationDeg,
   ).toBe(45);
   expect(h.disk().pages[0].blocks[0].rotationDeg).toBe(45);
   expect(h.api().current()?.id).toBe(h.next.id);
@@ -215,14 +218,14 @@ it("saves the real blur commit triggered by the mask confirmation before install
   await act(async () => {
     await vi.advanceTimersByTimeAsync(500);
   });
-  expect(h.savePagesBlocks).toHaveBeenCalledOnce();
+  expect(h.savePagesBlocksPatch).toHaveBeenCalledOnce();
   expect(h.errors).toEqual([]);
 });
 
 it("keeps the original chapter and dirty blur edit when the post-confirm save fails", async () => {
   const h = setup();
   const { opening } = await openWithPendingNumericDraft(h);
-  h.savePagesBlocks.mockRejectedValueOnce(new Error("disk full"));
+  h.savePagesBlocksPatch.mockRejectedValueOnce(new Error("disk full"));
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await opening;
@@ -239,11 +242,11 @@ it("does not replace the latest reselected chapter after a post-confirm save res
   const h = setup();
   const { opening } = await openWithPendingNumericDraft(h);
   const saving = deferred<ChapterSnapshot>();
-  h.savePagesBlocks.mockReturnValueOnce(saving.promise);
+  h.savePagesBlocksPatch.mockReturnValueOnce(saving.promise);
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
   });
-  expect(h.savePagesBlocks).toHaveBeenCalledOnce();
+  expect(h.savePagesBlocksPatch).toHaveBeenCalledOnce();
   expect(h.api().current()?.id).toBe(h.original.id);
   await act(async () => {
     await h.api().open(h.original.id);
@@ -266,9 +269,9 @@ it.each([false, true])(
     const h = setup();
     const { opening } = await openWithPendingNumericDraft(h);
     const saving = deferred<void>();
-    const persist = h.savePagesBlocks.getMockImplementation();
+    const persist = h.savePagesBlocksPatch.getMockImplementation();
     if (!persist) throw new Error("Missing owned gateway save boundary");
-    h.savePagesBlocks.mockImplementationOnce(async (request) => {
+    h.savePagesBlocksPatch.mockImplementationOnce(async (request) => {
       await saving.promise;
       return persist(request);
     });
@@ -276,7 +279,7 @@ it.each([false, true])(
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     });
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(h.savePagesBlocks).toHaveBeenCalledOnce();
+    expect(h.savePagesBlocksPatch).toHaveBeenCalledOnce();
     act(() => h.api().addMask());
     const latestMasks = h.api().masks;
     expect(latestMasks["page-1"]).toHaveLength(2);
@@ -299,7 +302,7 @@ it.each([false, true])(
     if (!confirmed)
       expect(h.api().current()?.pages[0].blocks[0].rotationDeg).toBe(45);
     expect(h.api().dirty).toBe(false);
-    expect(h.savePagesBlocks).toHaveBeenCalledOnce();
+    expect(h.savePagesBlocksPatch).toHaveBeenCalledOnce();
     expect(h.errors).toEqual([]);
   },
 );

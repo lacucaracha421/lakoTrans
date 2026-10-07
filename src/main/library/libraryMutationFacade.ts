@@ -30,6 +30,7 @@ import {
 import {
   savePageBlocksUnlocked,
   savePagesBlocksUnlocked,
+  savePagesBlocksPatchUnlocked,
 } from "../libraryStore/libraryPageBlockMutations";
 import { appendAnalyzedPageBlocksUnlocked } from "../libraryStore/libraryAnalysisMutations";
 import {
@@ -355,4 +356,19 @@ export async function saveTranslationCheckpoint(
         expectedRevision,
       }),
   );
+}
+
+/** Same commit/activity boundary as the full response API, with a smaller receipt. */
+export async function savePagesBlocksPatch(request: SavePagesBlocksRequest) {
+  const patch = await guardedMutation(
+    request.pages.map((page) =>
+      pageContentResource(request.chapterId, page.pageId),
+    ),
+    () => savePagesBlocksPatchUnlocked(request),
+  );
+  notifyLinkedWorkspacePagesSaved(
+    request.chapterId,
+    request.pages.map((page) => page.pageId),
+  );
+  return patch;
 }

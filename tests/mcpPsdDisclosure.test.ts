@@ -37,9 +37,11 @@ it("exports the actual original layer without inventing an inpainted layer when 
     delete f.page.inpaintedImagePath;
     const before = structuredClone(f.page);
     const parsed = readPsdPixels(await f.render());
-    expect(parsed.children?.[0].name).toContain("Original");
+    expect(parsed.children?.[0].children?.[0].name).toContain("Original");
     expect(
-      parsed.children?.some((layer) => layer.name?.includes("Inpaint")),
+      parsed.children?.[0].children?.some((layer) =>
+        layer.name?.includes("Inpaint"),
+      ),
     ).toBe(false);
     expect(f.page).toEqual(before);
     expect(f.capture.session.close).toHaveBeenCalledOnce();

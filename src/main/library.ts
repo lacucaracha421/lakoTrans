@@ -7,6 +7,7 @@ export { recoverLegacyShareImportTrash } from "./libraryStore/legacyShareTrashRe
 export type { ChapterRunPaths } from "./libraryStore/libraryFiles";
 export type { LibraryCleanupResult } from "./libraryStore/libraryCleanup";
 export {
+  getChapterPageMetadata,
   getRunPaths,
   loadTranslationCheckpoint,
   listLibrary,
@@ -27,6 +28,7 @@ export {
   reorderPages,
   savePageBlocks,
   savePagesBlocks,
+  savePagesBlocksPatch,
   savePageWorkflowResult,
   saveTranslationCheckpoint,
   setPageInpaintingResult,

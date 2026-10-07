@@ -14,6 +14,13 @@ import {
   type LibraryImageUrlCodec,
 } from "./imageUrlCodec";
 import { logError } from "./logger";
+import {
+  createImageThumbnailRenderer,
+  THUMBNAIL_RENDERER_DOCUMENT,
+  THUMBNAIL_RENDERER_DOCUMENT_URL,
+  type ImageThumbnailRenderer,
+} from "./imageThumbnailRenderer";
+import { createImageThumbnailResponse } from "./imageThumbnailResponse";
 
 const IMAGE_PROTOCOL = "mgt-image";
 const FONT_PROTOCOL = "mgt-font";
@@ -38,6 +45,10 @@ export type ImageProtocolDependencies = {
   resolveLibraryImagePath: (path: string) => string;
   resolveFontFilePath: (id: string) => string | null;
   serveFile: (path: string, options: ProtocolFileOptions) => Promise<Response>;
+  serveThumbnail?: (
+    originalUrl: string,
+    maxEdge: number,
+  ) => Promise<Response | null>;
   isUnavailableError: (error: unknown) => boolean;
   reportError: (message: string, context: unknown) => void;
 };
@@ -45,10 +56,32 @@ export type ImageProtocolDependencies = {
 export type ImageProtocolController = {
   registerScheme: () => void;
   registerHandler: () => void;
-  createLibraryImageUrl: (imagePath: string) => string;
+  createLibraryImageUrl: (
+    imagePath: string,
+    thumbnailMaxEdge?: number,
+  ) => string;
 };
 
 let productionController: ImageProtocolController | undefined;
+let thumbnailRenderer: ImageThumbnailRenderer | undefined;
+let thumbnailResponse:
+  ReturnType<typeof createImageThumbnailResponse> | undefined;
+
+export async function disposeImageThumbnails(): Promise<void> {
+  const renderer = thumbnailRenderer;
+  thumbnailRenderer = undefined;
+  thumbnailResponse = undefined;
+  await renderer?.close();
+}
+
+function serveProductionThumbnail(
+  originalUrl: string,
+  maxEdge: number,
+): Promise<Response | null> {
+  thumbnailRenderer ??= createImageThumbnailRenderer();
+  thumbnailResponse ??= createImageThumbnailResponse(thumbnailRenderer);
+  return thumbnailResponse(originalUrl, maxEdge);
+}
 
 export function createImageProtocolController(
   dependencies: ImageProtocolDependencies,
@@ -56,9 +89,10 @@ export function createImageProtocolController(
   return {
     registerScheme: () => registerScheme(dependencies.protocol),
     registerHandler: () => registerHandler(dependencies),
-    createLibraryImageUrl: (imagePath) =>
+    createLibraryImageUrl: (imagePath, thumbnailMaxEdge) =>
       dependencies.imageUrls.createUrl(
         dependencies.resolveLibraryImagePath(imagePath),
+        thumbnailMaxEdge,
       ),
   };
 }
@@ -98,9 +132,25 @@ export function registerImageProtocolHandler(): void {
 function registerHandler(dependencies: ImageProtocolDependencies): void {
   dependencies.protocol.handle(IMAGE_PROTOCOL, async (request) => {
     try {
+      if (request.url === THUMBNAIL_RENDERER_DOCUMENT_URL) {
+        return thumbnailDocumentResponse();
+      }
       const image = dependencies.imageUrls.resolveRequest(request.url);
       if (!image) {
         return protocolErrorResponse("Image not found", 404);
+      }
+      if (
+        image.originalUrl &&
+        image.thumbnailMaxEdge &&
+        image.contentType !== "image/webp" &&
+        dependencies.serveThumbnail
+      ) {
+        const response = await tryThumbnailResponse(
+          dependencies,
+          image.originalUrl,
+          image.thumbnailMaxEdge,
+        );
+        if (response) return response;
       }
       return await dependencies.serveFile(image.imagePath, {
         contentType: image.contentType,
@@ -161,8 +211,14 @@ function registerHandler(dependencies: ImageProtocolDependencies): void {
   });
 }
 
-export function createLibraryImageUrl(imagePath: string): string {
-  return getProductionController().createLibraryImageUrl(imagePath);
+export function createLibraryImageUrl(
+  imagePath: string,
+  thumbnailMaxEdge?: number,
+): string {
+  return getProductionController().createLibraryImageUrl(
+    imagePath,
+    thumbnailMaxEdge,
+  );
 }
 
 function getProductionController(): ImageProtocolController {
@@ -176,6 +232,7 @@ function getProductionController(): ImageProtocolController {
     resolveFontFilePath: (id) =>
       resolveCustomFontFilePath(id) ?? resolveBundledFontFilePath(id),
     serveFile: createProtocolFileResponse,
+    serveThumbnail: serveProductionThumbnail,
     isUnavailableError: isProtocolFileUnavailableError,
     reportError: logError,
   });
@@ -210,4 +267,32 @@ function protocolErrorResponse(message: string, status: number): Response {
       "Content-Type": "text/plain; charset=utf-8",
     },
   });
+}
+
+function thumbnailDocumentResponse(): Response {
+  return new Response(THUMBNAIL_RENDERER_DOCUMENT, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy":
+        "default-src 'none'; img-src blob: mgt-image://library; connect-src mgt-image://library",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+async function tryThumbnailResponse(
+  dependencies: ImageProtocolDependencies,
+  originalUrl: string,
+  maxEdge: number,
+): Promise<Response | null> {
+  try {
+    return (await dependencies.serveThumbnail?.(originalUrl, maxEdge)) ?? null;
+  } catch (error) {
+    // error-policy-allow: derivative failure must retain the original-image fallback.
+    dependencies.reportError(
+      "Thumbnail generation failed; serving original image",
+      { error },
+    );
+    return null;
+  }
 }

@@ -17,6 +17,7 @@ import {
 } from "../../../shared/textWrapping";
 import { resolveBlockFontFamily, type BlockFontCatalog } from "../lib/fonts";
 import { resolveFontWidthScale } from "../lib/blockFormatGeometry";
+import type { BlockTextLine } from "../lib/overlayTextWrapping";
 import type { BlockTextLayout } from "../lib/overlayLayout";
 
 export function resolveOverlayTextWrapStyle(
@@ -86,9 +87,8 @@ export function resolveOverlayTextContentStyle(
     ...geometryStyle,
     maxHeight: "100%",
     overflow: "visible",
-    // Horizontal text is already split into deterministic fixed lines, but
-    // retaining the selected values here keeps computed styles truthful. For
-    // vertical text these properties perform the browser-side column breaks.
+    // Both directions use fixed lines. Retain the selected word-break values
+    // for fallback content; individual fixed lines prohibit browser reflow.
     overflowWrap: breakStyle.overflowWrap,
     wordBreak: breakStyle.wordBreak,
     whiteSpace: layout.lines ? "normal" : undefined,
@@ -176,4 +176,47 @@ function resolveFontWidthOrigin(
   if (textAlign === "left") return "left center";
   if (textAlign === "right") return "right center";
   return "center center";
+}
+
+export function resolveFixedLineStyle(
+  line: BlockTextLine,
+  block: TranslationBlock,
+  fontSizePx: number,
+  renderDirection: RenderTextDirection,
+  fixedColumnFontSizePx: number,
+): React.CSSProperties {
+  if (!line.slot)
+    return {
+      display: "block",
+      whiteSpace: "pre",
+      width:
+        renderDirection === "vertical"
+          ? fixedColumnFontSizePx * block.lineHeight
+          : undefined,
+    };
+  if (renderDirection === "vertical") {
+    const columnFontSizePx = line.runs.reduce(
+      (largest, run) => Math.max(largest, run.renderedFontSizePx ?? fontSizePx),
+      fontSizePx,
+    );
+    return {
+      display: "block",
+      height: line.slot.availableWidth,
+      left: line.slot.blockOffsetPx,
+      position: "absolute",
+      textOrientation: "upright",
+      top: line.slot.inlineOffsetPx,
+      whiteSpace: "pre",
+      width: columnFontSizePx * block.lineHeight,
+      writingMode: "vertical-rl",
+    };
+  }
+  return {
+    display: "block",
+    left: line.slot.inlineOffsetPx,
+    position: "absolute",
+    top: line.slot.blockOffsetPx,
+    whiteSpace: "pre",
+    width: line.slot.availableWidth,
+  };
 }

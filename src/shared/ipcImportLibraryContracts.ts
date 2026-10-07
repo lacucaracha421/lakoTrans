@@ -10,14 +10,13 @@ import type {
   ImportPreviewSession,
 } from "./importTypes";
 import type { ChapterSnapshot, LibraryIndex } from "./libraryTypes";
+import { ImageDataUrlRequestSchema } from "./ipcLibrarySchemas";
 import type {
   PrepareSoundEffectTranslationRequest,
   PrepareSoundEffectTranslationResult,
   RestoreSoundEffectReviewRequest,
 } from "./analysisTypes";
 import type {
-  SavePageBlocksRequest,
-  SavePagesBlocksRequest,
   WorkShareExportRequest,
   WorkShareExportResult,
   WorkShareImportPreview,
@@ -28,8 +27,6 @@ import {
   ChapterSnapshotSchema,
   CreateImportRequestSchema,
   LibraryIndexSchema,
-  SavePageBlocksRequestSchema,
-  SavePagesBlocksRequestSchema,
   WorkShareExportRequestSchema,
   WorkShareImportRequestSchema,
 } from "./ipcSchemas";
@@ -293,32 +290,21 @@ export const libraryIpcContracts = {
     args: z.tuple([]),
     result: openLibraryFolderResultSchema,
   }),
-  openChapter: defineIpcContract<[string], ChapterSnapshot>({
+  openChapter: defineIpcContract<[string, string?], ChapterSnapshot>({
     apiKey: "openChapter",
     channel: "library:open-chapter",
-    args: z.tuple([stringArg]),
+    args: z.tuple([stringArg, stringArg.optional()]),
     result: ChapterSnapshotSchema,
   }),
-  getPageImageDataUrl: defineIpcContract<[string], string>({
+  getPageImageDataUrl: defineIpcContract<[string, number?], string>({
     apiKey: "getPageImageDataUrl",
     channel: "library:get-page-image-data-url",
-    args: z.tuple([stringArg]),
+    args: z.tuple([
+      stringArg,
+      ImageDataUrlRequestSchema.shape.thumbnailMaxEdge,
+    ]),
     result: z.string(),
   }),
-  savePageBlocks: defineIpcContract<[SavePageBlocksRequest], ChapterSnapshot>({
-    apiKey: "savePageBlocks",
-    channel: "library:save-page-blocks",
-    args: z.tuple([SavePageBlocksRequestSchema]),
-    result: ChapterSnapshotSchema,
-  }),
-  savePagesBlocks: defineIpcContract<[SavePagesBlocksRequest], ChapterSnapshot>(
-    {
-      apiKey: "savePagesBlocks",
-      channel: "library:save-pages-blocks",
-      args: z.tuple([SavePagesBlocksRequestSchema]),
-      result: ChapterSnapshotSchema,
-    },
-  ),
   renameWork: defineIpcContract<[string, string], LibraryIndex>({
     apiKey: "renameWork",
     channel: "library:rename-work",

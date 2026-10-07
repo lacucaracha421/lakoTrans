@@ -39,7 +39,10 @@ export function usePageOrganizationAction(
           onClose: () => setChapter(null),
           onReload: async () => {
             if (options.dirty) await options.saveNow();
-            const next = await libraryGateway.openChapter(chapter.id);
+            const next = await libraryGateway.openChapter(
+              chapter.id,
+              chapter.workId,
+            );
             if (!next) throw new Error("화를 찾지 못했습니다.");
             return next;
           },

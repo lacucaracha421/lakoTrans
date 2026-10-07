@@ -37,7 +37,11 @@ export function useMcpEditorSync(options: Options): void {
     const refresh = createLiveChapterRefreshCoordinator({
       discardSuperseded: true,
       getCurrentChapterId: () => latest.current.currentChapterRef.current?.id,
-      openChapter: (id) => libraryGateway.openChapter(id),
+      openChapter: (id) =>
+        libraryGateway.openChapter(
+          id,
+          latest.current.currentChapterRef.current?.workId,
+        ),
       mergeLiveChapter: (chapter) => {
         const metadata = metadataRequested.delete(chapter.id);
         if (metadata)

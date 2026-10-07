@@ -128,6 +128,40 @@ export function doesBlockTextFit(
   );
 }
 
+export function resolveFixedVerticalTextLines(
+  block: TranslationBlock,
+  text: string,
+  fontSize: number,
+  innerWidth: number,
+  innerHeight: number,
+  fontCatalog: BlockFontCatalog,
+): BlockTextLine[] | null {
+  if (
+    normalizeRenderDirection(block.renderDirection, "horizontal") !==
+      "vertical" ||
+    !text.trim()
+  )
+    return null;
+  const { runs } = parseRichText(
+    text,
+    Boolean(block.bold),
+    Boolean(block.italic),
+    block.fontWeight,
+  );
+  return measureVerticalText(
+    runs,
+    block,
+    fontCatalog,
+    fontSize,
+    innerWidth,
+    innerHeight,
+    fontSize * block.lineHeight,
+    resolveLetterSpacingPx(block, fontSize),
+    resolveFontWidthScale(block.fontWidthScale),
+    resolveBlockTextWordBreak(block.wordBreak, "vertical"),
+  ).lines;
+}
+
 export function resolveLetterSpacingPx(
   block: TranslationBlock,
   fontSize: number,
@@ -157,9 +191,9 @@ function measureVerticalText(
   letterSpacingPx: number,
   fontWidthScale: number,
   wordBreak: TextWordBreak,
-): { columnCount: number; fits: boolean } {
+): { columnCount: number; fits: boolean; lines: BlockTextLine[] } {
   const plainText = runs.map((run) => run.text).join("");
-  if (!plainText.trim()) return { columnCount: 0, fits: true };
+  if (!plainText.trim()) return { columnCount: 0, fits: true, lines: [] };
   const resolveRunStyle = createTextRunStyleResolver(
     block,
     fontSize,
@@ -199,8 +233,10 @@ function measureVerticalText(
     (text) => segmentVerticalTextGraphemes(text),
   );
   const columnCount = Math.max(1, measured.lineCount);
-  const estimatedColumnWidth = maximumFontSizePx * 1.15 * fontWidthScale;
+  const estimatedColumnWidth =
+    maximumFontSizePx * block.lineHeight * fontWidthScale;
   return {
+    lines: measured.lines,
     columnCount,
     fits:
       columnCount <= MAX_VERTICAL_COLUMNS &&

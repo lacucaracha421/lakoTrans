@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestMangaGatewayStub } from "../src/renderer/src/api/mangaGateway";
 import type {
   ChapterSnapshot,
+  ChapterPageMetadata,
   LibraryIndex,
   MangaPage,
 } from "../src/shared/libraryTypes";
@@ -22,6 +23,10 @@ import type {
 } from "../src/shared/pageImageExportTypes";
 
 const openChapter = vi.fn<(chapterId: string) => Promise<ChapterSnapshot>>();
+const getChapterPageMetadata =
+  vi.fn<
+    (workId: string, chapterId: string) => Promise<ChapterPageMetadata[]>
+  >();
 const preflightPageImages =
   vi.fn<
     (
@@ -43,6 +48,7 @@ beforeEach(() => {
     getPageImageDataUrl: vi.fn(() => Promise.resolve("mgt-image://token")),
     openChapter: (chapterId: string) => openChapter(chapterId),
     preflightPageImages,
+    getChapterPageMetadata,
   });
 });
 
@@ -368,8 +374,28 @@ describe("ExportOptionsModal", () => {
   });
 
   it("loads another chapter only when it is expanded", async () => {
-    openChapter.mockResolvedValue(
-      makeChapter(SECOND_CHAPTER_ID, [makePage("p3"), makePage("p4")]),
+    getChapterPageMetadata.mockResolvedValue(
+      [makePage("p3"), makePage("p4")].map(
+        ({
+          id,
+          name,
+          imagePath,
+          width,
+          height,
+          analysisStatus,
+          createdAt,
+          updatedAt,
+        }) => ({
+          id,
+          name,
+          imagePath,
+          width,
+          height,
+          analysisStatus,
+          createdAt,
+          updatedAt,
+        }),
+      ),
     );
     await renderModal(false);
 
@@ -377,9 +403,16 @@ describe("ExportOptionsModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /2화/ }));
 
     await waitFor(() =>
-      expect(openChapter).toHaveBeenCalledWith(SECOND_CHAPTER_ID),
+      expect(getChapterPageMetadata).toHaveBeenCalledWith(
+        WORK_ID,
+        SECOND_CHAPTER_ID,
+      ),
     );
     expect(await screen.findByText("p3.png")).toBeTruthy();
+    expect(openChapter).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /2화/ }));
+    fireEvent.click(screen.getByRole("button", { name: /2화/ }));
+    expect(getChapterPageMetadata).toHaveBeenCalledOnce();
   });
 
   it("shows preflight warnings and can navigate to the affected page", async () => {

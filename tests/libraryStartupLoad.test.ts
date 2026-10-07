@@ -258,3 +258,76 @@ it("opens a known owner without scanning other work files, and rejects stale own
     "열려는 화를 찾지 못했습니다.",
   );
 });
+
+it("projects display metadata in page order and never returns block artwork", async () => {
+  const fixture = await createLibraryFixture(1);
+  const workId = fixture.workIds[0];
+  const chapterId = fixture.chapterIds[0];
+  const pageId = randomUUID();
+  const timestamp = "2026-01-01T00:00:00.000Z";
+  const imagePath = join(
+    fixture.libraryDir,
+    "works",
+    workId,
+    "chapters",
+    chapterId,
+    "images",
+    "001.png",
+  );
+  await writeJson(
+    join(
+      fixture.libraryDir,
+      "works",
+      workId,
+      "chapters",
+      chapterId,
+      "chapter.json",
+    ),
+    {
+      id: chapterId,
+      workId,
+      title: "metadata",
+      sourceKind: "images",
+      status: "idle",
+      pageOrder: [pageId],
+      pages: [
+        {
+          id: pageId,
+          name: "001.png",
+          imagePath,
+          width: 100,
+          height: 200,
+          blocks: [],
+          analysisStatus: "idle",
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  );
+  vi.doMock("../src/main/appPaths", () => ({
+    getAppPaths: () => ({ libraryDir: fixture.libraryDir }),
+  }));
+  const { getChapterPageMetadata } =
+    await import("../src/main/library/libraryReadFacade");
+  const pages = await getChapterPageMetadata(workId, chapterId);
+  expect(pages).toEqual([
+    {
+      id: pageId,
+      name: "001.png",
+      imagePath,
+      width: 100,
+      height: 200,
+      analysisStatus: "idle",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  ]);
+  expect(pages[0]).not.toHaveProperty("blocks");
+  expect(pages[0]).not.toHaveProperty("dataUrl");
+  await expect(
+    getChapterPageMetadata(randomUUID(), chapterId),
+  ).rejects.toThrow();
+});

@@ -40,8 +40,6 @@ import {
 } from "./fontMatchingPagePixelInference";
 import { initializeFontMatchingWorker } from "./fontMatchingWorkerInitialization";
 import { loadFontMatchingPageRaster } from "../fontMatchingPageImage";
-import type { FontMatchingRasterPage } from "./fontMatchingPagePixelPreprocessing";
-import type { MangaPage } from "../../shared/libraryTypes";
 import { resolveFontMatchingArtifactDirSync } from "./fontMatchingRuntimePaths";
 import { isKoreanLanguageCode } from "../../shared/translationLanguages";
 import { resolveCrossScriptProxyRuntimeDir } from "./fontMatchingCrossScriptProxyPaths";
@@ -59,10 +57,7 @@ type WorkerClientDependencies = Readonly<{
   /** 워커 스크립트 경로 해석. 기본값은 컴파일된 sibling .js 를 require.resolve. */
   resolveWorkerScript?: () => string;
   /** 페이지 래스터 디코드(nativeImage). 기본값은 실구현. 테스트 주입용. */
-  loadRaster?: (
-    page: MangaPage,
-    signal?: AbortSignal,
-  ) => Promise<FontMatchingRasterPage>;
+  loadRaster?: FontMatchingPageInferenceRequest["loadRaster"];
   /** ONNX WASM 자산 경로 해석. 기본값은 실구현. 테스트 주입용. */
   resolveWasmAssets?: () => Promise<OrtWasmAssets>;
   /** 워커 스폰/init 실패 시 in-process 폴백 포트 생성. 기본값은 실구현. */
@@ -398,8 +393,18 @@ class FontMatchingInferenceWorkerClient implements FontMatchingPageInferencePort
     try {
       // 래스터 디코드는 메인에서(nativeImage). BGRA 버퍼를 transferable로 전달해
       // 워커에 복사 없이 넘긴다.
-      const loadRaster = this.deps.loadRaster ?? loadFontMatchingPageRaster;
-      const raster = await loadRaster(request.page, request.signal);
+      const loadRaster =
+        request.loadRaster ??
+        this.deps.loadRaster ??
+        loadFontMatchingPageRaster;
+      const borrowed = await loadRaster(request.page, request.signal);
+      if (request.signal?.aborted)
+        throw new DOMException("Aborted", "AbortError");
+      // A stage-owned raster is still being read by source-size measurement.
+      // Transfer an independent exact copy; do not detach its shared storage.
+      const raster = request.loadRaster
+        ? { ...borrowed, bgra: borrowed.bgra.slice() }
+        : borrowed;
       if (!this.worker) {
         this.settle(
           id,

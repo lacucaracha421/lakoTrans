@@ -27,6 +27,10 @@ vi.mock("electron", () => ({
 function rasterImage(bytes: Buffer) {
   return {
     isEmpty: () => false,
+    getSize: () => {
+      const { width, height } = PNG.sync.read(bytes);
+      return { width, height };
+    },
     toPNG: () => bytes,
     toDataURL: () => `data:image/png;base64,${bytes.toString("base64")}`,
     crop: (rect: { x: number; y: number; width: number; height: number }) => {
@@ -216,7 +220,10 @@ beforeEach(() => {
   );
   vi.clearAllMocks();
   vi.mocked(readFile).mockResolvedValue(Buffer.from("source-fixture"));
-  sourceImage.open.mockReturnValue({ crop: sourceImage.crop });
+  sourceImage.open.mockReturnValue({
+    crop: sourceImage.crop,
+    getSize: () => ({ width: page.width, height: page.height }),
+  });
   sourceImage.crop.mockReturnValue({
     toDataURL: () =>
       `data:image/png;base64,${imageBytes(true).toString("base64")}`,

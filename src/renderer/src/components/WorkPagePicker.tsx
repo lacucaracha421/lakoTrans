@@ -6,7 +6,7 @@ import type {
   LibraryWorkSummary,
   MangaPage,
 } from "../../../shared/libraryTypes";
-import { libraryGateway as mangaGateway } from "../api/libraryGateway";
+import { loadChapterPickerPages } from "../api/libraryGateway";
 import { useMountedRef } from "../hooks/useMountedRef";
 import type { TriState } from "../lib/translationSelection";
 import { PageThumb, TriCheckbox } from "./ChapterPickerTiles";
@@ -53,6 +53,8 @@ type WorkPagePickerProps = {
     pages: MangaPage[],
   ) => void;
   showTranslatedStatus?: boolean;
+  /** Display-only pages; used by the export selector, never editing flows. */
+  pageMetadataOnly?: boolean;
 };
 
 type ChapterPagesLoader = {
@@ -65,6 +67,8 @@ type ChapterPagesLoader = {
 /** Lazily hydrates chapters that are expanded; the open chapter is already in memory. */
 function useChapterPagesLoader(
   currentChapter: ChapterSnapshot,
+  workId: string,
+  pageMetadataOnly: boolean,
 ): ChapterPagesLoader {
   const [pages, setPages] = React.useState<Map<string, MangaPage[]>>(
     () => new Map([[currentChapter.id, currentChapter.pages]]),
@@ -93,13 +97,17 @@ function useChapterPagesLoader(
         return next;
       });
       setLoading((prev) => new Set(prev).add(chapterId));
-      void mangaGateway
-        .openChapter(chapterId)
-        .then((snapshot) => {
+      const request = loadChapterPickerPages(
+        workId,
+        chapterId,
+        pageMetadataOnly,
+      );
+      void request
+        .then((loadedPages) => {
           if (!mountedRef.current) {
             return;
           }
-          setPages((prev) => new Map(prev).set(chapterId, snapshot.pages));
+          setPages((prev) => new Map(prev).set(chapterId, loadedPages));
         })
         .catch((error: unknown) => {
           if (!mountedRef.current) {
@@ -120,7 +128,7 @@ function useChapterPagesLoader(
           });
         });
     },
-    [mountedRef],
+    [mountedRef, workId, pageMetadataOnly],
   );
 
   return {
@@ -135,7 +143,11 @@ function useChapterPagesLoader(
 export function WorkPagePicker(props: WorkPagePickerProps): React.JSX.Element {
   const { currentChapter, currentPageId, header, renderSelectionSummary } =
     props;
-  const loader = useChapterPagesLoader(props.currentChapter);
+  const loader = useChapterPagesLoader(
+    props.currentChapter,
+    props.work.id,
+    props.pageMetadataOnly ?? false,
+  );
   const pickerListRef = React.useRef<HTMLDivElement>(null);
   const observeThumbnail = usePageThumbnailObserver(pickerListRef);
   const [expanded, setExpanded] = React.useState<Set<string>>(

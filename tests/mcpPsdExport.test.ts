@@ -40,13 +40,20 @@ it("builds actual PSD layers through native assembly and packages exact bytes wi
     const parsed = readPsdPixels(bytes);
     expect(parsed.width).toBe(8);
     expect(parsed.height).toBe(8);
-    expect(parsed.children?.[0].name).toContain("Original");
-    expect(parsed.children?.[1].name).toContain("Inpaint");
-    expect(parsed.children?.[2].text?.text).toBe("PSD text 1");
-    expect(parsed.children?.[3].text).toBeUndefined();
-    expect(parsed.children?.[3].name).toContain("[raster]");
-    const original = parsed.children?.[0].imageData;
-    const cleaned = parsed.children?.[1].imageData;
+    if (!parsed.children) throw new Error("PSD layer groups missing");
+    const [rasters, editable, exact] = parsed.children;
+    const rasterLayers = rasters.children ?? [];
+    const editableLayers = editable.children ?? [];
+    expect(rasterLayers[0].name).toContain("Original");
+    expect(rasterLayers[1].name).toContain("Inpaint");
+    expect(editableLayers[0].text?.text).toBe("PSD text 1");
+    expect(rasterLayers[3].text).toBeUndefined();
+    expect(rasterLayers[3].name).toContain("[raster]");
+    expect(rasters.hidden).toBe(true);
+    expect(editable.hidden).toBe(true);
+    expect(exact.imageData?.data).toEqual(parsed.imageData?.data);
+    const original = rasterLayers[0].imageData;
+    const cleaned = rasterLayers[1].imageData;
     const composite = parsed.imageData;
     if (!original || !cleaned || !composite || !first.mimeType)
       throw new Error("PSD is missing required pixel planes or file identity");

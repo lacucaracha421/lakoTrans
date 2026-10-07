@@ -7,7 +7,11 @@ import {
   normalizeBboxTo1000,
   normalizeRenderBboxTo1000,
 } from "../../../shared/geometry";
-import type { ChapterSnapshot, MangaPage } from "../../../shared/libraryTypes";
+import type {
+  ChapterSnapshot,
+  ChapterPagesPatch,
+  MangaPage,
+} from "../../../shared/libraryTypes";
 import type { SavePageBlocksUpdate } from "../../../shared/shareTypes";
 import type { ServerPageVersion } from "./chapterPersistenceTypes";
 
@@ -64,4 +68,26 @@ function serializePageBlocks(page: MangaPage): MangaPage["blocks"] {
       renderBboxSpace: renderBbox ? "normalized_1000" : undefined,
     };
   });
+}
+
+/** Validate the save receipt before the queue merges submitted pages into the latest draft. */
+export function mergeSavedChapterPages(
+  chapter: ChapterSnapshot,
+  patch: ChapterPagesPatch,
+  updates: SavePageBlocksUpdate[],
+): ChapterSnapshot {
+  const savedById = new Map(patch.pages.map((page) => [page.id, page]));
+  if (
+    patch.id !== chapter.id ||
+    updates.some((page) => !savedById.has(page.pageId))
+  ) {
+    throw new Error(
+      "저장 응답에 편집한 페이지가 없습니다. 현재 편집을 보존했습니다.",
+    );
+  }
+  return {
+    ...chapter,
+    ...patch,
+    pages: chapter.pages.map((page) => savedById.get(page.id) ?? page),
+  };
 }

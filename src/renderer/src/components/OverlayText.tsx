@@ -22,6 +22,7 @@ import {
 import { segmentGraphemes } from "../lib/overlayTextSegmentation";
 import { segmentVerticalTextGraphemes } from "../lib/verticalTextSpacing";
 import {
+  resolveFixedLineStyle,
   resolveOverlayTextContentStyle,
   resolveOverlayTextWrapStyle,
 } from "./overlayTextStyles";
@@ -131,6 +132,7 @@ function OverlayTextLayer({
           ? renderFixedLines(
               block,
               layout,
+              layout.lines,
               renderDirection,
               resolveRunStyle,
               blockOpacityAtRoot,
@@ -176,12 +178,22 @@ function renderParsedTextRuns(
 function renderFixedLines(
   block: TranslationBlock,
   layout: BlockTextLayout,
+  lines: BlockTextLine[],
   renderDirection: RenderTextDirection,
   resolveRunStyle: TextRunStyleResolver,
   blockOpacityAtRoot: boolean,
   layer: "main" | "outline" | "outer",
 ): React.ReactNode {
-  return layout.lines?.map((line, lineIndex) => (
+  const columnFontSizePx = lines.reduce(
+    (largest, line) =>
+      line.runs.reduce(
+        (maximum, run) =>
+          Math.max(maximum, run.renderedFontSizePx ?? layout.fontSizePx),
+        largest,
+      ),
+    layout.fontSizePx,
+  );
+  return lines.map((line, lineIndex) => (
     <span
       className="overlay-text-line"
       data-bubble-direction={line.slot ? renderDirection : undefined}
@@ -192,6 +204,7 @@ function renderFixedLines(
         block,
         layout.fontSizePx,
         renderDirection,
+        columnFontSizePx,
       )}
     >
       {line.runs.length > 0
@@ -210,40 +223,6 @@ function renderFixedLines(
         : "\u00a0"}
     </span>
   ));
-}
-
-function resolveFixedLineStyle(
-  line: BlockTextLine,
-  block: TranslationBlock,
-  fontSizePx: number,
-  renderDirection: RenderTextDirection,
-): React.CSSProperties {
-  if (!line.slot) return { display: "block", whiteSpace: "pre" };
-  if (renderDirection === "vertical") {
-    const columnFontSizePx = line.runs.reduce(
-      (largest, run) => Math.max(largest, run.renderedFontSizePx ?? fontSizePx),
-      fontSizePx,
-    );
-    return {
-      display: "block",
-      height: line.slot.availableWidth,
-      left: line.slot.blockOffsetPx,
-      position: "absolute",
-      textOrientation: "upright",
-      top: line.slot.inlineOffsetPx,
-      whiteSpace: "pre",
-      width: columnFontSizePx * block.lineHeight,
-      writingMode: "vertical-rl",
-    };
-  }
-  return {
-    display: "block",
-    left: line.slot.inlineOffsetPx,
-    position: "absolute",
-    top: line.slot.blockOffsetPx,
-    whiteSpace: "pre",
-    width: line.slot.availableWidth,
-  };
 }
 
 function renderTextRun(
@@ -274,6 +253,15 @@ function renderTextRun(
       bold={run.bold}
       direction={renderDirection}
       text={run.text}
+      spacing={
+        renderDirection === "vertical"
+          ? {
+              fontSizePx: run.renderedFontSizePx ?? fallback.fontSizePx,
+              lineHeight: block.lineHeight,
+              letterSpacingEm: block.letterSpacing ?? 0,
+            }
+          : undefined
+      }
     />
   );
   const decorationStyle =
@@ -287,6 +275,7 @@ function renderTextRun(
       visualStyle,
       decorationStyle,
       block.letterSpacing ?? 0,
+      block.lineHeight,
     );
   }
   if (decorationStyle) {
@@ -331,6 +320,7 @@ function renderWidthScaledRun(
   visualStyle: React.CSSProperties,
   decorationStyle: React.CSSProperties | null,
   letterSpacing: number,
+  lineHeight: number,
 ): React.JSX.Element {
   const segments =
     renderDirection === "vertical"
@@ -362,6 +352,17 @@ function renderWidthScaledRun(
                 bold={run.bold}
                 direction={renderDirection}
                 text={text}
+                spacing={
+                  renderDirection === "vertical"
+                    ? {
+                        fontSizePx: Number.parseFloat(
+                          String(baseStyle.fontSize),
+                        ),
+                        lineHeight,
+                        letterSpacingEm: letterSpacing,
+                      }
+                    : undefined
+                }
               />
             </span>
           </span>

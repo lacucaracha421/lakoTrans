@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+import numpy as np
 
 from PIL import Image, ImageDraw
 
@@ -105,6 +107,99 @@ class SourceRecovery(unittest.TestCase):
             worker.hayai = lambda *_: self.fail('Unnecessary Hayai recovery call')
             self.assertEqual(worker.recover_source_evidence(chapter, None, None), chapter / 'line-supported')
             self.assertFalse((chapter / 'recovery').exists())
+
+
+class RuntimeImageEfficiency(unittest.TestCase):
+    def test_empty_verification_does_not_open_unrelated_pages(self):
+        group = load('group-verified-glyphs')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write(root / 'chapter/ocr-baseline/baseline-report.json', {'pages': [
+                {'pageId': 'unused', 'imagePath': str(root / 'does-not-exist.png')}]})
+            write(root / 'aligned/alignment.json', {'records': []})
+            write(root / 'aligned/batch.json', {'items': []})
+            with patch.object(group.Image, 'open', side_effect=AssertionError('unrelated page decoded')):
+                group.run(root / 'chapter', root / 'aligned', root / 'result')
+            result = json.loads((root / 'result/analysis.json').read_text('utf-8'))
+            self.assertEqual(result['blocks'], [])
+            self.assertEqual(result['verification'], [])
+            self.assertEqual(result['groups'], [])
+
+    def test_cache_preserves_pixels_modes_and_closes_on_switch_and_failure(self):
+        helper = load('analyze-matched-glyphs')
+        with tempfile.TemporaryDirectory() as directory:
+            paths = {str(i): Path(directory) / f'{i}.png' for i in range(2)}
+            for i, path in enumerate(paths.values()):
+                Image.new('RGB', (17, 23), (20 + i, 45, 90)).save(path)
+            for mode in ('RGB', 'L', None):
+                with self.assertRaisesRegex(RuntimeError, 'failure'):
+                    with helper.PageImageCache(paths, mode) as cache:
+                        first = cache['0']
+                        self.assertIs(first, cache['0'])
+                        with Image.open(paths['0']) as source:
+                            expected = source.convert(mode) if mode else source.copy()
+                        self.assertEqual(first.crop((2, 3, 13, 19)).tobytes(), expected.crop((2, 3, 13, 19)).tobytes())
+                        second = cache['1']
+                        with self.assertRaises(ValueError):
+                            first.getpixel((0, 0))
+                        raise RuntimeError('failure')
+                with self.assertRaises(ValueError):
+                    second.getpixel((0, 0))
+
+    def test_production_probe_keeps_mapping_and_native_regions_without_overlays(self):
+        probe = load('prepare-line-probe')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image = Image.new('RGB', (80, 120), 'white')
+            ImageDraw.Draw(image).rectangle((25, 15, 33, 95), fill='black')
+            image.save(root / 'source.png')
+            candidate = {'candidateId': 'D1', 'sourceText': 'あい', 'direction': 'vertical',
+                         'bbox': {'x1': 10, 'y1': 5, 'x2': 60, 'y2': 110}, 'estimate': {'facePx': 12}}
+            write(root / 'ocr-baseline/baseline-report.json', {'pages': [
+                {'pageId': 'P1', 'imagePath': str(root / 'source.png'), 'candidates': [candidate]},
+                {'pageId': 'P2', 'imagePath': str(root / 'missing.png'), 'candidates': [candidate]}]})
+            with patch.object(probe.Image, 'open', wraps=probe.Image.open) as opened:
+                probe.build(root, root / 'fast', only_keys={'P1/D1'}, dark_core=True, diagnostic_overlays=False)
+                self.assertEqual(opened.call_count, 1)
+            self.assertEqual(list((root / 'fast').glob('*-lines.png')), [])
+            # The diagnostic default remains available; use the same valid source for P2.
+            report = json.loads((root / 'ocr-baseline/baseline-report.json').read_text('utf-8'))
+            report['pages'][1]['imagePath'] = str(root / 'source.png')
+            write(root / 'ocr-baseline/baseline-report.json', report)
+            probe.build(root, root / 'diagnostic', only_keys={'P1/D1'}, dark_core=True)
+            fast = json.loads((root / 'fast/line-map.json').read_text('utf-8'))
+            diagnostic = json.loads((root / 'diagnostic/line-map.json').read_text('utf-8'))
+            self.assertEqual(fast['blocks'], diagnostic['blocks'])
+            self.assertEqual(fast['policy'], diagnostic['policy'])
+            self.assertTrue((root / 'diagnostic/P1-lines.png').exists())
+
+    def test_short_extraction_decodes_each_page_once_even_for_interleaved_groups(self):
+        palette = load('assign-coherent-source-palette')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            pages = {}
+            for pid in ('P1', 'P2'):
+                path = root / (pid + '.png')
+                image = Image.new('RGB', (60, 80), 'white')
+                ImageDraw.Draw(image).rectangle((22, 10, 30, 65), fill='black')
+                image.save(path)
+                pages[pid] = {'imagePath': str(path)}
+            keys = ['P1/D1', 'P2/D1', 'P1/D2']
+            groups = [{'members': [key]} for key in keys]
+            rows = {key: {'sourceText': 'あ'} for key in keys}
+            candidates = {key: {'bbox': {'x1': 5, 'y1': 5, 'x2': 50, 'y2': 75}, 'direction': 'vertical'} for key in keys}
+            expected = {}
+            for key in keys:
+                with Image.open(pages[key.split('/')[0]]['imagePath']) as image:
+                    expected[key] = palette.glyph.extract_line(image, {'id': 0, 'bbox': [5, 5, 50, 75]}, 'あ', 'vertical')
+            with patch.object(palette.glyph.Image, 'open', wraps=palette.glyph.Image.open) as opened:
+                actual = palette.extract_short_group_glyphs(groups, rows, candidates, pages)
+                self.assertEqual(opened.call_count, 2)
+            for key in keys:
+                self.assertEqual(len(actual[key]), len(expected[key]))
+                for a, b in zip(actual[key], expected[key]):
+                    self.assertEqual(a['character'], b['character'])
+                    np.testing.assert_array_equal(a['tensor'], b['tensor'])
 
 
 if __name__ == '__main__':

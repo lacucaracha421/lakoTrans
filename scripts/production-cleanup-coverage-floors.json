@@ -7,7 +7,7 @@
     "sourceArtifact": ".tmp/production-cleanup-coverage-baseline-node22.json",
     "sourceArtifactSha256": "a0e1199f46a80734d228ff1772b99d1fde2f700321346da77abf9c29795e4c0a",
     "introducedArtifact": ".tmp/production-cleanup-coverage-accepted-node26.json",
-    "introducedArtifactSha256": "7e0f83700cfa1d2c264efbb3bd5b1cd0794927679d2ed1d988ba1893012e46e7",
+    "introducedArtifactSha256": "77bdf6ab36ca10ebc252a472e42793e8a029fe9003daa798779b81f5a6f53fe5",
     "validatedNodeV8": ["22/12.4", "24/13.6", "26/14.6"],
     "vitestVersion": "4.1.11",
     "coverageV8Version": "4.1.11"
@@ -612,6 +612,28 @@
         "pct": 0
       }
     },
+    "src/main/customFontInspection.ts": {
+      "lines": {
+        "covered": 156,
+        "total": 173,
+        "pct": 90.17
+      },
+      "statements": {
+        "covered": 162,
+        "total": 179,
+        "pct": 90.5
+      },
+      "functions": {
+        "covered": 22,
+        "total": 22,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 100,
+        "total": 120,
+        "pct": 83.33
+      }
+    },
     "src/main/customFonts.ts": {
       "lines": {
         "covered": 114,
@@ -808,6 +830,50 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/main/imageProtocol.ts": {
+      "lines": {
+        "total": 46,
+        "covered": 30,
+        "pct": 65.21
+      },
+      "statements": {
+        "total": 47,
+        "covered": 30,
+        "pct": 63.82
+      },
+      "functions": {
+        "total": 19,
+        "covered": 10,
+        "pct": 52.63
+      },
+      "branches": {
+        "total": 15,
+        "covered": 8,
+        "pct": 53.33
+      }
+    },
+    "src/main/imageUrlCodec.ts": {
+      "lines": {
+        "total": 92,
+        "covered": 85,
+        "pct": 92.39
+      },
+      "statements": {
+        "total": 92,
+        "covered": 85,
+        "pct": 92.39
+      },
+      "functions": {
+        "total": 23,
+        "covered": 23,
+        "pct": 100
+      },
+      "branches": {
+        "total": 84,
+        "covered": 75,
+        "pct": 89.28
       }
     },
     "src/main/index.ts": {
@@ -7716,6 +7782,50 @@
         "covered": 12,
         "total": 19,
         "pct": 63.15
+      }
+    },
+    "src/main/runtime/transport/group-only-review-image-options.cjs": {
+      "lines": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "statements": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "functions": {
+        "total": 1,
+        "covered": 1,
+        "pct": 100
+      },
+      "branches": {
+        "total": 5,
+        "covered": 5,
+        "pct": 100
+      }
+    },
+    "src/main/runtime/transport/group-only-review-request.cjs": {
+      "lines": {
+        "total": 106,
+        "covered": 80,
+        "pct": 75.47
+      },
+      "statements": {
+        "total": 114,
+        "covered": 83,
+        "pct": 72.8
+      },
+      "functions": {
+        "total": 35,
+        "covered": 26,
+        "pct": 74.28
+      },
+      "branches": {
+        "total": 112,
+        "covered": 60,
+        "pct": 53.57
       }
     },
     "src/main/runtime/transport/hf-download.cjs": {
@@ -22240,6 +22350,28 @@
         "pct": 80
       }
     },
+    "src/main/fontPostScriptName.ts": {
+      "lines": {
+        "covered": 26,
+        "total": 27,
+        "pct": 96.29
+      },
+      "statements": {
+        "covered": 33,
+        "total": 34,
+        "pct": 97.05
+      },
+      "functions": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 34,
+        "total": 39,
+        "pct": 87.17
+      }
+    },
     "src/main/imageFingerprint.ts": {
       "lines": {
         "covered": 1,
@@ -22546,6 +22678,72 @@
         "total": 10,
         "covered": 8,
         "pct": 80
+      }
+    },
+    "src/main/imageThumbnailBrowser.ts": {
+      "lines": {
+        "total": 90,
+        "covered": 2,
+        "pct": 2.22
+      },
+      "statements": {
+        "total": 107,
+        "covered": 3,
+        "pct": 2.8
+      },
+      "functions": {
+        "total": 12,
+        "covered": 2,
+        "pct": 16.66
+      },
+      "branches": {
+        "total": 84,
+        "covered": 0,
+        "pct": 0
+      }
+    },
+    "src/main/imageThumbnailRenderer.ts": {
+      "lines": {
+        "total": 58,
+        "covered": 48,
+        "pct": 82.75
+      },
+      "statements": {
+        "total": 68,
+        "covered": 53,
+        "pct": 77.94
+      },
+      "functions": {
+        "total": 17,
+        "covered": 13,
+        "pct": 76.47
+      },
+      "branches": {
+        "total": 38,
+        "covered": 30,
+        "pct": 78.94
+      }
+    },
+    "src/main/imageThumbnailResponse.ts": {
+      "lines": {
+        "total": 27,
+        "covered": 27,
+        "pct": 100
+      },
+      "statements": {
+        "total": 28,
+        "covered": 27,
+        "pct": 96.42
+      },
+      "functions": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "branches": {
+        "total": 20,
+        "covered": 19,
+        "pct": 95
       }
     },
     "src/main/inpainting/codexInpaintingEngine.ts": {
@@ -33988,6 +34186,28 @@
         "pct": 56.52
       }
     },
+    "src/main/psdFontResolver.ts": {
+      "lines": {
+        "covered": 21,
+        "total": 22,
+        "pct": 95.45
+      },
+      "statements": {
+        "covered": 22,
+        "total": 23,
+        "pct": 95.65
+      },
+      "functions": {
+        "covered": 5,
+        "total": 5,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 19,
+        "total": 22,
+        "pct": 86.36
+      }
+    },
     "src/main/regionEditProtection.ts": {
       "lines": {
         "covered": 10,
@@ -38542,6 +38762,28 @@
         "pct": 18.18
       }
     },
+    "src/renderer/src/components/blockLibraryPreviewVisibility.ts": {
+      "lines": {
+        "total": 31,
+        "covered": 27,
+        "pct": 87.09
+      },
+      "statements": {
+        "total": 35,
+        "covered": 29,
+        "pct": 82.85
+      },
+      "functions": {
+        "total": 11,
+        "covered": 9,
+        "pct": 81.81
+      },
+      "branches": {
+        "total": 12,
+        "covered": 8,
+        "pct": 66.66
+      }
+    },
     "src/renderer/src/components/conditionalBatchActionModel.ts": {
       "lines": {
         "total": 65,
@@ -42964,6 +43206,28 @@
         "pct": 55.55
       }
     },
+    "src/renderer/src/hooks/useThumbnailResolution.ts": {
+      "lines": {
+        "total": 26,
+        "covered": 26,
+        "pct": 100
+      },
+      "statements": {
+        "total": 31,
+        "covered": 31,
+        "pct": 100
+      },
+      "functions": {
+        "total": 10,
+        "covered": 10,
+        "pct": 100
+      },
+      "branches": {
+        "total": 24,
+        "covered": 22,
+        "pct": 91.66
+      }
+    },
     "src/renderer/src/hooks/useTranslateSoundEffectsAction.ts": {
       "lines": {
         "total": 39,
@@ -45107,6 +45371,28 @@
       "statements": {
         "total": 1,
         "covered": 1,
+        "pct": 100
+      },
+      "functions": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
+    "src/shared/ipcChapterPageContracts.ts": {
+      "lines": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "statements": {
+        "total": 3,
+        "covered": 3,
         "pct": 100
       },
       "functions": {

@@ -1,3 +1,4 @@
+import { loadFontMatchingPageRaster } from "../fontMatchingPageImage";
 import { runAutomaticFontMatchingV2PageStage } from "./automaticFontMatchingV2PageStage";
 import { logPipelineInfo } from "./pipelineLogger";
 import { estimatePageSourceFontSizes } from "./sourceFontSizeEstimator";
@@ -10,6 +11,7 @@ export type PageTypographyStageDependencies = Readonly<{
   runFontMatching: typeof runAutomaticFontMatchingV2PageStage;
   estimateSourceFontSizes: typeof estimatePageSourceFontSizes;
   logInfo: typeof logPipelineInfo;
+  loadRaster?: typeof loadFontMatchingPageRaster;
 }>;
 
 const defaultDependencies: PageTypographyStageDependencies = {
@@ -30,8 +32,26 @@ export async function runPageTypographyStages(
   >;
 }> {
   const startedAt = performance.now();
+  // Lazy, page-stage lifetime only. A font-worker deadline must not cancel the
+  // independent source-size consumer; the page's parent signal owns decoding.
+  let raster: ReturnType<typeof loadFontMatchingPageRaster> | undefined;
+  const loadRaster: typeof loadFontMatchingPageRaster = async (
+    page,
+    signal,
+  ) => {
+    signal?.throwIfAborted();
+    if (page !== options.page)
+      throw new Error("Typography raster page mismatch.");
+    raster ??= (dependencies.loadRaster ?? loadFontMatchingPageRaster)(
+      options.page,
+      options.pageOptions.abortSignal,
+    );
+    const result = await raster;
+    signal?.throwIfAborted();
+    return result;
+  };
   const fontMatchingTask = measureTypographyStage(() =>
-    dependencies.runFontMatching(options),
+    dependencies.runFontMatching({ ...options, loadRaster }),
   );
   const fontSizeEnabled =
     (options.pageOptions.aiFontSizeMatching ??
@@ -42,6 +62,7 @@ export async function runPageTypographyStages(
   const sourceFontSizeTask = measureTypographyStage(() =>
     dependencies.estimateSourceFontSizes({
       enabled: fontSizeEnabled,
+      loadRaster,
       items: options.items,
       page: options.page,
       signal: options.pageOptions.abortSignal,

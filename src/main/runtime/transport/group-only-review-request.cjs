@@ -1,6 +1,5 @@
 // @ts-check
 
-const { prepareImageVariants } = require("../simple-page-image-variants.cjs");
 const {
   GROUP_REVIEW_CROP_PLAN_VERSION,
   buildGroupReviewCropImageVariants,
@@ -49,11 +48,11 @@ const GROUP_ONLY_REVIEW_REQUEST_VERSION = 5;
  * attempt stay request-local when the cached result is materialized.
  * @param {ModelServer} server
  * @param {ReviewOptions} options
- * @param {OcrBboxResult} ocr
+ * @param {OcrBboxResult} _ocr
  */
-async function requestGroupOnlyPageReview(server, options, ocr) {
+async function requestGroupOnlyPageReview(server, options, _ocr) {
   const cached = getOrCreateCachedPageReview(server, options, () =>
-    runPageReview(server, options, ocr),
+    runPreparedPageReview(server, options, nowMs()),
   );
   try {
     return materializeOutcome(options, await cached.promise, cached.cacheHit);
@@ -68,22 +67,11 @@ async function requestGroupOnlyPageReview(server, options, ocr) {
 /**
  * @param {ModelServer} server
  * @param {ReviewOptions} options
- * @param {OcrBboxResult} _ocr
- * @returns {Promise<PageReviewData>}
- */
-async function runPageReview(server, options, _ocr) {
-  const startedAt = nowMs();
-  return runPreparedPageReview(server, options, startedAt);
-}
-
-/**
- * @param {ModelServer} server
- * @param {ReviewOptions} options
  * @param {number} startedAt
  */
 async function runPreparedPageReview(server, options, startedAt) {
-  const prepared = await prepareImageVariants(
-    /** @type {Parameters<typeof prepareImageVariants>[0]} */ (
+  const prepared = await reviewImage.prepareGroupReviewSource(
+    /** @type {Parameters<typeof reviewImage.prepareGroupReviewSource>[0]} */ (
       /** @type {unknown} */ (options)
     ),
   );
@@ -108,10 +96,13 @@ async function runPreparedPageReview(server, options, startedAt) {
     source.height,
   );
   const preparedCrops = buildGroupReviewCropImageVariants(
-    reviewImage.buildReviewCropImageOptions(source.original),
+    {
+      ...reviewImage.buildReviewCropImageOptions(source.original),
+      skipSingletons: true,
+    },
     plan,
   );
-  if (preparedCrops.fallbackReason || preparedCrops.crops.length === 0) {
+  if (preparedCrops.fallbackReason || plan.regions.length === 0) {
     return upstreamFallback(
       options.ocrBboxHints,
       startedAt,
@@ -125,25 +116,27 @@ async function runPreparedPageReview(server, options, startedAt) {
   /** @type {Awaited<ReturnType<typeof reviewGroupOnlyCrop>>[]} */
   const results = [];
   const diagnostics = [];
-  for (const crop of preparedCrops.crops) {
+  const cropsById = new Map(
+    preparedCrops.crops.map((crop) => [crop.region.cropId, crop]),
+  );
+  for (const region of plan.regions) {
+    const crop = cropsById.get(region.cropId);
     throwIfAborted(options.abortSignal);
-    const reviewCase = buildReviewCase(crop.region, hintById);
-    const result = await reviewGroupOnlyCrop(
-      reviewCase,
-      crop.region,
-      (payload) =>
-        requestGroupOnlyCropCompletion(
-          server,
-          options,
-          payload,
-          crop.variant,
-          GROUP_ONLY_REVIEW_REQUEST_VERSION,
-        ).catch((error) => {
-          throw classifyGroupOnlyReviewRequestFailure(error);
-        }),
-    );
+    const reviewCase = buildReviewCase(region, hintById);
+    const result = await reviewGroupOnlyCrop(reviewCase, region, (payload) => {
+      if (!crop) throw new Error("Missing non-singleton review crop.");
+      return requestGroupOnlyCropCompletion(
+        server,
+        options,
+        payload,
+        crop.variant,
+        GROUP_ONLY_REVIEW_REQUEST_VERSION,
+      ).catch((error) => {
+        throw classifyGroupOnlyReviewRequestFailure(error);
+      });
+    });
     results.push(result);
-    diagnostics.push(summarizeCrop(crop.region, result));
+    diagnostics.push(summarizeCrop(region, result));
   }
   return finalizeReviewedPage(
     options.ocrBboxHints,
@@ -400,8 +393,8 @@ function selectOriginal(variants) {
     variants.find(
       (item) =>
         item.role === "original" &&
-        typeof item.dataUrl === "string" &&
-        item.dataUrl.length > 0,
+        typeof item.path === "string" &&
+        item.path.length > 0,
     ) || null
   );
 }

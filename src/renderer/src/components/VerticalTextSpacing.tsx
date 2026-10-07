@@ -2,6 +2,9 @@ import React from "react";
 import type { RenderTextDirection } from "../../../shared/textTypes";
 import {
   tokenizeVerticalTextSpacing,
+  segmentVerticalTextGraphemes,
+  resolveDefaultVerticalGraphemeAdvancePx,
+  resolveVerticalGraphemeAdvancePx,
   VERTICAL_WAVE_GLYPH_PATH,
   VERTICAL_WAVE_GLYPH_TRANSFORM,
 } from "../lib/verticalTextSpacing";
@@ -10,22 +13,86 @@ type VerticalTextTokenValue = ReturnType<
   typeof tokenizeVerticalTextSpacing
 >[number];
 
+type VerticalSpacing = {
+  fontSizePx: number;
+  lineHeight: number;
+  letterSpacingEm: number;
+};
+
 export function TextWithVerticalSpacing({
   bold = false,
   direction,
   text,
+  spacing,
 }: {
   bold?: boolean;
   direction: RenderTextDirection;
   text: string;
+  spacing?: VerticalSpacing;
 }): React.JSX.Element {
   if (direction !== "vertical") return <>{text}</>;
   return (
     <>
-      {tokenizeVerticalTextSpacing(text).map((token, index) => (
-        <VerticalTextToken bold={bold} key={index} token={token} />
-      ))}
+      {tokenizeVerticalTextSpacing(text)
+        .flatMap((token) =>
+          spacing && token.kind === undefined
+            ? segmentVerticalTextGraphemes(token.text).map((text) => ({ text }))
+            : [token],
+        )
+        .map((token, index) =>
+          spacing ? (
+            <VerticalTextCell
+              bold={bold}
+              key={index}
+              token={token}
+              spacing={spacing}
+            />
+          ) : (
+            <VerticalTextToken bold={bold} key={index} token={token} />
+          ),
+        )}
     </>
+  );
+}
+
+function VerticalTextCell({
+  bold,
+  token,
+  spacing,
+}: {
+  bold: boolean;
+  token: VerticalTextTokenValue;
+  spacing: VerticalSpacing;
+}): React.JSX.Element {
+  if (token.text === "\n") return <br />;
+  const { fontSizePx, lineHeight, letterSpacingEm } = spacing;
+  const tracking = fontSizePx * letterSpacingEm;
+  const advance = resolveDefaultVerticalGraphemeAdvancePx(
+    fontSizePx,
+    fontSizePx * lineHeight,
+    tracking,
+  );
+  const height = segmentVerticalTextGraphemes(token.text).reduce(
+    (sum, grapheme) =>
+      sum +
+      resolveVerticalGraphemeAdvancePx(grapheme, fontSizePx, advance, tracking),
+    0,
+  );
+  return (
+    <span
+      data-vertical-cell=""
+      style={{
+        display: "inline-flex",
+        inlineSize: height,
+        blockSize: fontSizePx,
+        alignItems: "center",
+        justifyContent: "center",
+        letterSpacing: 0,
+        verticalAlign: "middle",
+      }}
+    >
+      <VerticalTextToken bold={bold} token={token} />
+    </span>
   );
 }
 

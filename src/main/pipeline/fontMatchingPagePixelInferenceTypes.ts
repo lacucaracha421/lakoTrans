@@ -161,6 +161,13 @@ export type VerifiedCrossScriptProxyInferenceV1 = Readonly<{
 
 export type FontMatchingPageInferenceRequest = Readonly<{
   page: MangaPage;
+  /** Main-process-only borrowed raster; never included in a worker message. */
+  loadRaster?: (
+    page: MangaPage,
+    signal?: AbortSignal,
+  ) => Promise<
+    import("./fontMatchingPagePixelPreprocessing").FontMatchingRasterPage
+  >;
   blocks: readonly FontMatchingPageInferenceBlock[];
   candidates: readonly AutomaticFontCandidate[];
   targetLanguage?: string;

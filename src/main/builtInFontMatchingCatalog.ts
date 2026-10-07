@@ -368,3 +368,7 @@ function compareAscii(left: string, right: string): number {
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+export function resolveBuiltInFontAssetRelativePath(id: string): string | null {
+  return BUILT_IN_FONT_ASSET_BY_ID.get(id as BuiltInFontId) ?? null;
+}

@@ -51,10 +51,15 @@ function buildGroupReviewCropImageVariants(options, plan, dependencies = {}) {
  */
 function buildGroupReviewCropImageVariantsUnsafe(options, plan, dependencies) {
   assertGroupReviewCropPlan(plan);
+  const regions =
+    options.skipSingletons === true
+      ? plan.regions.filter((region) => region.candidates.length !== 1)
+      : plan.regions;
+  if (regions.length === 0) return { crops: [], fallbackReason: null };
   const imagePath = requireImagePath(options.imagePath);
   const nativeImage = requireNativeImageModule(dependencies.nativeImageModule);
   const source = decodeSourceImage(nativeImage, imagePath, options, plan);
-  const crops = plan.regions.map((region) =>
+  const crops = regions.map((region) =>
     createPreparedImageCrop(source, imagePath, plan, region),
   );
   return { crops, fallbackReason: null };

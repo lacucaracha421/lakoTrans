@@ -98,3 +98,85 @@ it.each([30, 500])(
     ).toBe(true);
   },
 );
+
+it("keeps a dirty draft when a persistence adapter omits its receipt and permits an explicit retry", async () => {
+  const chapter: ChapterSnapshot = {
+    id: "chapter",
+    workId: "work",
+    title: "Draft",
+    sourceKind: "images",
+    status: "idle",
+    pageOrder: ["page"],
+    createdAt: "",
+    updatedAt: "",
+    pages: [
+      {
+        id: "page",
+        name: "draft.png",
+        imagePath: "draft.png",
+        dataUrl: "",
+        width: 1000,
+        height: 1500,
+        analysisStatus: "idle",
+        createdAt: "",
+        updatedAt: "draft",
+        blocks: [],
+      },
+    ],
+  };
+  const currentChapterRef = { current: chapter as ChapterSnapshot | null };
+  const saved = {
+    ...chapter,
+    pages: chapter.pages.map((page) => ({ ...page, updatedAt: "saved" })),
+  };
+  const persistChapter = vi
+    .fn(async () => saved)
+    .mockResolvedValueOnce({ ...saved, pages: [] });
+  const setCurrentChapter = vi.fn();
+  const setDirty = vi.fn();
+  const syncServerPageVersions = vi.fn();
+  const { result } = renderHook(() => {
+    const refs = useChapterPersistenceRefs();
+    return {
+      refs,
+      save: useQueuedChapterSave({
+        currentChapterRef,
+        persistChapter,
+        refs,
+        setCurrentChapter,
+        setDirty,
+        syncServerPageVersions,
+      }),
+    };
+  });
+  result.current.refs.dirtyPageIdsRef.current.add("page");
+  result.current.refs.dirtyVersionRef.current = 7;
+  result.current.refs.blockedAutoSaveVersionRef.current = 7;
+
+  await act(async () => {
+    await expect(result.current.save("manual")).rejects.toThrow(
+      "저장 응답에 편집한 페이지가 없습니다",
+    );
+  });
+  expect(currentChapterRef.current).toBe(chapter);
+  expect(result.current.refs.dirtyPageIdsRef.current).toEqual(
+    new Set(["page"]),
+  );
+  expect(result.current.refs.blockedAutoSaveVersionRef.current).toBe(7);
+  expect(result.current.refs.saveInFlightRef.current).toBe(false);
+  expect(result.current.refs.saveQueuePromiseRef.current).toBeNull();
+  expect(setCurrentChapter).not.toHaveBeenCalled();
+  expect(setDirty).not.toHaveBeenCalled();
+  expect(syncServerPageVersions).not.toHaveBeenCalled();
+
+  await act(async () => result.current.save("manual"));
+  expect(persistChapter).toHaveBeenCalledTimes(2);
+  expect(currentChapterRef.current?.pages[0]?.updatedAt).toBe("saved");
+  expect(result.current.refs.dirtyPageIdsRef.current.size).toBe(0);
+  expect(result.current.refs.blockedAutoSaveVersionRef.current).toBeNull();
+  expect(setDirty).toHaveBeenCalledWith(false);
+  expect(syncServerPageVersions).toHaveBeenCalledExactlyOnceWith(
+    currentChapterRef.current,
+    { preserveDirtyPages: true },
+  );
+});

@@ -770,21 +770,30 @@ describe("page export BrowserWindow security", () => {
       );
       const psd = readPsd(readFileSync(outputPath), { useImageData: true });
       expect([psd.width, psd.height]).toEqual([16, 16]);
-      expect(psd.children?.map((layer) => layer.name)).toEqual([
+      if (!psd.children) throw new Error("PSD layer groups missing");
+      const [rasters, editable, exact] = psd.children;
+      const rasterLayers = rasters.children ?? [];
+      const editableLayers = editable.children ?? [];
+      expect([rasters.hidden, editable.hidden, Boolean(exact.hidden)]).toEqual([
+        true,
+        true,
+        false,
+      ]);
+      expect(exact.text).toBeUndefined();
+      expect(exact.imageData?.data).toEqual(psd.imageData?.data);
+      expect(rasterLayers.map((layer) => layer.name)).toEqual([
         "원본 배경 (Original)",
         "정리 배경 (Inpaint)",
         ...(omitText
           ? []
           : page.blocks.map(
-              (block, i) => `00${i + 1} ${block.translatedText}`,
+              (block, i) => `00${i + 1} ${block.translatedText} [raster]`,
             )),
       ]);
       expect(writePsd).toHaveBeenCalledOnce();
       if (!omitText && blockCount) {
-        expect(psd.children?.[2]?.text?.text).toBe("text 0");
-        expect(Array.from(psd.children?.[2]?.imageData?.data ?? [])).toContain(
-          0,
-        );
+        expect(editableLayers[0]?.text?.text).toBe("text 0");
+        expect(Array.from(rasterLayers[2]?.imageData?.data ?? [])).toContain(0);
       }
     } finally {
       session.close();
@@ -1173,6 +1182,7 @@ async function loadPageExport(): Promise<
   vi.resetModules();
   latestWindow = null;
   vi.doMock("electron", () => ({
+    app: { isPackaged: false, getPath: () => "unused-read-only-app-data" },
     BrowserWindow: FakeExportWindow,
     nativeImage: {
       createFromBuffer: () => ({

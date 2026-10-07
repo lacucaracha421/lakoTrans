@@ -34,6 +34,38 @@ POLICY = {
 }
 
 
+class PageImageCache:
+    """One decoded page at a time; crops retain native pixels and caller order."""
+    def __init__(self, paths, mode=None):
+        self.paths, self.mode = paths, mode
+        self.key, self.image = None, None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+    def close(self):
+        if self.image is not None:
+            self.image.close()
+        self.key, self.image = None, None
+
+    def __getitem__(self, key):
+        if key != self.key:
+            self.close()
+            with Image.open(self.paths[key]) as source:
+                self.image = source.convert(self.mode) if self.mode else source.copy()
+            self.key = key
+        return self.image
+
+
+def baseline_page_paths(chapter, baseline):
+    return {p["pageId"]: chapter / "ocr-baseline" / p["ocrImagePath"]
+            if p.get("ocrImagePath") else Path(p["imagePath"])
+            for p in baseline["pages"]}
+
+
 def read_json(path):
     return json.loads(path.read_text(encoding="utf-8"))
 

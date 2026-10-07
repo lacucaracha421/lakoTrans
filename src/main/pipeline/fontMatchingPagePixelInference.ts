@@ -316,7 +316,7 @@ export function createFontMatchingPageInferencePort(
           pixelInferenceByBlockId: await inferFontMatchingPagePixels({
             ...request,
             model: prepared.model,
-            loadRaster: dependencies.loadRaster,
+            loadRaster: request.loadRaster ?? dependencies.loadRaster,
           }),
         };
       } catch (error) {

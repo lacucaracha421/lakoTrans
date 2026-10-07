@@ -19,6 +19,7 @@ import {
 } from "./fatalMainProcessIncident";
 import {
   registerImageProtocolHandler,
+  disposeImageThumbnails,
   registerImageProtocolScheme,
 } from "./imageProtocol";
 import {
@@ -164,7 +165,11 @@ const mainWindowSessionLifecycle = new MainWindowSessionLifecycle({
         logWarn,
       });
     } finally {
-      await cleanupTransientImportResources("main-window-closed");
+      try {
+        await disposeImageThumbnails();
+      } finally {
+        await cleanupTransientImportResources("main-window-closed");
+      }
     }
   },
   openWindow: () => openMainWindowNow(),
@@ -495,6 +500,7 @@ async function finishTerminalCleanup(
   const results = await Promise.allSettled([
     mcpRuntime.dispose(),
     mcpDesktop.dispose(),
+    disposeImageThumbnails(),
     finishTerminalAppCleanup(reason, updateProgress),
   ]);
   const failures = results.flatMap((result) =>

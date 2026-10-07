@@ -71,6 +71,9 @@ export async function renderPagePsdExport({
     omitText ? pageWithoutText : page,
     PSD_CAPTURE_OPTIONS,
   );
+  const layouts = omitText
+    ? []
+    : ((await renderSession.inspectLastLayout?.()) ?? []);
   check();
   const originalBackgroundPng = await renderSession.renderPage(
     { ...pageWithoutText, inpaintedImagePath: undefined },
@@ -91,7 +94,11 @@ export async function renderPagePsdExport({
     compositePng,
     originalBackgroundPng,
     cleanedBackgroundPng,
-    textLayers,
+    textLayers: textLayers.map((input) => ({
+      ...input,
+      layout: layouts.find((layout) => layout.blockId === input.block.id),
+    })),
+    resolveFontName: renderSession.resolvePsdFontName,
   });
   check();
   return psd;
@@ -118,10 +125,10 @@ async function renderPsdTextLayers({
     check();
     textLayers.push({
       block,
-      png: await renderTransparentPage(
-        { ...page, blocks: [block] },
-        PSD_CAPTURE_OPTIONS,
-      ),
+      png: await renderTransparentPage(page, {
+        ...PSD_CAPTURE_OPTIONS,
+        visibleBlockIds: [block.id],
+      }),
     });
   }
   check();

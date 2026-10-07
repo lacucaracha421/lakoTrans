@@ -6,6 +6,7 @@ import { getActiveGeneratedLettering } from "../../../shared/generatedLettering"
 import { blockLibraryGateway } from "../api/blockLibraryGateway";
 import { useFonts } from "../fonts/useFonts";
 import { BlockLibraryCard } from "./BlockLibraryCard";
+import { useBlockLibraryPreviewObserver } from "./blockLibraryPreviewVisibility";
 import {
   resolveBlockLibraryError,
   useBlockLibraryController,
@@ -109,6 +110,7 @@ function BlockLibraryContent({
   model: BlockLibraryModel;
 }) {
   const { t } = useTranslation("components");
+  const observePreview = useBlockLibraryPreviewObserver();
   return (
     <>
       {!canInsert ? (
@@ -132,6 +134,7 @@ function BlockLibraryContent({
               entry={entry}
               fontCatalog={fontCatalog}
               key={entry.id}
+              observePreview={observePreview}
               missingFont={Boolean(
                 !getActiveGeneratedLettering(entry.block) &&
                 entry.block.fontFamily &&

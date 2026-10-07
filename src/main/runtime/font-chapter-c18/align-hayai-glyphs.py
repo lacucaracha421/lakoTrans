@@ -187,39 +187,38 @@ def run(chapter, probe, asset_root, output, keys):
     bank = CharacterBank(asset_root)
     mapping = helpers.read_json(probe / "line-map.json")
     baseline = helpers.read_json(chapter / "ocr-baseline/baseline-report.json")
-    pages = {}
+    page_paths = helpers.baseline_page_paths(chapter, baseline)
     candidates = {}
     for page in baseline["pages"]:
-        path = chapter / "ocr-baseline" / page["ocrImagePath"] if page.get("ocrImagePath") else Path(page["imagePath"])
-        pages[page["pageId"]] = Image.open(path).convert("RGB")
         candidates.update({page["pageId"] + "/" + c["candidateId"]: c for c in page["candidates"]})
     records, tiles = [], []
-    for block in mapping["blocks"]:
-        if keys and block["key"] not in keys:
-            continue
-        pid = block["key"].split("/")[0]
-        ocr_path = probe / (pid + "-hayai.json")
-        ocr = {r["id"]: r["ocrText"] for r in helpers.read_json(ocr_path)["items"]} if ocr_path.exists() else {}
-        estimate = candidates[block["key"]].get("estimate") or {}
-        scale = float(estimate.get("facePx") or block.get("sourceScaleHint") or 0)
-        lines = []
-        for line in block["lines"] if scale >= 6 else []:
-            text = ocr.get(line["id"], "")
-            result = align_line(pages[pid], line, text, block["direction"], scale, bank)
-            for glyph in result["glyphs"]:
-                if not glyph["isStyleCharacter"]:
-                    continue
-                glyph["verificationId"] = len(tiles) + 1
-                crop = pages[pid].crop(glyph["bbox"])
-                tile = Image.new("RGB", (128, 128), "white")
-                factor = 104 / max(crop.size)
-                scaled = crop.resize((max(1, round(crop.width * factor)), max(1, round(crop.height * factor))), Image.Resampling.LANCZOS)
-                tile.paste(scaled, ((128 - scaled.width) // 2, (128 - scaled.height) // 2))
-                tiles.append(tile)
-            lines.append({"lineId": line["id"], "bbox": line["bbox"], "text": text, **result})
-        record = {"key": block["key"], "sourceText": block["sourceText"], "direction": block["direction"], "scaleHint": scale, "lines": lines}
-        records.append(record)
-        print(json.dumps({"block": block["key"], "lines": len(lines), "complete": sum(l["status"] == "aligned_pending_glyph_ocr" for l in lines)}), flush=True)
+    with helpers.PageImageCache(page_paths, "RGB") as pages:
+        for block in mapping["blocks"]:
+            if keys and block["key"] not in keys:
+                continue
+            pid = block["key"].split("/")[0]
+            ocr_path = probe / (pid + "-hayai.json")
+            ocr = {r["id"]: r["ocrText"] for r in helpers.read_json(ocr_path)["items"]} if ocr_path.exists() else {}
+            estimate = candidates[block["key"]].get("estimate") or {}
+            scale = float(estimate.get("facePx") or block.get("sourceScaleHint") or 0)
+            lines = []
+            for line in block["lines"] if scale >= 6 else []:
+                text = ocr.get(line["id"], "")
+                result = align_line(pages[pid], line, text, block["direction"], scale, bank)
+                for glyph in result["glyphs"]:
+                    if not glyph["isStyleCharacter"]:
+                        continue
+                    glyph["verificationId"] = len(tiles) + 1
+                    crop = pages[pid].crop(glyph["bbox"])
+                    tile = Image.new("RGB", (128, 128), "white")
+                    factor = 104 / max(crop.size)
+                    scaled = crop.resize((max(1, round(crop.width * factor)), max(1, round(crop.height * factor))), Image.Resampling.LANCZOS)
+                    tile.paste(scaled, ((128 - scaled.width) // 2, (128 - scaled.height) // 2))
+                    tiles.append(tile)
+                lines.append({"lineId": line["id"], "bbox": line["bbox"], "text": text, **result})
+            record = {"key": block["key"], "sourceText": block["sourceText"], "direction": block["direction"], "scaleHint": scale, "lines": lines}
+            records.append(record)
+            print(json.dumps({"block": block["key"], "lines": len(lines), "complete": sum(l["status"] == "aligned_pending_glyph_ocr" for l in lines)}), flush=True)
     batches = []
     for offset in range(0, len(tiles), 128):
         page_tiles = tiles[offset:offset + 128]

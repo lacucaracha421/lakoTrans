@@ -1,12 +1,13 @@
 import { PNG } from "pngjs";
 import type { RegionEditProtection } from "../shared/regionEditProtectionTypes";
 import type { CodexPageReading } from "../shared/codexTypesettingTypes";
-import { normalizedRegionToPixelRect } from "../shared/region";
+import { normalizedRegionToPixelRect, type PixelRect } from "../shared/region";
 
 export function readingEditProtection(
   reading: CodexPageReading,
   page: { width: number; height: number },
   regionId?: string,
+  crop: PixelRect = { x: 0, y: 0, w: page.width, h: page.height },
 ): Uint8Array | undefined {
   const protection = reading.editProtection;
   const scoped =
@@ -16,13 +17,25 @@ export function readingEditProtection(
   let mask = decodeRegionEditProtection(
     scoped ? { strokes: [], maskDataUrl: scoped.maskDataUrl } : undefined,
     page,
+    crop,
   );
   for (const region of reading.regions) {
     if (region.action !== "keep") continue;
-    mask ??= new Uint8Array(page.width * page.height);
+    mask ??= new Uint8Array(crop.w * crop.h);
     const box = normalizedRegionToPixelRect(region.sourceBbox, page);
-    for (let y = box.y; y < box.y + box.h; y++)
-      mask.fill(255, y * page.width + box.x, y * page.width + box.x + box.w);
+    const left = Math.max(box.x, crop.x) - crop.x;
+    const right = Math.min(box.x + box.w, crop.x + crop.w) - crop.x;
+    if (right <= left) continue;
+    for (
+      let y = Math.max(box.y, crop.y);
+      y < Math.min(box.y + box.h, crop.y + crop.h);
+      y++
+    )
+      mask.fill(
+        255,
+        (y - crop.y) * crop.w + left,
+        (y - crop.y) * crop.w + right,
+      );
   }
   return mask;
 }
@@ -31,6 +44,7 @@ export function readingEditProtection(
 export function decodeRegionEditProtection(
   protection: RegionEditProtection | undefined,
   page: { width: number; height: number },
+  crop: PixelRect = { x: 0, y: 0, w: page.width, h: page.height },
 ): Uint8Array | undefined {
   if (!protection) return undefined;
   const bytes = Buffer.from(protection.maskDataUrl.split(",")[1], "base64");
@@ -44,9 +58,13 @@ export function decodeRegionEditProtection(
       "제외 영역의 이미지 크기가 다릅니다. 영역을 다시 확인해 주세요.",
     );
   const png = PNG.sync.read(bytes);
-  const mask = new Uint8Array(page.width * page.height);
+  const mask = new Uint8Array(crop.w * crop.h);
   for (let pixel = 0; pixel < mask.length; pixel++) {
-    const offset = pixel * 4;
+    const offset =
+      ((crop.y + Math.floor(pixel / crop.w)) * page.width +
+        crop.x +
+        (pixel % crop.w)) *
+      4;
     mask[pixel] =
       png.data[offset] < 255 ||
       png.data[offset + 1] < 255 ||

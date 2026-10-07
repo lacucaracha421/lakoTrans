@@ -210,10 +210,12 @@ describe("large WorkPagePicker thumbnails", () => {
     expect(gatewayMocks.getPageImageDataUrl).toHaveBeenNthCalledWith(
       1,
       pages[0].imagePath,
+      128,
     );
     expect(gatewayMocks.getPageImageDataUrl).toHaveBeenNthCalledWith(
       2,
       pages[1_999].imagePath,
+      128,
     );
 
     act(() => observer.intersect(frames[0], frames[1_999]));
@@ -257,7 +259,10 @@ describe("large WorkPagePicker thumbnails", () => {
     const view = render(pickerElement([makePage(1)], vi.fn(), work));
 
     fireEvent.click(screen.getByRole("button", { name: /2화/ }));
-    expect(gatewayMocks.openChapter).toHaveBeenCalledWith(DEFERRED_CHAPTER_ID);
+    expect(gatewayMocks.openChapter).toHaveBeenCalledWith(
+      DEFERRED_CHAPTER_ID,
+      WORK_ID,
+    );
     view.unmount();
     const lateFailure = new Error("late chapter failure");
     const observedRejection = expect(request).rejects.toBe(lateFailure);
@@ -379,6 +384,7 @@ describe("PageThumb image states", () => {
     await waitFor(() => {
       expect(gatewayMocks.getPageImageDataUrl).toHaveBeenCalledWith(
         firstPage.imagePath,
+        128,
       );
     });
 

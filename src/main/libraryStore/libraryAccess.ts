@@ -1,12 +1,14 @@
 import { join } from "node:path";
 import type {
   ChapterSnapshot,
+  ChapterPageMetadata,
   LibraryChapterSummary,
   LibraryIndex,
   LibraryWorkSummary,
   MangaPage,
 } from "../../shared/libraryTypes";
 import { hydrateChapter } from "./chapterSnapshots";
+import { reorderRecords } from "./chapterRecords";
 import { readChapterSummaryFile } from "./libraryChapterSummaries";
 import {
   findChapterLocation,
@@ -20,8 +22,9 @@ import { loadTranslationCheckpointArtifact } from "./translationCheckpointStore"
 
 export async function listLibrary(): Promise<LibraryIndex> {
   const index = await readIndexFile();
-  const workCandidates = await Promise.all(
-    index.workOrder.map(loadLibraryWorkSummary),
+  const workCandidates = await mapLibraryReads(
+    index.workOrder,
+    loadLibraryWorkSummary,
   );
   const works = workCandidates.filter(
     (work): work is LibraryWorkSummary => work !== null,
@@ -40,10 +43,9 @@ async function loadLibraryWorkSummary(
   if (!work) {
     return null;
   }
-  const chapterCandidates = await Promise.all(
-    work.chapterOrder.map((chapterId) =>
-      readChapterSummaryFile(workId, chapterId),
-    ),
+  const chapterCandidates = await mapLibraryReads(
+    work.chapterOrder,
+    (chapterId) => readChapterSummaryFile(workId, chapterId),
   );
   const chapters = chapterCandidates.filter(
     (chapter): chapter is LibraryChapterSummary => chapter !== null,
@@ -51,10 +53,10 @@ async function loadLibraryWorkSummary(
   return { ...work, chapters };
 }
 
-export async function openChapter(
+async function readNavigationChapter(
   chapterId: string,
   expectedWorkId?: string,
-): Promise<ChapterSnapshot> {
+) {
   const owner = expectedWorkId ? await readWorkFile(expectedWorkId) : null;
   const index = expectedWorkId ? await readIndexFile() : null;
   const locator = expectedWorkId
@@ -70,12 +72,20 @@ export async function openChapter(
   if (!chapter) {
     throw new Error("열려는 화를 찾지 못했습니다.");
   }
+  return chapter;
+}
+
+export async function openChapter(
+  chapterId: string,
+  expectedWorkId?: string,
+): Promise<ChapterSnapshot> {
+  const chapter = await readNavigationChapter(chapterId, expectedWorkId);
   const snapshot = hydrateChapter(chapter);
   const chapterDir = join(
     getWorksRoot(),
-    locator.workId,
+    chapter.workId,
     "chapters",
-    locator.chapterId,
+    chapter.id,
   );
   const pages = await Promise.all(
     snapshot.pages.map(async (page) => {
@@ -137,4 +147,50 @@ function selectRunPages(
         (page) => page.analysisStatus !== "completed",
       );
   }
+}
+
+/** A display-only projection; the validated chapter remains the editing authority. */
+export async function getChapterPageMetadata(
+  workId: string,
+  chapterId: string,
+): Promise<ChapterPageMetadata[]> {
+  const chapter = await readNavigationChapter(chapterId, workId);
+  const ordered = reorderRecords(chapter.pages, chapter.pageOrder);
+  return ordered.map(
+    ({
+      id,
+      name,
+      imagePath,
+      width,
+      height,
+      analysisStatus,
+      createdAt,
+      updatedAt,
+    }) => ({
+      id,
+      name,
+      imagePath,
+      width,
+      height,
+      analysisStatus,
+      createdAt,
+      updatedAt,
+    }),
+  );
+}
+
+/** Bound cold-start payload reads while preserving index order and failures. */
+async function mapLibraryReads<T, R>(
+  items: readonly T[],
+  read: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    for (let index = cursor++; index < items.length; index = cursor++) {
+      results[index] = await read(items[index]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, items.length) }, worker));
+  return results;
 }

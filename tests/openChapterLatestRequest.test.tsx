@@ -27,6 +27,32 @@ afterEach(() => {
 });
 
 describe("useOpenChapterAction latest request policy", () => {
+  it("opens a chapter with the owner from the library index after skipping unrelated works", async () => {
+    const next = makeChapter("owned-chapter");
+    const options = makeOptions();
+    const unrelated = {
+      id: "unrelated-work",
+      title: "Other work",
+      chapterOrder: ["other-chapter"],
+      chapters: [],
+      createdAt: TS,
+      updatedAt: TS,
+    };
+    const owner = { ...unrelated, id: next.workId, chapterOrder: [next.id] };
+    options.library = {
+      workOrder: [unrelated.id, owner.id],
+      works: [unrelated, owner],
+    };
+    openChapter.mockResolvedValueOnce(next);
+    const { result } = renderHook(() => useOpenChapterAction(options));
+
+    await act(async () => result.current(next.id));
+
+    expect(openChapter).toHaveBeenCalledExactlyOnceWith(next.id, owner.id);
+    expect(options.currentChapterRef.current).toBe(next);
+    expect(options.resetSaveBaseline).toHaveBeenCalledWith(next);
+  });
+
   it("preserves a mask drawn during a pending chapter read when discard is declined", async () => {
     const reading = createDeferred<ChapterSnapshot>();
     openChapter.mockReturnValue(reading.promise);
@@ -150,8 +176,8 @@ describe("useOpenChapterAction latest request policy", () => {
       await openA;
     });
 
-    expect(openChapter).toHaveBeenNthCalledWith(1, chapterA.id);
-    expect(openChapter).toHaveBeenNthCalledWith(2, chapterB.id);
+    expect(openChapter).toHaveBeenNthCalledWith(1, chapterA.id, undefined);
+    expect(openChapter).toHaveBeenNthCalledWith(2, chapterB.id, undefined);
     expect(options.setCurrentChapter).toHaveBeenCalledTimes(1);
     expect(options.setCurrentChapter).toHaveBeenCalledWith(chapterB);
     expect(options.currentChapterRef.current).toBe(chapterB);
@@ -204,7 +230,7 @@ describe("useOpenChapterAction latest request policy", () => {
     });
 
     expect(openChapter).toHaveBeenCalledOnce();
-    expect(openChapter).toHaveBeenCalledWith(chapterB.id);
+    expect(openChapter).toHaveBeenCalledWith(chapterB.id, undefined);
 
     await act(async () => {
       delayedSave.resolve();

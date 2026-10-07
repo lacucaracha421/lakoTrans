@@ -52,9 +52,12 @@ const { deleteCachedPageReview, getOrCreateCachedPageReview } =
       promise: Promise<T>;
     };
   };
-const { buildReviewCropImageOptions } =
+const { buildReviewCropImageOptions, prepareGroupReviewSource } =
   require("../src/main/runtime/transport/group-only-review-image-options.cjs") as {
     buildReviewCropImageOptions: (original: JsonRecord) => JsonRecord;
+    prepareGroupReviewSource: (
+      options: JsonRecord,
+    ) => Promise<{ imageVariants: JsonRecord[]; diagnostics: unknown[] }>;
   };
 
 beforeEach(() => {
@@ -73,6 +76,121 @@ afterEach(() => {
 });
 
 describe("axis-v4 group-only review transport", () => {
+  it("retains the lazy JPEG path and hydrates an explicitly prepared source with context", async () => {
+    const request = makeRequest();
+    const jpegPath = join(request.options.outputDir, "source.jpg");
+    writeFileSync(jpegPath, Buffer.from("jpeg-source"));
+    const lazy = await prepareGroupReviewSource({
+      ...request.options,
+      imagePath: jpegPath,
+    });
+    expect(lazy.imageVariants).toEqual([
+      { role: "original", path: jpegPath, width: 1000, height: 1000 },
+    ]);
+    const prepareExternalImage = vi.fn(async () => request.options.imagePath);
+    const prepared = await prepareGroupReviewSource({
+      ...request.options,
+      imagePath: jpegPath,
+      prepareExternalImage,
+      regionContextImagePath: jpegPath,
+      regionContextImageWidth: 1000,
+      regionContextImageHeight: 1000,
+    });
+    expect(prepareExternalImage.mock.calls).toHaveLength(2);
+    expect(prepared.imageVariants.map((image) => image.role)).toEqual([
+      "original",
+      "full-page-context",
+    ]);
+    expect(
+      prepared.imageVariants.every(
+        (image) =>
+          image.path === request.options.imagePath &&
+          image.dataUrl === "data:image/png;base64,iVBORw==",
+      ),
+    ).toBe(true);
+    expect(prepared.diagnostics).toEqual([]);
+  });
+
+  it("hydrates requested full-page context even without external image preparation", async () => {
+    const request = makeRequest();
+    const prepared = await prepareGroupReviewSource({
+      ...request.options,
+      regionContextImagePath: request.options.imagePath,
+      regionContextImageWidth: 1000,
+      regionContextImageHeight: 1000,
+    });
+    expect(prepared.imageVariants).toMatchObject([
+      { role: "original", dataUrl: "data:image/png;base64,iVBORw==" },
+      {
+        role: "full-page-context",
+        dataUrl: "data:image/png;base64,iVBORw==",
+        width: 1000,
+        height: 1000,
+      },
+    ]);
+  });
+
+  it("retains upstream groups when provider-specific hydration has no original review variant", async () => {
+    const request = makeRequest();
+    request.options.modelProvider = "openai-codex";
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+    const outcome = await requestGroupOnlyPageReview(
+      request.server,
+      request.options,
+      { hints: [], diagnostics: [] },
+    );
+    expect(outcome).toMatchObject({
+      status: "upstream-fallback",
+      promptOptions: {
+        validatedGroupOnlyReview: true,
+        ocrBboxHints: expect.arrayContaining([
+          expect.objectContaining({ id: 1 }),
+          expect.objectContaining({ id: 2 }),
+        ]),
+      },
+      summary: {
+        semanticGroupReviewRequestCount: 0,
+        semanticGroupReviewFallbackReason: "original-image-unavailable",
+      },
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("skips source decode and PNG crops for singleton-only review while retaining its result", async () => {
+    const request = makeRequest();
+    request.options.ocrBboxHints = [request.options.ocrBboxHints[0]];
+    const electronModule = require.cache[electronModulePath];
+    if (!electronModule)
+      throw new Error("Electron test module was not installed.");
+    const nativeImage = electronModule.exports.nativeImage;
+    const decode = vi.spyOn(nativeImage, "createFromPath");
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    const outcome = await requestGroupOnlyPageReview(
+      request.server,
+      request.options,
+      { hints: [], diagnostics: [] },
+    );
+    expect(outcome).toMatchObject({
+      status: "singleton-only",
+      summary: {
+        semanticGroupReviewRequestCount: 0,
+        semanticGroupReviewSingletonSkipCount: 1,
+      },
+    });
+    expect(decode).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    const cached = await requestGroupOnlyPageReview(
+      request.server,
+      request.options,
+      { hints: [], diagnostics: [] },
+    );
+    expect(cached).toMatchObject({
+      summary: { semanticGroupReviewCacheHit: true },
+    });
+  });
+
   it("forwards only ffmpeg-hydrated WebP PNG data to crop preparation", () => {
     const dataUrl = "data:image/png;base64,d2VicA==";
     expect(

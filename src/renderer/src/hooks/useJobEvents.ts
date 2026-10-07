@@ -36,7 +36,10 @@ type UseJobEventsOptions = {
   jobState?: JobState;
   mergeLiveChapter: (chapter: ChapterSnapshot) => void;
   onJobTerminal?: (job: JobState) => void;
-  openChapter?: (chapterId: string) => Promise<ChapterSnapshot>;
+  openChapter?: (
+    chapterId: string,
+    workId?: string,
+  ) => Promise<ChapterSnapshot>;
   setJobState: React.Dispatch<React.SetStateAction<JobState>>;
   suppressTerminalEvents?: boolean;
   subscribeJobEvents?: (callback: (event: JobEvent) => void) => () => void;
@@ -69,8 +72,10 @@ type PendingJobEventBatch = {
   enqueue: (event: JobEvent) => void;
 };
 
-const openChapterFromLibrary = (chapterId: string): Promise<ChapterSnapshot> =>
-  libraryGateway.openChapter(chapterId);
+const openChapterFromLibrary = (
+  chapterId: string,
+  workId?: string,
+): Promise<ChapterSnapshot> => libraryGateway.openChapter(chapterId, workId);
 
 const subscribeToJobEvents = (
   callback: (event: JobEvent) => void,
@@ -162,7 +167,10 @@ function subscribeToJobEventUpdates({
   const liveChapterRefresh = createLiveChapterRefreshCoordinator({
     getCurrentChapterId: () => currentChapterRef.current?.id,
     mergeLiveChapter,
-    openChapter,
+    openChapter: (chapterId) =>
+      openChapter === openChapterFromLibrary
+        ? openChapter(chapterId, currentChapterRef.current?.workId)
+        : openChapter(chapterId),
     reportError: (error) => {
       console.error(error);
     },

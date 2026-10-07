@@ -33,7 +33,7 @@ export type LibraryImageUrlFiles = {
 };
 
 export type LibraryImageUrlCodec = {
-  createUrl(imagePath: string): string;
+  createUrl(imagePath: string, thumbnailMaxEdge?: number): string;
   resolveRequest(requestUrl: string): ResolvedLibraryImage | null;
   resolveUrl(requestUrl: string): string | null;
 };
@@ -43,6 +43,8 @@ type ResolvedLibraryImage = {
   size: string;
   mtimeNs: string;
   contentType: string;
+  thumbnailMaxEdge?: number;
+  originalUrl?: string;
 };
 
 type ImageMetadata = {
@@ -58,6 +60,7 @@ type ParsedImageUrl = {
   relativePath: string;
   size: string;
   mtimeNs: string;
+  thumbnailMaxEdge?: number;
 };
 
 class InvalidLibraryImageError extends Error {}
@@ -106,6 +109,17 @@ export function createLibraryImageUrlCodec(options: {
         size: metadata.size,
         mtimeNs: metadata.mtimeNs,
         contentType: metadata.contentType,
+        ...(parsed.thumbnailMaxEdge === undefined
+          ? {}
+          : {
+              thumbnailMaxEdge: parsed.thumbnailMaxEdge,
+              originalUrl: buildImageUrl(
+                secret,
+                parsed.payload,
+                parsed.size,
+                parsed.mtimeNs,
+              ),
+            }),
       };
     } catch (error) {
       if (
@@ -119,16 +133,22 @@ export function createLibraryImageUrlCodec(options: {
   };
 
   return {
-    createUrl(imagePath) {
+    createUrl(imagePath, thumbnailMaxEdge) {
+      if (
+        thumbnailMaxEdge !== undefined &&
+        !validThumbnailEdge(thumbnailMaxEdge)
+      ) {
+        throw new InvalidLibraryImageError("Invalid thumbnail size.");
+      }
       const metadata = readImageMetadata(options.files, libraryRoot, imagePath);
       const payload = encodeBase64Url(metadata.relativePath);
-      const signature = signMetadata(
+      return buildImageUrl(
         secret,
         payload,
         metadata.size,
         metadata.mtimeNs,
+        thumbnailMaxEdge,
       );
-      return `${IMAGE_PROTOCOL_ORIGIN}/${IMAGE_URL_VERSION}/${payload}?s=${metadata.size}&m=${metadata.mtimeNs}&sig=${signature}`;
     },
     resolveRequest,
     resolveUrl(requestUrl) {
@@ -157,14 +177,27 @@ function parseImageUrl(
   const size = getCanonicalQueryValue(url, "s");
   const mtimeNs = getCanonicalQueryValue(url, "m");
   const signature = getSingleQueryValue(url, "sig");
+  const thumbnailMaxEdge = parseThumbnailEdge(url);
+  if (thumbnailMaxEdge === null) return null;
   if (!payload || !size || !mtimeNs || !signature || !hasOnlyQueryKeys(url)) {
     return null;
   }
-  if (!verifySignature(secret, payload, size, mtimeNs, signature)) {
+  if (
+    !verifySignature(
+      secret,
+      payload,
+      size,
+      mtimeNs,
+      signature,
+      thumbnailMaxEdge,
+    )
+  ) {
     return null;
   }
   const relativePath = decodeRelativePath(payload);
-  return relativePath ? { payload, relativePath, size, mtimeNs } : null;
+  return relativePath
+    ? { payload, relativePath, size, mtimeNs, thumbnailMaxEdge }
+    : null;
 }
 
 function parsePayload(url: URL): string | null {
@@ -195,7 +228,8 @@ function getSingleQueryValue(url: URL, key: string): string | null {
 function hasOnlyQueryKeys(url: URL): boolean {
   const keys = [...url.searchParams.keys()];
   return (
-    keys.length === 3 && keys.every((key) => ["s", "m", "sig"].includes(key))
+    keys.length === (url.searchParams.has("t") ? 4 : 3) &&
+    keys.every((key) => ["s", "m", "sig", "t"].includes(key))
   );
 }
 
@@ -290,9 +324,12 @@ function signMetadata(
   payload: string,
   size: string,
   mtimeNs: string,
+  thumbnailMaxEdge?: number,
 ): string {
   return createHmac("sha256", secret)
-    .update(`${IMAGE_URL_VERSION}\0${payload}\0${size}\0${mtimeNs}`)
+    .update(
+      `${IMAGE_URL_VERSION}\0${payload}\0${size}\0${mtimeNs}${thumbnailMaxEdge === undefined ? "" : `\0thumbnail\0${thumbnailMaxEdge}`}`,
+    )
     .digest("base64url");
 }
 
@@ -302,15 +339,40 @@ function verifySignature(
   size: string,
   mtimeNs: string,
   providedSignature: string,
+  thumbnailMaxEdge?: number,
 ): boolean {
   if (!/^[A-Za-z0-9_-]+$/.test(providedSignature)) {
     return false;
   }
-  const expected = Buffer.from(signMetadata(secret, payload, size, mtimeNs));
+  const expected = Buffer.from(
+    signMetadata(secret, payload, size, mtimeNs, thumbnailMaxEdge),
+  );
   const provided = Buffer.from(providedSignature);
   return (
     expected.length === provided.length && timingSafeEqual(expected, provided)
   );
+}
+
+function validThumbnailEdge(value: number): boolean {
+  return Number.isInteger(value) && value >= 64 && value <= 2048;
+}
+
+function parseThumbnailEdge(url: URL): number | undefined | null {
+  if (!url.searchParams.has("t")) return undefined;
+  const value = getCanonicalQueryValue(url, "t");
+  const edge = value === null ? NaN : Number(value);
+  return validThumbnailEdge(edge) ? edge : null;
+}
+
+function buildImageUrl(
+  secret: Buffer,
+  payload: string,
+  size: string,
+  mtimeNs: string,
+  edge?: number,
+): string {
+  const signature = signMetadata(secret, payload, size, mtimeNs, edge);
+  return `${IMAGE_PROTOCOL_ORIGIN}/${IMAGE_URL_VERSION}/${payload}?s=${size}&m=${mtimeNs}${edge === undefined ? "" : `&t=${edge}`}&sig=${signature}`;
 }
 
 function isExpectedFileError(error: unknown): boolean {

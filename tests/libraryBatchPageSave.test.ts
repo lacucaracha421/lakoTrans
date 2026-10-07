@@ -12,6 +12,7 @@ import type { SavePagesBlocksRequest } from "../src/shared/shareTypes";
 import { createSavePagesBlocks } from "../src/main/library/libraryMutationFacade";
 import {
   createSavePagesBlocksMutation,
+  createSavePagesBlocksPatchMutation,
   type SavePagesBlocksMutationRuntime,
 } from "../src/main/libraryStore/libraryPageBlockMutations";
 
@@ -22,6 +23,30 @@ const BASE_TIME = "2026-01-01T00:00:00.000Z";
 const SAVE_TIME = "2026-01-02T00:00:00.000Z";
 
 describe("batch page block saves", () => {
+  it("returns only saved pages while retaining the authoritative whole chapter status/order", async () => {
+    const storage = createStorageRuntime(makeChapter());
+    const result = await createSavePagesBlocksPatchMutation(storage.runtime)(
+      makeRequest([updateFor("page-a", "changed")]),
+    );
+    expect(result.pages.map((page) => page.id)).toEqual(["page-a"]);
+    expect(result.pages[0].blocks[0].translatedText).toBe("changed");
+    expect(result.pageOrder).toEqual(storage.readStoredChapter().pageOrder);
+    expect(result.status).toBe(storage.readStoredChapter().status);
+    expect(storage.readStoredChapter().pages).toHaveLength(3);
+    expect(storage.commitChapterAndWork).toHaveBeenCalledOnce();
+  });
+  it("keeps conflict checks before a partial save receipt", async () => {
+    const chapter = makeChapter();
+    const update = updateFor("page-a", "stale edit");
+    chapter.pages[0].blocks[0].translatedText = "server edit";
+    const storage = createStorageRuntime(chapter);
+    await expect(
+      createSavePagesBlocksPatchMutation(storage.runtime)(
+        makeRequest([update]),
+      ),
+    ).rejects.toThrow(/다른 작업으로 갱신/);
+    expect(storage.commitChapterAndWork).not.toHaveBeenCalled();
+  });
   it("rejects a delayed save after only the server reading order changed", async () => {
     const chapter = makeChapter();
     const page = requirePage(chapter, "page-a");

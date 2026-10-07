@@ -8,7 +8,10 @@ import {
 } from "../../../shared/blockFingerprint";
 import { libraryGateway as mangaGateway } from "../api/libraryGateway";
 import { notifySaveErrorDeduped } from "./chapterSaveErrorNotification";
-import { collectPageBlockUpdates } from "./chapterPersistencePayload";
+import {
+  collectPageBlockUpdates,
+  mergeSavedChapterPages,
+} from "./chapterPersistencePayload";
 import { useDirtyTrackingActions } from "./useChapterPersistenceActions";
 import { useEventCallback } from "./useEventCallback";
 import { useChapterPersistenceRefs } from "./useChapterPersistenceRefs";
@@ -291,12 +294,13 @@ function usePersistPagesBlocks({
         return chapter;
       }
       try {
-        const saved = await mangaGateway.savePagesBlocks({
+        const patch = await mangaGateway.savePagesBlocksPatch({
           chapterId: chapter.id,
           dirtyVersion: context.dirtyVersion,
           saveReason: context.saveReason,
           pages,
         });
+        const saved = mergeSavedChapterPages(chapter, patch, pages);
         for (const page of pages) {
           syncSavedPageVersion(saved, page.pageId);
         }

@@ -98,7 +98,7 @@ def short_box_scale(candidate):
     return face if face >= 6 else None
 
 
-def build(chapter, output, repair_missing_scale=False, *, only_keys=None, dark_core=False):
+def build(chapter, output, repair_missing_scale=False, *, only_keys=None, dark_core=False, diagnostic_overlays=True):
     output.mkdir(parents=True, exist_ok=False)
     baseline_path = chapter / "ocr-baseline/baseline-report.json"
     report = json.loads(baseline_path.read_text(encoding="utf-8"))
@@ -113,12 +113,17 @@ def build(chapter, output, repair_missing_scale=False, *, only_keys=None, dark_c
     batches = []
     for entry in report["pages"]:
         pid = entry["pageId"]
+        candidates = [c for c in entry["candidates"]
+                      if only_keys is None or pid + "/" + c["candidateId"] in only_keys]
+        if not candidates and not diagnostic_overlays:
+            continue
         image_path = chapter / "ocr-baseline" / entry["ocrImagePath"] if entry.get("ocrImagePath") else Path(entry["imagePath"])
-        image = Image.open(image_path).convert("RGB")
-        overlay = image.copy()
-        draw = ImageDraw.Draw(overlay)
+        with Image.open(image_path) as source:
+            image = source.convert("RGB")
+        overlay = image.copy() if diagnostic_overlays else None
+        draw = ImageDraw.Draw(overlay) if overlay is not None else None
         regions = []
-        for candidate in entry["candidates"]:
+        for candidate in candidates:
             if only_keys is not None and pid + "/" + candidate["candidateId"] not in only_keys:
                 continue
             hint = short_box_scale(candidate) if repair_missing_scale else None
@@ -137,7 +142,8 @@ def build(chapter, output, repair_missing_scale=False, *, only_keys=None, dark_c
                 regions.append({"id": numeric_id, "regionId": f"line-{numeric_id}", "kind": "dialogue",
                                 "bbox": box, "detectorConfidence": 0, "sourceDetectionIds": []})
                 record["lines"].append({"id": numeric_id, "bbox": box, "ordinal": i})
-                draw.rectangle(box, outline="#d12648", width=1)
+                if draw is not None:
+                    draw.rectangle(box, outline="#d12648", width=1)
             manifest["blocks"].append(record)
         if regions:
             region_path = output / f"{pid}-regions.json"
@@ -145,8 +151,11 @@ def build(chapter, output, repair_missing_scale=False, *, only_keys=None, dark_c
                                               "width": image.width, "height": image.height,
                                               "dialogueRegions": regions, "effectRegions": []}), encoding="utf-8")
             batches.append({"image": str(image_path), "regions": str(region_path), "output": str(output / f"{pid}-hayai.json")})
-        if regions or not repair_missing_scale:
-            overlay.save(output / f"{pid}-lines.png")
+        if overlay is not None:
+            if regions or not repair_missing_scale:
+                overlay.save(output / f"{pid}-lines.png")
+            overlay.close()
+        image.close()
     (output / "line-map.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     (output / "batch.json").write_text(json.dumps({"items": batches}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"pages": len(batches), "blocks": len(manifest["blocks"]),

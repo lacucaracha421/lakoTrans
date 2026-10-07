@@ -27,6 +27,7 @@ import {
   findConditionalTextMatches,
   testConditionalTextMatcher,
   type ConditionalTextMatchRange,
+  type ConditionalTextMatcherCache,
 } from "./conditionalTextPattern";
 import type {
   ConditionalBatchActionTrace,
@@ -56,6 +57,10 @@ export type ConditionalBatchEngineOptions = {
   resolveFontSizePx?: ConditionalBatchFieldReadContext["resolveFontSizePx"];
 };
 
+type BatchReadContext = ConditionalBatchFieldReadContext & {
+  matcherCache?: ConditionalTextMatcherCache;
+};
+
 type MatchEvaluation = {
   matched: boolean;
   conditionEvaluations: ConditionalBatchConditionEvaluation[];
@@ -69,7 +74,7 @@ type AppliedActions = {
 export function evaluateConditionalBatchMatch(
   block: TranslationBlock,
   match: ConditionalBatchMatchV2,
-  context: ConditionalBatchFieldReadContext = FALLBACK_READ_CONTEXT,
+  context: BatchReadContext = FALLBACK_READ_CONTEXT,
 ): MatchEvaluation {
   if (match.mode === "allBlocks") {
     return { matched: true, conditionEvaluations: [] };
@@ -116,14 +121,19 @@ export function createConditionalBatchPreview(
   let matchedCount = 0;
   const inspectionOnly = !scheme.actions.some((action) => action.enabled);
   const orderedPages = selectScopePages(chapter, scope);
+  const pageIndices = firstOrderIndices(chapter.pageOrder);
+  const matcherCache: ConditionalTextMatcherCache = new WeakMap();
 
   for (const [pageIndex, page] of orderedPages.entries()) {
     const blocks = selectScopeBlocks(page, scope);
+    const resolvedPageIndex = pageIndices.get(page.id) ?? pageIndex;
+    const blockIndices = firstOrderIndices(page.blockOrder ?? []);
     for (const [blockIndex, block] of blocks.entries()) {
-      const context: ConditionalBatchFieldReadContext = {
+      const context: BatchReadContext = {
         page,
-        pageIndex: resolveChapterPageIndex(chapter, page.id, pageIndex),
-        blockIndex: resolvePageBlockIndex(page, block.id, blockIndex),
+        pageIndex: resolvedPageIndex,
+        blockIndex: blockIndices.get(block.id) ?? blockIndex,
+        matcherCache,
         glossary: options.glossary,
         resolveFontSizePx: options.resolveFontSizePx,
       };
@@ -232,6 +242,7 @@ export function applyConditionalBatchPreview(
       .map((result) => [result.key, result]),
   );
   const counts = { applied: 0, conflicts: 0 };
+  const matcherCache: ConditionalTextMatcherCache = new WeakMap();
   const dirtyPageIds: string[] = [];
   const orderedPageIndex = new Map(
     orderChapterPages(chapter).map((page, index) => [page.id, index]),
@@ -239,6 +250,7 @@ export function applyConditionalBatchPreview(
   const pages = chapter.pages.map((page) =>
     applyPreviewToPage({
       chapter,
+      matcherCache,
       counts,
       dirtyPageIds,
       options,
@@ -498,7 +510,7 @@ export function applyConditionalBatchSequencePreview(
 function applyConditionalBatchActions(
   block: TranslationBlock,
   actions: readonly ConditionalBatchActionV2[],
-  context: ConditionalBatchFieldReadContext,
+  context: BatchReadContext,
 ): AppliedActions {
   let updated = block;
   const actionTrace: ConditionalBatchActionTrace[] = [];
@@ -527,10 +539,10 @@ function applyConditionalBatchActions(
 function applyConditionalBatchAction(
   block: TranslationBlock,
   action: ConditionalBatchActionV2,
-  context: ConditionalBatchFieldReadContext,
+  context: BatchReadContext,
 ): TranslationBlock {
   if (action.type === "replaceText") {
-    return applyReplaceTextAction(block, action);
+    return applyReplaceTextAction(block, action, context.matcherCache);
   }
   if (action.type === "setFields") {
     const updated = action.changes.reduce(applySetFieldChange, block);
@@ -559,22 +571,24 @@ function applyConditionalBatchAction(
     );
     return applyBlockPatch(block, patch);
   }
-  return applyStyleTextAction(block, action);
+  return applyStyleTextAction(block, action, context.matcherCache);
 }
 
 function applyReplaceTextAction(
   block: TranslationBlock,
   action: ConditionalBatchReplaceTextActionV2,
+  matcherCache?: ConditionalTextMatcherCache,
 ): TranslationBlock {
   let updated = block;
   if (action.target === "sourceText" || action.target === "both") {
-    const sourceText = replacePlainText(block.sourceText, action);
+    const sourceText = replacePlainText(block.sourceText, action, matcherCache);
     if (sourceText !== updated.sourceText) updated = { ...updated, sourceText };
   }
   if (action.target === "translatedText" || action.target === "both") {
     const translatedText = replaceRichTextVisible(
       updated.translatedText,
       action,
+      matcherCache,
     );
     if (translatedText !== updated.translatedText) {
       updated = { ...updated, translatedText };
@@ -645,6 +659,7 @@ function applySetFieldChange(
 function applyStyleTextAction(
   block: TranslationBlock,
   action: ConditionalBatchStyleTextActionV2,
+  matcherCache?: ConditionalTextMatcherCache,
 ): TranslationBlock {
   const parsed = parseRichText(block.translatedText);
   if (parsed.plainText.length === 0) return block;
@@ -658,6 +673,7 @@ function applyStyleTextAction(
     matcher,
     null,
     action.scope === "allText" || action.allOccurrences,
+    matcherCache,
   );
   if (ranges.length === 0) return block;
   const styleRanges = action.matchStyle
@@ -767,12 +783,14 @@ function readTextStyleValue(
 function replacePlainText(
   value: string,
   action: ConditionalBatchReplaceTextActionV2,
+  matcherCache?: ConditionalTextMatcherCache,
 ): string {
   const ranges = findConditionalTextMatches(
     value,
     action.matcher,
     action.replacement,
     action.allOccurrences,
+    matcherCache,
   );
   if (ranges.length === 0) return value;
   return replaceTextRanges(value, ranges);
@@ -781,6 +799,7 @@ function replacePlainText(
 function replaceRichTextVisible(
   value: string,
   action: ConditionalBatchReplaceTextActionV2,
+  matcherCache?: ConditionalTextMatcherCache,
 ): string {
   const parsed = parseRichText(value);
   const ranges = findConditionalTextMatches(
@@ -788,6 +807,7 @@ function replaceRichTextVisible(
     action.matcher,
     action.replacement,
     action.allOccurrences,
+    matcherCache,
   );
   if (ranges.length === 0) return value;
 
@@ -953,7 +973,7 @@ function evaluateConditionGroup(
 function evaluateConditionalBatchCondition(
   block: TranslationBlock,
   condition: ConditionalBatchConditionV2,
-  context: ConditionalBatchFieldReadContext,
+  context: BatchReadContext,
 ): ConditionalBatchConditionEvaluation {
   const rawValue = readConditionalBatchField(block, condition.field, context);
   return {
@@ -962,7 +982,7 @@ function evaluateConditionalBatchCondition(
     actualValue: formatConditionalBatchFieldValue(rawValue),
     rawValue,
     matched: condition.enabled
-      ? resolveConditionMatched(rawValue, condition)
+      ? resolveConditionMatched(rawValue, condition, context.matcherCache)
       : false,
     enabled: condition.enabled,
   };
@@ -971,6 +991,7 @@ function evaluateConditionalBatchCondition(
 function resolveConditionMatched(
   actualValue: string | number | boolean | undefined,
   condition: ConditionalBatchConditionV2,
+  matcherCache?: ConditionalTextMatcherCache,
 ): boolean {
   const operator = condition.operator;
   if (operator === "isTrue" || operator === "isFalse") {
@@ -1021,11 +1042,11 @@ function resolveConditionMatched(
       return actual.endsWith(expected);
     case "regex":
       return condition.matcher
-        ? testConditionalTextMatcher(actual, condition.matcher)
+        ? testConditionalTextMatcher(actual, condition.matcher, matcherCache)
         : false;
     case "notRegex":
       return condition.matcher
-        ? !testConditionalTextMatcher(actual, condition.matcher)
+        ? !testConditionalTextMatcher(actual, condition.matcher, matcherCache)
         : false;
     default:
       return false;
@@ -1088,6 +1109,7 @@ function parseHexColor(value: string): [number, number, number] | null {
 
 function applyPreviewToPage({
   chapter,
+  matcherCache,
   counts,
   dirtyPageIds,
   options,
@@ -1098,6 +1120,7 @@ function applyPreviewToPage({
   timestamp,
 }: {
   chapter: ChapterSnapshot;
+  matcherCache: ConditionalTextMatcherCache;
   counts: { applied: number; conflicts: number };
   dirtyPageIds: string[];
   options: ConditionalBatchEngineOptions;
@@ -1108,6 +1131,11 @@ function applyPreviewToPage({
   timestamp: string;
 }): MangaPage {
   let pageChanged = false;
+  const resolvedPageIndex = resolveChapterPageIndex(
+    chapter,
+    page.id,
+    pageIndex,
+  );
   const orderedBlockIndex = new Map(
     orderPageBlocks(page).map((block, index) => [block.id, index]),
   );
@@ -1116,9 +1144,10 @@ function applyPreviewToPage({
       createConditionalBatchResultKey(page.id, block.id),
     );
     if (!result) return block;
-    const context: ConditionalBatchFieldReadContext = {
+    const context: BatchReadContext = {
       page,
-      pageIndex: resolveChapterPageIndex(chapter, page.id, pageIndex),
+      pageIndex: resolvedPageIndex,
+      matcherCache,
       blockIndex: orderedBlockIndex.get(block.id) ?? 0,
       glossary: options.glossary,
       resolveFontSizePx: options.resolveFontSizePx,
@@ -1196,7 +1225,7 @@ function resolvePreviewFieldValues(
   before: TranslationBlock,
   after: TranslationBlock,
   fields: readonly ConditionalBatchWritableField[],
-  context: ConditionalBatchFieldReadContext,
+  context: BatchReadContext,
   afterPage = context.page,
 ): ConditionalBatchPreviewResult["resolvedFieldValues"] {
   return Object.fromEntries(
@@ -1518,11 +1547,12 @@ function selectScopeBlocks(
 
 function orderChapterPages(chapter: ChapterSnapshot): MangaPage[] {
   const pageById = new Map(chapter.pages.map((page) => [page.id, page]));
+  const orderedIds = new Set(chapter.pageOrder);
   const ordered = chapter.pageOrder
     .map((pageId) => pageById.get(pageId))
     .filter((page): page is MangaPage => Boolean(page));
   for (const page of chapter.pages) {
-    if (!chapter.pageOrder.includes(page.id)) ordered.push(page);
+    if (!orderedIds.has(page.id)) ordered.push(page);
   }
   return ordered;
 }
@@ -1530,11 +1560,12 @@ function orderChapterPages(chapter: ChapterSnapshot): MangaPage[] {
 function orderPageBlocks(page: MangaPage): TranslationBlock[] {
   if (!page.blockOrder?.length) return page.blocks;
   const blockById = new Map(page.blocks.map((block) => [block.id, block]));
+  const orderedIds = new Set(page.blockOrder);
   const ordered = page.blockOrder
     .map((blockId) => blockById.get(blockId))
     .filter((block): block is TranslationBlock => Boolean(block));
   for (const block of page.blocks) {
-    if (!page.blockOrder.includes(block.id)) ordered.push(block);
+    if (!orderedIds.has(block.id)) ordered.push(block);
   }
   return ordered;
 }
@@ -1548,13 +1579,14 @@ function resolveChapterPageIndex(
   return index >= 0 ? index : fallback;
 }
 
-function resolvePageBlockIndex(
-  page: MangaPage,
-  blockId: string,
-  fallback: number,
-): number {
-  const index = page.blockOrder?.indexOf(blockId) ?? -1;
-  return index >= 0 ? index : fallback;
+function firstOrderIndices(
+  ids: readonly string[],
+): ReadonlyMap<string, number> {
+  const indices = new Map<string, number>();
+  for (const [index, id] of ids.entries()) {
+    if (!indices.has(id)) indices.set(id, index);
+  }
+  return indices;
 }
 
 const WRITABLE_FIELDS: readonly ConditionalBatchWritableField[] = [

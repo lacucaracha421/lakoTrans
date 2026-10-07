@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { ChapterSnapshot, LibraryIndex } from "../../shared/libraryTypes";
 import {
+  getChapterPageMetadata as getChapterPageMetadataUnlocked,
   listLibrary as listLibraryUnlocked,
   openChapter as openChapterUnlocked,
   resolvePagesForRun as resolvePagesForRunUnlocked,
@@ -87,5 +88,11 @@ export async function loadTranslationCheckpoint(
 ): Promise<LoadedTranslationCheckpoint> {
   return withLibraryNavigationRead(() =>
     loadTranslationCheckpointArtifact(chapterDir, page),
+  );
+}
+
+export function getChapterPageMetadata(workId: string, chapterId: string) {
+  return withLibraryNavigationRead(() =>
+    getChapterPageMetadataUnlocked(workId, chapterId),
   );
 }

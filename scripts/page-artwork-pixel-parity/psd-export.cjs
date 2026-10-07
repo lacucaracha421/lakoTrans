@@ -45,14 +45,21 @@ async function verifyPsdExport({ root, artifactDir, session, page }) {
   assert.deepEqual([psd.width, psd.height], [page.width, page.height]);
   assert.equal(
     psd.children?.length,
-    5,
-    "PSD must contain both backgrounds and three rendered layers",
+    3,
+    "PSD must contain hidden source groups and one exact visible composite",
   );
+  const [rasters, editable, exact] = psd.children ?? [];
+  assert.equal(rasters.hidden, true);
+  assert.equal(editable.hidden, true);
+  assert.ok(!exact.hidden);
+  assert.equal(exact.text, undefined);
+  assert.equal(rasters.children?.length, 5);
   assert.deepEqual(
-    psd.children?.slice(0, 2).map((layer) => layer.name),
+    rasters.children?.slice(0, 2).map((layer) => layer.name),
     ["원본 배경 (Original)", "정리 배경 (Inpaint)"],
   );
-  for (const layer of psd.children?.slice(2) ?? []) {
+  for (const layer of rasters.children?.slice(2) ?? []) {
+    assert.equal(layer.text, undefined);
     const pixels = layer.imageData?.data;
     assert.ok(
       pixels?.some((value, index) => index % 4 === 3 && value > 0),
@@ -65,6 +72,12 @@ async function verifyPsdExport({ root, artifactDir, session, page }) {
   }
   const composite = psd.imageData;
   assert.ok(composite, "PSD must contain a merged preview");
+  assert.ok(exact.imageData);
+  assert.deepEqual(
+    exact.imageData.data,
+    composite.data,
+    "Visible layer must exactly match merged pixels",
+  );
   const previewPath = join(artifactDir, "session-layered-export.png");
   const preview = new PNG({ width: psd.width, height: psd.height });
   preview.data = Buffer.from(composite.data);

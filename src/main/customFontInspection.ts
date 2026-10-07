@@ -52,6 +52,16 @@ export function inspectCustomFontBuffer(buffer: Buffer): CustomFontInspection {
   };
 }
 
+export function readSfntTableBuffer(
+  buffer: Buffer,
+  tag: string,
+): Buffer | null {
+  const table = readSfntTables(buffer).get(tag);
+  return table
+    ? buffer.subarray(table.offset, table.offset + table.length)
+    : null;
+}
+
 function readSfntTables(buffer: Buffer): Map<string, SfntTable> {
   requireBytes(buffer, 0, 12);
   const numTables = buffer.readUInt16BE(4);

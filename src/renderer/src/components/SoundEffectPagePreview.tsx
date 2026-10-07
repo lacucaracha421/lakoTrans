@@ -33,6 +33,7 @@ export function SoundEffectPagePreview(
   const { frameRef, state } = usePageThumbnail<HTMLDivElement>(
     props.item.page,
     observeImmediately,
+    { original: true },
   );
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
   const visualSize = useContainedPageSize(viewportRef, props.item.page);

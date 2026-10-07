@@ -12,6 +12,10 @@ import { PageArtwork } from "./PageArtwork";
 import { IconButton } from "./ui/IconButton";
 import styles from "./BlockLibraryModals.module.css";
 import { Button } from "./ui/Button";
+import {
+  useBlockLibraryPreviewVisibility,
+  type ObserveBlockLibraryPreview,
+} from "./blockLibraryPreviewVisibility";
 
 export function BlockLibraryCard({
   busy,
@@ -19,6 +23,7 @@ export function BlockLibraryCard({
   entry,
   fontCatalog,
   missingFont,
+  observePreview,
   onDelete,
   onInsert,
   onEdit,
@@ -28,13 +33,15 @@ export function BlockLibraryCard({
   entry: BlockLibraryEntryV1;
   fontCatalog: BlockFontCatalog;
   missingFont: boolean;
+  observePreview?: ObserveBlockLibraryPreview;
   onDelete: () => void;
   onInsert: () => void;
   onEdit: () => void;
 }): React.JSX.Element {
   const { t } = useTranslation("components");
+  const preview = useBlockLibraryPreviewVisibility(observePreview);
   return (
-    <article className={styles.card}>
+    <article className={styles.card} {...preview.frameProps}>
       <Button
         className={styles.cardMain}
         disabled={!canInsert || busy}
@@ -42,11 +49,15 @@ export function BlockLibraryCard({
         onClick={onInsert}
         variant="bare"
       >
-        <BlockLibraryThumbnail
-          entry={entry}
-          missingFont={missingFont}
-          fontCatalog={fontCatalog}
-        />
+        {preview.visible ? (
+          <BlockLibraryThumbnail
+            entry={entry}
+            missingFont={missingFont}
+            fontCatalog={fontCatalog}
+          />
+        ) : (
+          <div className={styles.preview} aria-hidden="true" />
+        )}
         <strong className={styles.name}>{entry.name}</strong>
         {missingFont ? (
           <span className={styles.warning}>

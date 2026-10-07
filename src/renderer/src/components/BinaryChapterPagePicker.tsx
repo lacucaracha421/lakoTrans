@@ -38,6 +38,7 @@ export type BinaryChapterPagePickerProps = {
     pages: MangaPage[] | undefined,
   ) => string;
   renderSelectionSummary: () => React.ReactNode;
+  pageMetadataOnly?: boolean;
 };
 
 /** Binary page selection adapter shared by output, inpainting, and page work. */
@@ -50,6 +51,7 @@ export function BinaryChapterPagePicker({
   renderHeader,
   getChapterSummary,
   renderSelectionSummary,
+  pageMetadataOnly = false,
 }: BinaryChapterPagePickerProps): React.JSX.Element {
   const {
     reset: resetAnchor,
@@ -112,6 +114,7 @@ export function BinaryChapterPagePicker({
       onTogglePage={togglePage}
       onTogglePageRange={toggleRange}
       showTranslatedStatus={false}
+      pageMetadataOnly={pageMetadataOnly}
     />
   );
 }
@@ -147,7 +150,12 @@ type PageSelectionPickerCopy = {
 
 export type PageSelectionPickerProps = Pick<
   BinaryChapterPagePickerProps,
-  "work" | "currentChapter" | "currentPageId" | "selection" | "onChange"
+  | "work"
+  | "currentChapter"
+  | "currentPageId"
+  | "selection"
+  | "onChange"
+  | "pageMetadataOnly"
 > & { copy: PageSelectionPickerCopy };
 
 export function PageSelectionPicker({
@@ -157,6 +165,7 @@ export function PageSelectionPicker({
   selection,
   onChange,
   copy,
+  pageMetadataOnly,
 }: PageSelectionPickerProps): React.JSX.Element {
   return (
     <BinaryChapterPagePicker
@@ -170,6 +179,7 @@ export function PageSelectionPicker({
       )}
       getChapterSummary={(chapter) => copy.chapterSummary(chapter.pageCount)}
       renderSelectionSummary={() => summarizeSelection(work, selection, copy)}
+      pageMetadataOnly={pageMetadataOnly}
     />
   );
 }

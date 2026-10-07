@@ -40,6 +40,8 @@ import type {
 } from "./jobTypes";
 import type {
   ChapterSnapshot,
+  ChapterPageMetadata,
+  ChapterPagesPatch,
   CustomFont,
   FontLibrarySnapshot,
   FontPreferences,
@@ -336,7 +338,14 @@ export type MangaApi = McpApi & {
   ) => Promise<WorkShareImportResult>;
   getLibrary: () => Promise<LibraryIndex>;
   openLibraryFolder: () => Promise<unknown>;
-  openChapter: (chapterId: string) => Promise<ChapterSnapshot>;
+  openChapter: (chapterId: string, workId?: string) => Promise<ChapterSnapshot>;
+  getChapterPageMetadata: (
+    workId: string,
+    chapterId: string,
+  ) => Promise<ChapterPageMetadata[]>;
+  savePagesBlocksPatch: (
+    request: SavePagesBlocksRequest,
+  ) => Promise<ChapterPagesPatch>;
   getWorkResearchTitle: (
     workId: string,
   ) => Promise<WorkResearchTitlePreference | null>;
@@ -357,7 +366,10 @@ export type MangaApi = McpApi & {
     request: ResearchWorkContextRequest,
   ) => Promise<WorkContextResearchProposal>;
   cancelWorkContextResearch: (runId: string) => Promise<{ cancelled: boolean }>;
-  getPageImageDataUrl: (imagePath: string) => Promise<string>;
+  getPageImageDataUrl: (
+    imagePath: string,
+    thumbnailMaxEdge?: number,
+  ) => Promise<string>;
   savePageBlocks: (request: SavePageBlocksRequest) => Promise<ChapterSnapshot>;
   savePagesBlocks: (
     request: SavePagesBlocksRequest,

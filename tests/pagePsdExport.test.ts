@@ -1,4 +1,4 @@
-import { readPsd, type LayerTextData } from "ag-psd";
+import { initializeCanvas, readPsd, type LayerTextData } from "ag-psd";
 import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 import {
@@ -10,7 +10,30 @@ import type { MangaPage } from "../src/shared/libraryTypes";
 import type { TranslationBlock } from "../src/shared/textTypes";
 import { createIdentityWarpTransform } from "../src/shared/blockTransforms";
 
+initializeCanvas(
+  () => {
+    throw new Error("PSD verification must use pixel data");
+  },
+  (width, height) => ({
+    width,
+    height,
+    colorSpace: "srgb",
+    data: new Uint8ClampedArray(width * height * 4),
+  }),
+);
+
 describe("layered PSD export", () => {
+  it.each([0.5, 0.95, 1, 1.5])(
+    "preserves horizontal scale ratio %s",
+    (scale) => {
+      expect(
+        resolveEditablePsdText(
+          { ...makeBlock(), fontWidthScale: scale },
+          makePage(),
+        )?.style?.horizontalScale,
+      ).toBe(scale);
+    },
+  );
   it("does not add editable source text for an empty prepared block", () => {
     const page = makePage();
     const block = {
@@ -31,8 +54,9 @@ describe("layered PSD export", () => {
       skipLayerImageData: true,
       skipThumbnail: true,
     });
-    expect(psd.children).toHaveLength(1);
-    expect(psd.children?.[0].text).toBeUndefined();
+    expect(psd.children).toHaveLength(3);
+    expect(psd.children?.[1].children).toHaveLength(0);
+    expect(psd.children?.[2].text).toBeUndefined();
     expect(
       resolveEditablePsdText({ ...block, textDisplayMode: undefined }, page)
         ?.text,
@@ -65,12 +89,15 @@ describe("layered PSD export", () => {
         skipLayerImageData: true,
         skipThumbnail: true,
       });
-      expect(psd.children).toHaveLength(2);
-      expect(Boolean(psd.children?.[1]?.text)).toBe(state !== "active");
+      expect(psd.children).toHaveLength(3);
+      expect(psd.children?.[0].children?.[1].text).toBeUndefined();
+      expect(Boolean(psd.children?.[1]?.children?.[0]?.text)).toBe(
+        state !== "active",
+      );
     },
   );
 
-  it("writes a flat bottom-to-top stack with text above both backgrounds", () => {
+  it("opens with an exact composite and preserves separate hidden raster and editable layers", () => {
     const page = makePage();
     const background = makePng(4, 3, [255, 255, 255, 255]);
     const cleaned = makePng(4, 3, [240, 240, 240, 255]);
@@ -96,22 +123,36 @@ describe("layered PSD export", () => {
     expect(output.subarray(0, 4).toString()).toBe("8BPS");
 
     const psd = readPsd(output, {
-      skipCompositeImageData: true,
-      skipLayerImageData: true,
+      useImageData: true,
       skipThumbnail: true,
     });
-    expect(psd.children?.map((layer) => layer.name)).toEqual([
+    expect(psd.children).toHaveLength(3);
+    const [rasters, editable, exact] = psd.children ?? [];
+    if (!rasters || !editable || !exact || !exact.imageData || !psd.imageData)
+      throw new Error("Expected complete PSD layers and composite");
+    expect([rasters.hidden, editable.hidden, Boolean(exact.hidden)]).toEqual([
+      true,
+      true,
+      false,
+    ]);
+    expect(Buffer.from(exact.imageData.data)).toEqual(
+      PNG.sync.read(cleaned).data,
+    );
+    expect(Buffer.from(psd.imageData.data)).toEqual(
+      PNG.sync.read(cleaned).data,
+    );
+    expect(rasters.children?.map((layer) => layer.name)).toEqual([
       "원본 배경 (Original)",
       "정리 배경 (Inpaint)",
-      "001 translated",
-      "002 second",
+      "001 translated [raster]",
+      "002 second [raster]",
     ]);
-    expect(psd.children?.every((layer) => layer.children === undefined)).toBe(
+    expect(rasters.children?.every((layer) => layer.text === undefined)).toBe(
       true,
     );
-    const editableText = psd.children?.[2]?.text;
+    const editableText = editable.children?.[0]?.text;
     expectRoundTrippedEditableText(editableText);
-    expect(psd.children?.[0]?.protected).toMatchObject({
+    expect(rasters.children?.[0]?.protected).toMatchObject({
       composite: true,
       position: true,
       transparency: true,
@@ -149,7 +190,39 @@ describe("layered PSD export", () => {
     ).toBe(true);
   });
 
-  it("keeps legacy PSD outline sizing and uses pixels only after manual conversion", () => {
+  it("preserves measured font size and wrapped lines with the real PostScript font name", () => {
+    const block = {
+      ...makeBlock(),
+      fontFamily: "dohyeon",
+      fontSizePx: 24,
+      autoFitText: true,
+    };
+    const text = resolveEditablePsdText(
+      block,
+      makePage(),
+      "translated",
+      "DoHyeon-Regular",
+      {
+        blockId: block.id,
+        fontSizePx: 41.5,
+        lines: ["first", "second"],
+        innerWidth: 100,
+        innerHeight: 120,
+        overflow: false,
+      },
+    );
+    expect(text?.text).toBe("first\rsecond");
+    expect(text?.style).toMatchObject({
+      font: { name: "DoHyeon-Regular" },
+      fontSize: 41.5,
+      horizontalScale: 1,
+    });
+    expect(
+      resolveEditablePsdText(block, makePage(), "translated", null),
+    ).toBeNull();
+  });
+
+  it("converts legacy outline scaling with the same font-size-dependent renderer rule", () => {
     const legacy = resolveEditablePsdText(
       { ...makeBlock(), outlineWidthScale: 1.7 },
       { width: 1000, height: 1600 },
@@ -159,7 +232,7 @@ describe("layered PSD export", () => {
       { width: 1000, height: 1600 },
     );
 
-    expect(legacy?.style?.outlineWidth).toBe(1.7);
+    expect(legacy?.style?.outlineWidth).toBeCloseTo(2.21);
     expect(pixels?.style?.outlineWidth).toBe(8.5);
   });
 

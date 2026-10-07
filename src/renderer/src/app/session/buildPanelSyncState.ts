@@ -3,6 +3,7 @@ import {
   createPanelSelectionKey,
   type PanelSyncState,
 } from "../../../../shared/panelBridgeTypes";
+import type { TranslationBlock } from "../../../../shared/textTypes";
 import type { AppSessionViewModel } from "./appSessionViewModel";
 import { isWorkspaceImageReadyForSelectedPage } from "./appSessionSelectors";
 import { resolvePageSourceFontFaceFallbacks } from "../../lib/sourceFontSizeMatching";
@@ -77,7 +78,9 @@ export function buildPanelSyncState({
         : "select",
     selectedPageSize,
     selectedBlockSourceFontFaceFallbackPx,
-    selectedPageBlocks: derivedState.selectedPage?.blocks,
+    selectedPageBlocks: resolvePanelTypographyPeers(
+      derivedState.selectedPage?.blocks,
+    ),
   };
 }
 
@@ -141,4 +144,29 @@ function resolveEditPage(
   return core.currentChapter && derived.selectedPage
     ? { chapterId: core.currentChapter.id, pageId: derived.selectedPage.id }
     : null;
+}
+
+// Page blocks are immutable renderer snapshots. Weak keys avoid retaining old
+// pages and preserve peer identity during unrelated session renders.
+const typographyPeers = new WeakMap<
+  readonly TranslationBlock[],
+  readonly TranslationBlock[]
+>();
+
+function resolvePanelTypographyPeers(
+  blocks: readonly TranslationBlock[] | undefined,
+): readonly TranslationBlock[] | undefined {
+  if (!blocks) return undefined;
+  const cached = typographyPeers.get(blocks);
+  if (cached) return cached;
+  // Typography does not consume generated lettering. Omit its complete optional
+  // payload so peers still satisfy TranslationBlockSchema; selectedBlock above
+  // keeps the original portable artwork for editing and library actions.
+  const peers = blocks.map((block) => {
+    if (!block.generatedLettering) return block;
+    const { generatedLettering: _artwork, ...peer } = block;
+    return peer;
+  });
+  typographyPeers.set(blocks, peers);
+  return peers;
 }

@@ -57,6 +57,7 @@ async function startPageExport(): Promise<void> {
         imageSrc={data.imageSrc}
         page={data.page}
         showImage={showImage}
+        visibleBlockIds={data.visibleBlockIds}
         visualSize={data.outputSize}
       />,
     );

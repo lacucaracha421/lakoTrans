@@ -230,7 +230,7 @@ it("refreshes remote saves through the existing live-merge path, not a direct re
   expect(openChapter).not.toHaveBeenCalled();
   pages?.({ chapterId: chapter.id, pageIds: ["page"] });
   await waitFor(() => expect(mergeLiveChapter).toHaveBeenCalledWith(chapter));
-  expect(openChapter).toHaveBeenCalledWith(chapter.id);
+  expect(openChapter).toHaveBeenCalledWith(chapter.id, chapter.workId);
 });
 
 it("does not duplicate polling when StrictMode replays an unresolved initial effect", async () => {

@@ -29,6 +29,27 @@ vi.mock("electron", () => ({
 const tempDirs: string[] = [];
 
 describe("custom font index validation", () => {
+  it("reuses one listed inventory while still validating each target file", async () => {
+    const root = await createTempRoot();
+    const source = join(root, "font.ttf");
+    const bytes = Buffer.alloc(12);
+    bytes.writeUInt32BE(0x00010000);
+    await writeFile(source, bytes);
+    const library = createTestCustomFonts(root, vi.fn());
+    const font = await library.registerCustomFontFromFile(source);
+    const inventory = library.listCustomFonts();
+    await rm(join(root, "fonts", "index.json"));
+    expect(library.resolveCustomFontFilePath(font.id, inventory)).toBe(
+      join(root, "fonts", font.fileName),
+    );
+    expect(
+      library.resolveCustomFontFilePath(font.id, [
+        { ...font, fileName: "../font.ttf" },
+      ]),
+    ).toBeNull();
+    await rm(join(root, "fonts", font.fileName));
+    expect(library.resolveCustomFontFilePath(font.id, inventory)).toBeNull();
+  });
   afterEach(async () => {
     vi.clearAllMocks();
     while (tempDirs.length > 0) {

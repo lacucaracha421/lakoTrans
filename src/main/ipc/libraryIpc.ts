@@ -1,3 +1,4 @@
+import { chapterPageIpcContracts } from "../../shared/ipcChapterPageContracts";
 import { editPageOrganization } from "../library/pageOrganizationFacade";
 import { shell } from "electron";
 import {
@@ -25,6 +26,7 @@ import {
   dismissSoundEffectReviewRegion,
   deleteWork,
   getLibraryRoot,
+  getChapterPageMetadata,
   listLibrary,
   openChapter,
   prepareSoundEffectTranslation,
@@ -35,6 +37,7 @@ import {
   reorderPages,
   savePageBlocks,
   savePagesBlocks,
+  savePagesBlocksPatch,
 } from "../library";
 import { createLibraryImageUrl } from "../imageProtocol";
 import type { IpcContext } from "./context";
@@ -68,30 +71,41 @@ function registerLibraryReadIpc(context: IpcContext): void {
   trustedHandleContract(
     context,
     libraryIpcContracts.openChapter,
-    async (_event, chapterId: unknown) => {
+    async (_event, chapterId: unknown, workId?: unknown) => {
       const request = parseIpcPayload(
         OpenChapterRequestSchema,
-        { chapterId },
+        { chapterId, workId },
         tMain("ipc.labels.chapterOpen"),
       );
-      return openChapter(request.chapterId);
+      return openChapter(request.chapterId, request.workId);
     },
+  );
+  trustedHandleContract(
+    context,
+    chapterPageIpcContracts.getChapterPageMetadata,
+    async (_event, workId, chapterId) =>
+      getChapterPageMetadata(workId, chapterId),
+  );
+  trustedHandleContract(
+    context,
+    chapterPageIpcContracts.savePagesBlocksPatch,
+    async (_event, request) => savePagesBlocksPatch(request),
   );
   trustedHandleContract(
     context,
     libraryIpcContracts.getPageImageDataUrl,
-    async (_event, imagePath: unknown) => {
+    async (_event, imagePath: unknown, thumbnailMaxEdge?: unknown) => {
       const request = parseIpcPayload(
         ImageDataUrlRequestSchema,
-        { imagePath },
+        { imagePath, thumbnailMaxEdge },
         tMain("ipc.labels.pageImageOpen"),
       );
-      return createLibraryImageUrl(request.imagePath);
+      return createLibraryImageUrl(request.imagePath, request.thumbnailMaxEdge);
     },
   );
   trustedHandleContract(
     context,
-    libraryIpcContracts.savePageBlocks,
+    chapterPageIpcContracts.savePageBlocks,
     async (_event, raw: unknown) =>
       savePageBlocks(
         parseIpcPayload(
@@ -103,7 +117,7 @@ function registerLibraryReadIpc(context: IpcContext): void {
   );
   trustedHandleContract(
     context,
-    libraryIpcContracts.savePagesBlocks,
+    chapterPageIpcContracts.savePagesBlocks,
     async (_event, request) => savePagesBlocks(request),
   );
 }

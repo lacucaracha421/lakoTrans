@@ -1,4 +1,5 @@
 import React from "react";
+import { useThumbnailResolution } from "../hooks/useThumbnailResolution";
 import { createPortal } from "react-dom";
 import { CodexPreviewViewer } from "./CodexPreviewViewer";
 import { useTranslation } from "react-i18next";
@@ -41,7 +42,7 @@ function LivePreview({
   const [open, setOpen] = React.useState(false);
   const previewId = React.useId();
   useEscapeStackEntry(open);
-  const image = usePreviewImage(preview.imagePath, 0);
+  const image = usePreviewImage(preview.imagePath, 0, true, true);
   const title = `${preview.name} · ${t(`codexPreview.${preview.stage}`)}`;
   return (
     <>
@@ -149,7 +150,12 @@ function HistoryItem({
   React.useEffect(() => {
     if (selected) frame.current?.scrollIntoView?.({ block: "nearest" });
   }, [selected]);
-  const image = usePreviewImage(preview.imagePath, 0, visible || selected);
+  const image = usePreviewImage(
+    preview.imagePath,
+    0,
+    visible || selected,
+    true,
+  );
   return (
     <li ref={frame}>
       <Button
@@ -208,7 +214,13 @@ function PreviewEntry({ preview }: { preview: CodexPagePreview }) {
   );
 }
 
-function usePreviewImage(path: string, reload: number, enabled = true) {
+function usePreviewImage(
+  path: string,
+  reload: number,
+  enabled = true,
+  thumbnail = false,
+) {
+  const edge = useThumbnailResolution(undefined, !thumbnail, 64);
   const [image, setImage] = React.useState({
     path: "",
     url: "",
@@ -218,7 +230,7 @@ function usePreviewImage(path: string, reload: number, enabled = true) {
     if (!enabled) return;
     let active = true;
     void libraryGateway
-      .getPageImageDataUrl(path)
+      .getPageImageDataUrl(path, edge)
       .then((url) => {
         if (active) setImage({ path, url, failed: !url });
       })
@@ -229,7 +241,7 @@ function usePreviewImage(path: string, reload: number, enabled = true) {
     return () => {
       active = false;
     };
-  }, [path, reload, enabled]);
+  }, [path, reload, enabled, edge]);
   return {
     ...(image.path === path ? image : { url: "", failed: false }),
     fail: () => setImage({ path, url: "", failed: true }),

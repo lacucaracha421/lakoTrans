@@ -57,7 +57,10 @@ export type CustomFontLibrary = {
   getFontLibrarySnapshot: () => FontLibrarySnapshot;
   registerCustomFontFromFile: (sourcePath: string) => Promise<CustomFont>;
   removeCustomFont: (id: string) => CustomFont[];
-  resolveCustomFontFilePath: (id: string) => string | null;
+  resolveCustomFontFilePath: (
+    id: string,
+    fonts?: readonly CustomFont[],
+  ) => string | null;
 };
 
 const productionDependencies: CustomFontLibraryDependencies = {
@@ -85,8 +88,8 @@ export function createCustomFontLibrary(
     registerCustomFontFromFile: (sourcePath) =>
       registerCustomFontFromFileWith(dependencies, sourcePath),
     removeCustomFont: (id) => removeCustomFontWith(dependencies, id),
-    resolveCustomFontFilePath: (id) =>
-      resolveCustomFontFilePathWith(dependencies, id),
+    resolveCustomFontFilePath: (id, fonts) =>
+      resolveCustomFontFilePathWith(dependencies, id, fonts),
   };
 }
 
@@ -403,21 +406,26 @@ function removeCustomFontWith(
   return remaining;
 }
 
-export function resolveCustomFontFilePath(id: string): string | null {
-  return resolveCustomFontFilePathWith(productionDependencies, id);
+export function resolveCustomFontFilePath(
+  id: string,
+  fonts?: readonly CustomFont[],
+): string | null {
+  return resolveCustomFontFilePathWith(productionDependencies, id, fonts);
 }
 
 function resolveCustomFontFilePathWith(
   dependencies: CustomFontLibraryDependencies,
   id: string,
+  fonts?: readonly CustomFont[],
 ): string | null {
   const normalizedId = normalizeFontUuid(resolveDemotedBlockFontId(id));
   if (!normalizedId) {
     return null;
   }
-  const font = listCustomFontsWith(dependencies).find(
+  const candidate = (fonts ?? listCustomFontsWith(dependencies)).find(
     (candidate) => candidate.id === normalizedId,
   );
+  const font = normalizeCustomFont(candidate);
   if (!font) return null;
   return resolveExistingFontFilePath(font, fontsDir(dependencies));
 }

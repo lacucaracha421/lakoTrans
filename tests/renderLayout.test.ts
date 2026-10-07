@@ -1150,7 +1150,10 @@ describe("render layout padding", () => {
     );
 
     expect(block.renderDirection).toBe("vertical");
-    expect(layout.lines).toBeNull();
+    expect(
+      layout.lines?.map((line) => line.runs.map((run) => run.text).join("")),
+    ).toEqual(["세로쓰기"]);
+    expect(layout.lines?.every((line) => line.slot === undefined)).toBe(true);
   });
 
   it("keeps curve layout ahead of bubble-aware wrapping", () => {

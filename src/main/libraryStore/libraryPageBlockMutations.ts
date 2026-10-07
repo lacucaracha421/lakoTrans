@@ -6,6 +6,7 @@ import {
 import { normalizeBlockType } from "../../shared/geometry";
 import type {
   LibraryChapter,
+  ChapterPagesPatch,
   LibraryPageRecord,
 } from "../../shared/libraryTypes";
 import type {
@@ -59,13 +60,13 @@ const productionRuntime: SavePagesBlocksMutationRuntime = {
   },
 };
 
-export function createSavePagesBlocksMutation(
+function createCommitPagesBlocksMutation(
   runtime: SavePagesBlocksMutationRuntime,
 ): (
   request: SavePagesBlocksRequest,
   assertCanCommit?: () => void,
   preserveBlockOrder?: boolean,
-) => Promise<ReturnType<typeof hydrateChapter>> {
+) => Promise<LibraryChapter> {
   return async (request, assertCanCommit, preserveBlockOrder = false) => {
     assertCanCommit?.();
     assertValidPageBatch(request.pages);
@@ -91,9 +92,45 @@ export function createSavePagesBlocksMutation(
     );
     assertCanCommit?.();
     await runtime.commitChapterAndWork(nextChapter, now, assertCanCommit);
-    return hydrateChapter(nextChapter);
+    return nextChapter;
   };
 }
+
+export function createSavePagesBlocksMutation(
+  runtime: SavePagesBlocksMutationRuntime,
+) {
+  const commit = createCommitPagesBlocksMutation(runtime);
+  return async (...args: Parameters<typeof commit>) =>
+    hydrateChapter(await commit(...args));
+}
+
+export function createSavePagesBlocksPatchMutation(
+  runtime: SavePagesBlocksMutationRuntime,
+) {
+  const commit = createCommitPagesBlocksMutation(runtime);
+  return async (
+    request: SavePagesBlocksRequest,
+  ): Promise<ChapterPagesPatch> => {
+    const chapter = await commit(request);
+    const ids = new Set(request.pages.map((page) => page.pageId));
+    const pages = hydrateChapter({
+      ...chapter,
+      pages: chapter.pages.filter((page) => ids.has(page.id)),
+      pageOrder: chapter.pageOrder.filter((id) => ids.has(id)),
+    }).pages;
+    return {
+      id: chapter.id,
+      workId: chapter.workId,
+      status: chapter.status,
+      updatedAt: chapter.updatedAt,
+      pageOrder: chapter.pageOrder,
+      pages,
+    };
+  };
+}
+
+export const savePagesBlocksPatchUnlocked =
+  createSavePagesBlocksPatchMutation(productionRuntime);
 
 export const savePagesBlocksUnlocked =
   createSavePagesBlocksMutation(productionRuntime);

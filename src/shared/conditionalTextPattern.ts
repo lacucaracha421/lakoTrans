@@ -284,9 +284,32 @@ export function tryConvertConditionalRegexToVisual(
   };
 }
 
+/** A single synchronous evaluation owns this cache; do not retain across edits. */
+export type ConditionalTextMatcherCache = WeakMap<
+  ConditionalTextMatcherV3,
+  Map<boolean, CompiledConditionalTextMatcher>
+>;
+
 export function compileConditionalTextMatcher(
   matcher: ConditionalTextMatcherV3,
   options: { global?: boolean } = {},
+  cache?: ConditionalTextMatcherCache,
+): CompiledConditionalTextMatcher {
+  const global = options.global === true;
+  const existing = cache?.get(matcher)?.get(global);
+  if (existing) return existing;
+  const compiled = compileUncachedConditionalTextMatcher(matcher, options);
+  if (cache) {
+    const entries = cache.get(matcher) ?? new Map();
+    entries.set(global, compiled);
+    cache.set(matcher, entries);
+  }
+  return compiled;
+}
+
+function compileUncachedConditionalTextMatcher(
+  matcher: ConditionalTextMatcherV3,
+  options: { global?: boolean },
 ): CompiledConditionalTextMatcher {
   const parsed = ConditionalTextMatcherV3Schema.parse(matcher);
   if (parsed.mode === "regex") {
@@ -326,16 +349,18 @@ function hasIncompleteVisualPattern(
 function createConditionalTextRegExp(
   matcher: ConditionalTextMatcherV3,
   options: { global?: boolean } = {},
+  cache?: ConditionalTextMatcherCache,
 ): RegExp {
-  const compiled = compileConditionalTextMatcher(matcher, options);
+  const compiled = compileConditionalTextMatcher(matcher, options, cache);
   return new RegExp(compiled.source, compiled.flags);
 }
 
 export function testConditionalTextMatcher(
   value: string,
   matcher: ConditionalTextMatcherV3,
+  cache?: ConditionalTextMatcherCache,
 ): boolean {
-  return createConditionalTextRegExp(matcher).test(value);
+  return createConditionalTextRegExp(matcher, {}, cache).test(value);
 }
 
 export function findConditionalTextMatches(
@@ -343,8 +368,13 @@ export function findConditionalTextMatches(
   matcher: ConditionalTextMatcherV3,
   replacement: ConditionalReplacementV3 | null,
   allOccurrences: boolean,
+  cache?: ConditionalTextMatcherCache,
 ): ConditionalTextMatchRange[] {
-  const compiled = compileConditionalTextMatcher(matcher, { global: true });
+  const compiled = compileConditionalTextMatcher(
+    matcher,
+    { global: true },
+    cache,
+  );
   const pattern = new RegExp(compiled.source, compiled.flags);
   const ranges: ConditionalTextMatchRange[] = [];
   let match: RegExpExecArray | null;

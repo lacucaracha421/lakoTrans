@@ -102,6 +102,35 @@ function createSignedPayloadUrl(
 }
 
 describe("library image URL codec", () => {
+  it("signs the thumbnail intent and keeps original URLs version-bound", () => {
+    const virtual = createVirtualLibrary(["pages/full.png"]);
+    const codec = createLibraryImageUrlCodec({
+      secret: SECRET,
+      files: virtual.files,
+    });
+    const original = codec.createUrl(virtual.paths[0]);
+    const thumbnail = codec.createUrl(virtual.paths[0], 256);
+    expect(thumbnail).not.toBe(original);
+    expect(codec.resolveRequest(thumbnail)).toMatchObject({
+      thumbnailMaxEdge: 256,
+      originalUrl: original,
+    });
+    for (const modified of [
+      thumbnail.replace("t=256", "t=512"),
+      thumbnail.replace("t=256&", ""),
+      `${original}&t=256`,
+      `${thumbnail}&t=256`,
+    ]) {
+      expect(codec.resolveRequest(modified)).toBeNull();
+    }
+    for (const size of [0, 63, 2049, NaN, 64.5])
+      expect(() => codec.createUrl(virtual.paths[0], size)).toThrow();
+    const entry = virtual.entries.get(virtual.paths[0]);
+    if (!entry) throw new Error("Missing virtual fixture");
+    entry.mtimeNs++;
+    expect(codec.resolveRequest(thumbnail)).toBeNull();
+    expect(codec.resolveRequest(original)).toBeNull();
+  });
   it("canonicalizes the stable library root only once per codec", () => {
     const virtual = createVirtualLibrary([
       "pages/first.png",
@@ -271,6 +300,77 @@ describe("image protocol integration", () => {
   afterEach(() => {
     vi.doUnmock("electron");
     vi.resetModules();
+  });
+
+  it("serves signed derivatives and preserves originals on unsupported or failed conversion", async () => {
+    const handlers = new Map<string, TestProtocolHandler>();
+    const protocol = {
+      registerSchemesAsPrivileged: vi.fn(),
+      handle: (scheme: string, handler: TestProtocolHandler) => {
+        handlers.set(scheme, handler);
+      },
+    };
+    vi.doMock("electron", () => ({ protocol }));
+    const { createImageProtocolController } =
+      await import("../src/main/imageProtocol");
+    const virtual = createVirtualLibrary(["page.png", "animated.webp"]);
+    const codec = createLibraryImageUrlCodec({
+      secret: SECRET,
+      files: virtual.files,
+    });
+    const serveThumbnail =
+      vi.fn<(...args: [string, number]) => Promise<Response | null>>();
+    const serveFile = vi.fn(async () => new Response("original bytes"));
+    const reportError = vi.fn();
+    const controller = createImageProtocolController({
+      protocol,
+      imageUrls: codec,
+      resolveLibraryImagePath: (path) => path,
+      resolveFontFilePath: () => null,
+      serveFile,
+      serveThumbnail,
+      isUnavailableError: isProtocolFileUnavailableError,
+      reportError,
+    });
+    controller.registerHandler();
+    const handler = handlers.get("mgt-image");
+    if (!handler) throw new Error("image handler was not registered");
+    const url = controller.createLibraryImageUrl(virtual.paths[0], 128);
+    serveThumbnail.mockResolvedValueOnce(new Response("derived png"));
+    expect(await (await handler({ url })).text()).toBe("derived png");
+    expect(serveThumbnail).toHaveBeenLastCalledWith(
+      codec.createUrl(virtual.paths[0]),
+      128,
+    );
+    expect(serveFile).not.toHaveBeenCalled();
+    serveThumbnail.mockResolvedValueOnce(null);
+    expect(await (await handler({ url })).text()).toBe("original bytes");
+    const error = new Error("renderer lost");
+    serveThumbnail.mockRejectedValueOnce(error);
+    expect(await (await handler({ url })).text()).toBe("original bytes");
+    expect(reportError).toHaveBeenCalledWith(
+      "Thumbnail generation failed; serving original image",
+      { error },
+    );
+    expect(serveFile).toHaveBeenLastCalledWith(virtual.paths[0], {
+      contentType: "image/png",
+      expectedVersion: { size: "1", mtimeNs: "10000" },
+    });
+    serveThumbnail.mockClear();
+    const webp = controller.createLibraryImageUrl(virtual.paths[1], 128);
+    expect(await (await handler({ url: webp })).text()).toBe("original bytes");
+    expect(serveThumbnail).not.toHaveBeenCalled();
+    const documentUrl = "mgt-image://library/_thumbnail-renderer";
+    const document = await handler({ url: documentUrl });
+    expect(document.headers.get("Content-Type")).toBe(
+      "text/html; charset=utf-8",
+    );
+    expect(document.headers.get("Content-Security-Policy")).toContain(
+      "default-src 'none'",
+    );
+    expect(document.headers.get("Cache-Control")).toBe("no-store");
+    expect(await document.text()).toContain("<title>Image thumbnail</title>");
+    expect((await handler({ url: `${documentUrl}?extra=1` })).status).toBe(404);
   });
 
   it("streams signed long-path images and fonts without file URLs", async () => {

@@ -15,6 +15,7 @@ import type { BlockFontCatalog } from "./fonts";
 import {
   doesBlockTextFit as doesTextFit,
   resolveFixedHorizontalTextLines,
+  resolveFixedVerticalTextLines,
   resolveHorizontalTextContentWidth,
 } from "./blockTextMeasurement";
 import { resolveBubbleWrappedText } from "./bubbleBlockTextLayout";
@@ -269,6 +270,14 @@ function resolveFinalTextMetrics(
     textContentWidth,
     lines:
       bubbleMeasurement?.lines ??
+      resolveFixedVerticalTextLines(
+        block,
+        text,
+        fontSizePx,
+        fitInnerWidth,
+        fitInnerHeight,
+        fontCatalog,
+      ) ??
       resolveFixedHorizontalTextLines(
         block,
         text,

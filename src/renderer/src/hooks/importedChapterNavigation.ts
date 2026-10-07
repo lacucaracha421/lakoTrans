@@ -35,7 +35,8 @@ export async function finishImportedChapterNavigation({
   }
   try {
     await saveNow();
-    if (refreshChapter) chapter = await libraryGateway.openChapter(chapter.id);
+    if (refreshChapter)
+      chapter = await libraryGateway.openChapter(chapter.id, chapter.workId);
   } catch (_error) {
     pushStatus(status);
     return;

@@ -48,6 +48,7 @@ export type PageExportDocumentData = {
   resolutionMode: PageExportResolutionMode;
   page: PageArtworkSnapshot;
   transparentBackground?: boolean;
+  visibleBlockIds?: string[];
 };
 
 const CustomFontSchema = z
@@ -145,6 +146,10 @@ export const PageExportDocumentDataSchema = z
     resolutionMode: z.enum(["safe-downscale", "original"]),
     page: PageArtworkSnapshotSchema,
     transparentBackground: z.boolean().optional(),
+    visibleBlockIds: z
+      .array(z.string().min(1).max(200))
+      .max(MAX_BLOCKS_PER_PAGE)
+      .optional(),
   })
   .strict()
   .superRefine((document, context) => {

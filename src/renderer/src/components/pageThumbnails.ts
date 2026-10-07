@@ -1,4 +1,5 @@
 import React from "react";
+import { useThumbnailResolution } from "../hooks/useThumbnailResolution";
 import type { MangaPage } from "../../../shared/libraryTypes";
 import { libraryGateway } from "../api/libraryGateway";
 
@@ -117,6 +118,7 @@ export function usePageThumbnailObserver(
 export function usePageThumbnail<Element extends HTMLElement>(
   page: Pick<MangaPage, "imagePath" | "dataUrl">,
   observeThumbnail: ObservePageThumbnail,
+  { original = false }: { original?: boolean } = {},
 ): {
   frameRef: React.RefObject<Element | null>;
   state: PageThumbnailState;
@@ -125,7 +127,8 @@ export function usePageThumbnail<Element extends HTMLElement>(
 } {
   const frameRef = React.useRef<Element>(null);
   const shouldLoad = useThumbnailVisibility(frameRef, observeThumbnail);
-  const load = useThumbnailLoad(page, shouldLoad);
+  const thumbnailMaxEdge = useThumbnailResolution(frameRef, original);
+  const load = useThumbnailLoad(page, shouldLoad, thumbnailMaxEdge);
   return { frameRef, ...load };
 }
 
@@ -147,6 +150,7 @@ function useThumbnailVisibility(
 function useThumbnailLoad(
   page: Pick<MangaPage, "imagePath" | "dataUrl">,
   shouldLoad: boolean,
+  thumbnailMaxEdge?: number,
 ): {
   state: PageThumbnailState;
   markLoaded: (url: string) => void;
@@ -168,8 +172,12 @@ function useThumbnailLoad(
       return;
     }
     let cancelled = false;
-    setState({ imagePath, status: "loading" });
-    const request = requestThumbnail(imagePath);
+    setState((current) => ({
+      imagePath,
+      status: "loading",
+      ...(current.imagePath === imagePath ? { url: current.url } : {}),
+    }));
+    const request = requestThumbnail(imagePath, thumbnailMaxEdge);
     if (!request) {
       setState({ imagePath, status: "error" });
       return;
@@ -186,7 +194,7 @@ function useThumbnailLoad(
     return () => {
       cancelled = true;
     };
-  }, [imagePath, page.dataUrl, requestRevision, shouldLoad]);
+  }, [imagePath, page.dataUrl, requestRevision, shouldLoad, thumbnailMaxEdge]);
 
   const currentState =
     state.imagePath === imagePath ? state : initialState(page);
@@ -216,9 +224,14 @@ function useThumbnailLoad(
  * throws synchronously rather than rejecting. Treat it as a load failure so the
  * row shows a placeholder instead of tearing down the list.
  */
-function requestThumbnail(imagePath: string): Promise<string> | null {
+function requestThumbnail(
+  imagePath: string,
+  thumbnailMaxEdge?: number,
+): Promise<string> | null {
   try {
-    return libraryGateway.getPageImageDataUrl(imagePath);
+    return thumbnailMaxEdge === undefined
+      ? libraryGateway.getPageImageDataUrl(imagePath)
+      : libraryGateway.getPageImageDataUrl(imagePath, thumbnailMaxEdge);
   } catch (_expectedMissingBridge) {
     return null;
   }

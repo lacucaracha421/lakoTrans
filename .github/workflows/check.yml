@@ -5,6 +5,7 @@ on:
       - master
       - main
   pull_request: null
+  workflow_dispatch: null
 permissions:
   contents: read
 concurrency:

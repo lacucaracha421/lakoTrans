@@ -31,7 +31,7 @@ describe("isolated browser thumbnail lifetime", () => {
       return "data:image/png;base64," + png.toString("base64");
     });
     const create = vi.fn(() => window);
-    const render = createImageThumbnailRenderer(create);
+    const render = createImageThumbnailRenderer(create, 1);
     const results = await Promise.all([
       render(original, 32),
       render(original, 32),
@@ -49,7 +49,7 @@ describe("isolated browser thumbnail lifetime", () => {
 
   it("keeps originals for small/animated results and destroys an unhealthy renderer", async () => {
     const window = fakeWindow(async () => null);
-    const render = createImageThumbnailRenderer(() => window);
+    const render = createImageThumbnailRenderer(() => window, 1);
     expect(await render(original, 32)).toBeNull();
     window.webContents.executeJavaScript.mockRejectedValueOnce(
       new Error("decode failed"),
@@ -57,5 +57,37 @@ describe("isolated browser thumbnail lifetime", () => {
     expect(await render(original, 32)).toBeNull();
     expect(window.destroy).toHaveBeenCalledTimes(1);
     await render.close();
+  });
+
+  it("spreads concurrent rasters over parallel lanes, one raster per window", async () => {
+    const png = PNG.sync.write(new PNG({ width: 8, height: 12 }));
+    let running = 0,
+      peak = 0;
+    const windows: ReturnType<typeof fakeWindow>[] = [];
+    const busy = new Map<unknown, number>();
+    const create = vi.fn(() => {
+      const window = fakeWindow(async () => {
+        busy.set(window, (busy.get(window) ?? 0) + 1);
+        expect(busy.get(window)).toBe(1);
+        running++;
+        peak = Math.max(peak, running);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        running--;
+        busy.set(window, 0);
+        return "data:image/png;base64," + png.toString("base64");
+      });
+      windows.push(window);
+      return window;
+    });
+    const render = createImageThumbnailRenderer(create, 3);
+    const results = await Promise.all(
+      Array.from({ length: 7 }, () => render(original, 32)),
+    );
+    expect(results).toEqual(Array.from({ length: 7 }, () => png));
+    expect(peak).toBe(3);
+    expect(create).toHaveBeenCalledTimes(3);
+    await render.close();
+    for (const window of windows)
+      expect(window.destroy).toHaveBeenCalledTimes(1);
   });
 });

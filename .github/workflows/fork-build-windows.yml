@@ -48,7 +48,7 @@ jobs:
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $files[0].FullName).Hash.ToLowerInvariant()
           "$hash  $($files[0].Name)" | Set-Content -Encoding utf8 dist/SHA256SUMS-windows.txt
           $short = "${{ github.sha }}".Substring(0, 7)
-          "name=CarrotMangaTranslatorFork-windows-$short" >> $env:GITHUB_OUTPUT
+          "name=lakotrans-windows-$short" >> $env:GITHUB_OUTPUT
 
       - name: Upload installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

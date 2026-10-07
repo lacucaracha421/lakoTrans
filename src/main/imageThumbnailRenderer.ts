@@ -1,3 +1,4 @@
+import { availableParallelism } from "node:os";
 import { BrowserWindow } from "electron";
 import { buildImageThumbnailScript } from "./imageThumbnailBrowser";
 import { AbortableExclusiveGate } from "./runtimeSupport/abortableExclusiveGate";
@@ -25,25 +26,58 @@ export type ImageThumbnailRenderer = ((
   close: () => Promise<void>;
 };
 
+/** Fork: hidden renderers working in parallel; each still runs one raster. */
+export function defaultThumbnailLaneCount(): number {
+  return Math.max(1, Math.min(3, availableParallelism() - 1));
+}
+
+type ThumbnailLane = {
+  gate: AbortableExclusiveGate;
+  pool: LeasedIdleResourcePool<ThumbnailResource>;
+  load: number;
+};
+
 /** Caller owns signed URL validation, revision-bound PNG cache and inflight dedupe. */
 export function createImageThumbnailRenderer(
   createWindow: () => ThumbnailWindow = createThumbnailWindow,
+  laneCount = defaultThumbnailLaneCount(),
 ): ImageThumbnailRenderer {
   const lifetime = new AbortController();
-  const gate = new AbortableExclusiveGate();
   const active = new Set<Promise<Buffer | null>>();
-  const pool = new LeasedIdleResourcePool<ThumbnailResource>({
-    idleTtlMs: 30_000,
-    isReusable: ({ window, healthy }) => healthy && !window.isDestroyed(),
-    dispose: async ({ window }) => {
-      if (!window.isDestroyed()) window.destroy();
-    },
-  });
+  const lanes: ThumbnailLane[] = Array.from(
+    { length: Math.max(1, laneCount) },
+    () => ({
+      gate: new AbortableExclusiveGate(),
+      pool: new LeasedIdleResourcePool<ThumbnailResource>({
+        idleTtlMs: 30_000,
+        isReusable: ({ window, healthy }) => healthy && !window.isDestroyed(),
+        dispose: async ({ window }) => {
+          if (!window.isDestroyed()) window.destroy();
+        },
+      }),
+      load: 0,
+    }),
+  );
   const execute = async (
     originalUrl: string,
     maxEdge: number,
   ): Promise<Buffer | null> => {
     if (!isThumbnailRequestAllowed(originalUrl, maxEdge)) return null;
+    const lane = lanes.reduce((best, next) =>
+      next.load < best.load ? next : best,
+    );
+    lane.load++;
+    try {
+      return await executeInLane(lane, originalUrl, maxEdge);
+    } finally {
+      lane.load--;
+    }
+  };
+  const executeInLane = async (
+    { gate, pool }: ThumbnailLane,
+    originalUrl: string,
+    maxEdge: number,
+  ): Promise<Buffer | null> => {
     const turn = await gate.acquire(lifetime.signal);
     try {
       const lease = await pool.acquire("library-image-thumbnail", () =>
@@ -73,7 +107,9 @@ export function createImageThumbnailRenderer(
   render.close = async () => {
     lifetime.abort();
     await Promise.allSettled([...active]);
-    await pool.dispose("app-terminal-cleanup");
+    await Promise.all(
+      lanes.map(({ pool }) => pool.dispose("app-terminal-cleanup")),
+    );
   };
   return render;
 }

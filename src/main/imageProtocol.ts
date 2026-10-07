@@ -79,7 +79,11 @@ function serveProductionThumbnail(
   maxEdge: number,
 ): Promise<Response | null> {
   thumbnailRenderer ??= createImageThumbnailRenderer();
-  thumbnailResponse ??= createImageThumbnailResponse(thumbnailRenderer);
+  // Fork: hold a whole long chapter of ~60 KB thumbnails between reopenings.
+  thumbnailResponse ??= createImageThumbnailResponse(thumbnailRenderer, {
+    maxBytes: 64 * 1024 * 1024,
+    maxEntries: 1024,
+  });
   return thumbnailResponse(originalUrl, maxEdge);
 }
 

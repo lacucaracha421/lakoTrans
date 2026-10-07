@@ -15,6 +15,7 @@ import type {
 import type { WarningCollector } from "./warningCollector";
 import type { CumulativeContextDetail } from "../../shared/settingsTypes";
 import { logPipelineWarning } from "./translationAttemptLogging";
+import { summarizeWorkContextSize, traceTranslation } from "./translationTrace";
 
 export type PageContextPersistenceRepository = {
   saveChapterStoryMemory: (
@@ -90,6 +91,10 @@ export async function persistPageContextAfterSuccess(
     workContext.storyMemory,
     pageMemory,
   );
+  traceTranslation("page-context", {
+    page: pageIndex + 1,
+    ...summarizeWorkContextSize(workContext),
+  });
   try {
     workContext.storyMemory =
       await dependencies.repository.saveChapterStoryMemory(

@@ -396,21 +396,25 @@ async function requestChatTranslation(server, prepared, requestStartedAt) {
       requestBody,
     );
   }
-  return runWithApiKeyRetry(promptOptions, async (apiKey) => {
-    const response = await sendChatCompletion(
-      server,
-      promptOptions,
-      requestBody,
-      requestSummary,
-      apiKey,
-    );
-    return readChatCompletionResult(
-      response,
-      promptOptions,
-      requestSummary,
-      requestStartedAt,
-    );
-  });
+  return runWithApiKeyRetry(
+    promptOptions,
+    async (apiKey) => {
+      const response = await sendChatCompletion(
+        server,
+        promptOptions,
+        requestBody,
+        requestSummary,
+        apiKey,
+      );
+      return readChatCompletionResult(
+        response,
+        promptOptions,
+        requestSummary,
+        requestStartedAt,
+      );
+    },
+    { kind: "page", requestBody, requestSummary },
+  );
 }
 
 /**

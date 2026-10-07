@@ -7,6 +7,7 @@ import {
   type ProgressContext,
 } from "./progressEvents";
 import type { TranslationRuntimePort } from "./translationRuntimePort";
+import { traceDuration } from "./translationTrace";
 
 export type AnalysisEndpointSession = {
   server: ModelEndpointHandle;
@@ -44,7 +45,9 @@ export async function startAnalysisEndpointSession({
     modelCached,
   });
 
-  const endpointSession = await runtime.startEndpointSession(baseOptions);
+  const endpointSession = await traceDuration("endpoint-start", {}, () =>
+    runtime.startEndpointSession(baseOptions),
+  );
   const server = endpointSession.handle;
   let disposePromise: Promise<void> | null = null;
   const disposeEndpointSession = (): Promise<void> => {

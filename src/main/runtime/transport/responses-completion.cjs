@@ -22,6 +22,7 @@ const {
   readCodexResponsesStream,
   readResponseText,
 } = require("./model-response-readers.cjs");
+const { traceModelRequest } = require("./translation-trace.cjs");
 
 /**
  * @param {ModelServer} server
@@ -30,6 +31,27 @@ const {
  * @param {RequestSummary} requestSummary
  */
 async function requestResponsesText(
+  server,
+  options,
+  requestBody,
+  requestSummary,
+) {
+  return traceModelRequest(
+    "responses",
+    options,
+    requestBody,
+    requestSummary,
+    () => sendResponsesRequest(server, options, requestBody, requestSummary),
+  );
+}
+
+/**
+ * @param {ModelServer} server
+ * @param {ResponsesOptions} options
+ * @param {Record<string,unknown>} requestBody
+ * @param {RequestSummary} requestSummary
+ */
+async function sendResponsesRequest(
   server,
   options,
   requestBody,

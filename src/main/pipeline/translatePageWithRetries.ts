@@ -1,3 +1,4 @@
+import { performance } from "node:perf_hooks";
 import type { TranslationOptions } from "../appSettings";
 import type { MangaPage } from "../../shared/libraryTypes";
 import {
@@ -28,6 +29,7 @@ import type { PipelineDiagnostics } from "./translationAttemptLogging";
 import { preparePageTranslationAttempt } from "./pageTranslationAttempt";
 import type { PreparedPageBuildResult } from "./pageResultBuilder";
 import type { PageProcessingTimingCollector } from "./pageProcessingTiming";
+import { traceTranslation } from "./translationTrace";
 
 type TranslatePageWithRetriesOptions = {
   baseOptions: TranslationOptions;
@@ -259,8 +261,18 @@ async function tryPageTranslationAttempt({
   diagnostics: PipelineDiagnostics;
   timing: PageProcessingTimingCollector;
 }): Promise<PreparedPageBuildResult | null> {
+  const startedAt = performance.now();
+  const trace = (ok: boolean) =>
+    traceTranslation("page-attempt", {
+      page: pageIndex + 1,
+      pageTotal: context.pageTotal,
+      attempt,
+      ok,
+      ms: Math.round(performance.now() - startedAt),
+      ...(ok ? {} : { failureCategory: state.lastFailureCategory }),
+    });
   try {
-    return await preparePageTranslationAttempt({
+    const prepared = await preparePageTranslationAttempt({
       jobId: context.jobId,
       page,
       pageOptions,
@@ -268,6 +280,8 @@ async function tryPageTranslationAttempt({
       server,
       timing,
     });
+    trace(true);
+    return prepared;
   } catch (error) {
     if (isAbortErrorLike(error) || isNonRetriableRuntimeError(error)) {
       throw error;
@@ -285,6 +299,7 @@ async function tryPageTranslationAttempt({
       warningCollector,
       diagnostics,
     });
+    trace(false);
     return null;
   }
 }

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { disposeCachedInpaintingEngines } from "./inpainting/inpaintingEnginePool";
 import {
   createTranslationRuntimePort,
@@ -17,6 +17,7 @@ import { prepareHayaiRegions } from "./textDetection/hayaiRegionPrepass";
 import type { HayaiRegionManifest } from "./textDetection/hayaiRegionGeometry";
 import type { SoundEffectReviewRegion } from "../shared/soundEffectReview";
 import { disposeCachedKoharuLayoutSessions } from "./bubbleLayout/session";
+import { enableTranslationTrace } from "./pipeline/translationTrace";
 
 const gpuMemoryCoordinator: GpuMemoryCoordinator = {
   releaseIdleResources: disposeCachedInpaintingEngines,
@@ -59,6 +60,7 @@ function getTranslationRuntimeResources(): TranslationRuntimeResources {
 }
 
 export function loadTranslationRuntimePort(): TranslationRuntimePort {
+  enableTranslationTrace(dirname(getAppPaths().logFile));
   const { groupingEvidence, runtime } = getTranslationRuntimeResources();
   return withLocalInferenceStages(
     createTranslationRuntimePort({

@@ -127,21 +127,25 @@ function requestChatCompletionWithKeyRetry(
   requestSummary,
   requestStartedAt,
 ) {
-  return runWithApiKeyRetry(options, async (apiKey) => {
-    const completion = await sendChatCompletion(
-      server,
-      options,
-      requestBody,
-      requestSummary,
-      apiKey,
-    );
-    return readChatCompletionResult(
-      completion,
-      options,
-      requestSummary,
-      requestStartedAt,
-    );
-  });
+  return runWithApiKeyRetry(
+    options,
+    async (apiKey) => {
+      const completion = await sendChatCompletion(
+        server,
+        options,
+        requestBody,
+        requestSummary,
+        apiKey,
+      );
+      return readChatCompletionResult(
+        completion,
+        options,
+        requestSummary,
+        requestStartedAt,
+      );
+    },
+    { kind: "structured", requestBody, requestSummary },
+  );
 }
 
 /**

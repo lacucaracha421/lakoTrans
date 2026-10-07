@@ -11,6 +11,7 @@
  *   [key: string]: unknown;
  * }} ApiKeyRetryOptions
  * @typedef {{ attemptIndex: number; attemptTotal: number; keyIndex: number; keyCount: number; round: number }} ApiKeyAttempt
+ * @typedef {{ kind: string; requestBody: Record<string, unknown>; requestSummary: Record<string, unknown> }} RequestTrace
  */
 
 const {
@@ -26,6 +27,7 @@ const {
 } = require("./model-http-errors.cjs");
 const { apiRetryDelay } = require("./api-http-failure.cjs");
 const { waitForApiRequestStart } = require("./api-request-pacing.cjs");
+const { traceEvent, traceModelRequest } = require("./translation-trace.cjs");
 
 /**
  * Run an OpenAI-compatible API request with one selected key per attempt.
@@ -34,14 +36,26 @@ const { waitForApiRequestStart } = require("./api-request-pacing.cjs");
  *
  * @template TResult
  * @param {ApiKeyRetryOptions} options
- * @param {(apiKey: string | undefined, attempt: ApiKeyAttempt) => Promise<TResult>} requestAttempt
+ * @param {(apiKey: string | undefined, attempt: ApiKeyAttempt) => Promise<TResult>} untracedAttempt
+ * @param {RequestTrace} [trace] Fork: times each HTTP attempt into the translation trace.
  * @returns {Promise<TResult>}
  */
-async function runWithApiKeyRetry(options, requestAttempt) {
+async function runWithApiKeyRetry(options, untracedAttempt, trace) {
+  /** @type {typeof untracedAttempt} */
+  const requestAttempt = trace
+    ? (apiKey, attempt) =>
+        traceModelRequest(
+          trace.kind,
+          options,
+          trace.requestBody,
+          trace.requestSummary,
+          () => untracedAttempt(apiKey, attempt),
+        )
+    : untracedAttempt;
   const { accessTokenProvider, apiKeys } = resolveCredentialSources(options);
   if (!accessTokenProvider && apiKeys.length === 0) {
     throwIfSignalAborted(options.abortSignal);
-    if (isOpenAIApiProvider(options)) await waitForApiRequestStart(options);
+    if (isOpenAIApiProvider(options)) await tracedPacingWait(options);
     return requestAttempt(undefined, {
       attemptIndex: 1,
       attemptTotal: 1,
@@ -69,7 +83,7 @@ async function runWithApiKeyRetry(options, requestAttempt) {
         forceTokenRefresh,
       );
       forceTokenRefresh = false;
-      await waitForApiRequestStart(options);
+      await tracedPacingWait(options);
       return await requestAttempt(apiKey, {
         attemptIndex,
         attemptTotal,
@@ -90,14 +104,29 @@ async function runWithApiKeyRetry(options, requestAttempt) {
       if (attemptIndex >= attemptTotal) {
         throw markApiKeyRetriesExhausted(error, attemptIndex, keyCount);
       }
-      await waitForRetryDelay(
-        apiRetryDelay(error, delayMs),
-        options.abortSignal,
-      );
+      const retryDelayMs = apiRetryDelay(error, delayMs);
+      traceEvent("api-retry", {
+        attemptIndex,
+        attemptTotal,
+        status: /** @type {{ status?: unknown }} */ (error).status,
+        delayMs: retryDelayMs,
+      });
+      await waitForRetryDelay(retryDelayMs, options.abortSignal);
     }
   }
 
   throw new Error("API key retry loop ended unexpectedly.");
+}
+
+/**
+ * Fork: records API pacing waits long enough to matter in a slow run.
+ * @param {ApiKeyRetryOptions} options
+ */
+async function tracedPacingWait(options) {
+  const startedAt = performance.now();
+  await waitForApiRequestStart(options);
+  const waitMs = Math.round(performance.now() - startedAt);
+  if (waitMs >= 50) traceEvent("api-pacing-wait", { waitMs });
 }
 
 /** @param {ApiKeyRetryOptions} options */

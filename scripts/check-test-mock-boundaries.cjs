@@ -15,6 +15,8 @@ const TEST_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
  * mocking the same internal dependency by convention.
  */
 const ALLOWED_INTERNAL_BOUNDARY_MOCKS = new Set([
+  // Resolve real PSD font files and metadata against isolated storage, never the user's font library.
+  "tests/psdFontResolver.test.ts::../src/main/appPaths",
   // Native tests keep archive publication real; substitute only network data and the external asset catalog.
   "tests/nativeInferenceRuntime.test.ts::../src/main/runtimeSupport/modelDownloads",
   "tests/nativeInferenceRuntime.test.ts::../src/main/runtime/native-inference-manifest.json",

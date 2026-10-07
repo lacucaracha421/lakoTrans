@@ -1,0 +1,61 @@
+# Fork-only workflow: builds an unsigned Windows installer from any branch and
+# uploads it as a workflow artifact. Unlike Release, it creates no tag or
+# GitHub release. See FORK_CHANGES.md.
+name: Fork Build (Windows)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fork-build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Set up npm
+        run: npm install --global npm@12.2.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows installer
+        run: npm run dist:win
+
+      - name: Record checksum
+        id: meta
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem -Path "dist" -Filter "* Setup *.exe")
+          if ($files.Count -ne 1) {
+            throw "Expected exactly one Windows installer, found $($files.Count)."
+          }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $files[0].FullName).Hash.ToLowerInvariant()
+          "$hash  $($files[0].Name)" | Set-Content -Encoding utf8 dist/SHA256SUMS-windows.txt
+          $short = "${{ github.sha }}".Substring(0, 7)
+          "name=CarrotMangaTranslatorFork-windows-$short" >> $env:GITHUB_OUTPUT
+
+      - name: Upload installer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/* Setup *.exe
+            dist/SHA256SUMS-windows.txt

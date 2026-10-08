@@ -64,6 +64,14 @@ const GOOGLE_OPENAI_UNSUPPORTED_REQUEST_FIELDS = [
 // to the native API and must not leak into the OpenAI-compatible request.
 const OLLAMA_OPENAI_UNSUPPORTED_REQUEST_FIELDS = ["top_k"];
 
+// Fork: Claude's OpenAI-compatible endpoint. Current Claude models answer
+// HTTP 400 to non-default sampling values, so the model's defaults apply.
+const ANTHROPIC_OPENAI_UNSUPPORTED_REQUEST_FIELDS = [
+  "temperature",
+  "top_p",
+  "top_k",
+];
+
 /** @type {Readonly<Record<string, string>>} */
 const IMAGE_VARIANT_DESCRIPTIONS = Object.freeze({
   "openai-vision":
@@ -337,20 +345,24 @@ function buildChatRequestBodyWithModelResolver(
 }
 
 /** @param {RequestOptions} options */
-function isGoogleOpenAiCompatibleEndpoint(options) {
+function configuredApiHostname(options) {
   try {
-    const hostname = new URL(resolveConfiguredApiBaseUrl(options)).hostname;
-    return (
-      hostname === "generativelanguage.googleapis.com" ||
-      hostname === "aiplatform.googleapis.com" ||
-      hostname.endsWith("-aiplatform.googleapis.com")
-    );
+    return new URL(resolveConfiguredApiBaseUrl(options)).hostname;
   } catch (_error) {
-    return false;
+    return "";
   }
 }
 
 /** @param {RequestOptions} options */
+function isGoogleOpenAiCompatibleEndpoint(options) {
+  const hostname = configuredApiHostname(options);
+  return (
+    hostname === "generativelanguage.googleapis.com" ||
+    hostname === "aiplatform.googleapis.com" ||
+    hostname.endsWith("-aiplatform.googleapis.com")
+  );
+}
+
 /** @param {RequestOptions} options @param {JsonRecord} body */
 function sanitizeOpenAiCompatibleRequestBody(options, body) {
   if (isGoogleOpenAiCompatibleEndpoint(options)) {
@@ -358,6 +370,9 @@ function sanitizeOpenAiCompatibleRequestBody(options, body) {
   }
   if (isOllamaOpenAiCompatibleEndpoint(options)) {
     removeRequestFields(body, OLLAMA_OPENAI_UNSUPPORTED_REQUEST_FIELDS);
+  }
+  if (configuredApiHostname(options) === "api.anthropic.com") {
+    removeRequestFields(body, ANTHROPIC_OPENAI_UNSUPPORTED_REQUEST_FIELDS);
   }
   return body;
 }

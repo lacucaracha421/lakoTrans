@@ -197,6 +197,47 @@ describe("runtime Responses request body contracts", () => {
     }
   });
 
+  it("leaves sampling to the model on Claude's OpenAI-compatible endpoint", () => {
+    const messages = [{ role: "user", content: [{ type: "text", text: "x" }] }];
+    const requestBody = buildChatRequestBody(
+      {
+        modelProvider: "openai-api",
+        apiBaseUrl: "https://api.anthropic.com/v1/",
+        apiModel: "claude-sonnet-5-5",
+        apiTemperature: 0.2,
+        apiTopP: 0.95,
+        apiTopK: 64,
+        apiExtraBodyJson: JSON.stringify({ temperature: 0.7, top_k: 40 }),
+      },
+      messages,
+      256,
+    );
+
+    expect(requestBody).toMatchObject({
+      model: "claude-sonnet-5-5",
+      max_tokens: 256,
+      messages,
+    });
+    for (const field of ["temperature", "top_p", "top_k"]) {
+      expect(requestBody).not.toHaveProperty(field);
+    }
+
+    // Other OpenAI-compatible providers keep the configured sampling values.
+    expect(
+      buildChatRequestBody(
+        {
+          modelProvider: "openai-api",
+          apiBaseUrl: "https://openrouter.ai/api/v1",
+          apiModel: "anthropic/claude-sonnet-5.5",
+          apiTemperature: 0.2,
+          apiTopP: 0.95,
+        },
+        messages,
+        256,
+      ),
+    ).toMatchObject({ temperature: 0.2, top_p: 0.95 });
+  });
+
   it("throws readable errors for invalid API extra body JSON", () => {
     expect(() =>
       buildChatRequestBody(

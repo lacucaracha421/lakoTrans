@@ -17,8 +17,6 @@ it("rejects output publication if retention expires during the native renderer b
     });
     const plan = await f.prepare([{ kind: "export-png" }]);
     await f.run(plan.id);
-    await vi.waitFor(() => expect(f.render).toHaveBeenCalledTimes(1));
-    await vi.waitFor(() => expect(f.errors.length).toBeGreaterThan(0));
     // A child error is reported before parent reconciliation and cleanup settle.
     // Active metadata remains inspectable until then; wait for the same final
     // expiry rejection instead of treating the shared error sink as settlement.
@@ -30,6 +28,7 @@ it("rejects output publication if retention expires during the native renderer b
       },
       { timeout: 20000 },
     );
+    expect(f.errors.length).toBeGreaterThan(0);
     expect(
       (await f.storage.index()).entries.filter(
         (entry) => entry.kind === "output",

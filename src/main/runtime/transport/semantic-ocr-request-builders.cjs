@@ -19,6 +19,7 @@
 
 const {
   describeImageVariant,
+  configuredApiHostname,
   isGoogleOpenAiCompatibleEndpoint,
 } = require("../simple-page-request-builders.cjs");
 const { buildChatRequestBody } = require("./request-bodies.cjs");
@@ -122,6 +123,12 @@ function buildSemanticStageRequestBody(
     );
   }
   const body = buildChatRequestBody(options, messages, tokenBudget.maxTokens);
+  if (configuredApiHostname(options) === "api.anthropic.com") {
+    // Fork: Claude's OpenAI-compatible endpoint rejects these JSON Schemas
+    // (bounds, patterns). The prompt and the runtime parser own the shape.
+    delete body.response_format;
+    return body;
+  }
   if (isOpenAIApiProvider(options)) {
     // Respect explicitly configured JSON mode for APIs without JSON Schema.
     // The prompt and application parser still enforce the fixed-block contract.

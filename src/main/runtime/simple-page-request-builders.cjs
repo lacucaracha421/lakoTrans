@@ -66,11 +66,7 @@ const OLLAMA_OPENAI_UNSUPPORTED_REQUEST_FIELDS = ["top_k"];
 
 // Fork: Claude's OpenAI-compatible endpoint. Current Claude models answer
 // HTTP 400 to non-default sampling values, so the model's defaults apply.
-const ANTHROPIC_OPENAI_UNSUPPORTED_REQUEST_FIELDS = [
-  "temperature",
-  "top_p",
-  "top_k",
-];
+const ANTHROPIC_SAMPLING_FIELDS = ["temperature", "top_p", "top_k"];
 
 /** @type {Readonly<Record<string, string>>} */
 const IMAGE_VARIANT_DESCRIPTIONS = Object.freeze({
@@ -372,7 +368,7 @@ function sanitizeOpenAiCompatibleRequestBody(options, body) {
     removeRequestFields(body, OLLAMA_OPENAI_UNSUPPORTED_REQUEST_FIELDS);
   }
   if (configuredApiHostname(options) === "api.anthropic.com") {
-    removeRequestFields(body, ANTHROPIC_OPENAI_UNSUPPORTED_REQUEST_FIELDS);
+    removeRequestFields(body, ANTHROPIC_SAMPLING_FIELDS);
   }
   return body;
 }
@@ -520,6 +516,7 @@ function createApiSettingsError(message, detail = {}) {
 module.exports = {
   buildChatRequestBodyWithModelResolver,
   buildChatRequestHeaders,
+  configuredApiHostname,
   isGoogleOpenAiCompatibleEndpoint,
   isOllamaOpenAiCompatibleEndpoint,
   buildMessages,

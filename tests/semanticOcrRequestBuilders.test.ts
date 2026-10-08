@@ -502,3 +502,66 @@ describe("semantic OCR structured output budgets", () => {
     ).toBe("structured-request-budget");
   });
 });
+
+describe("Claude OpenAI-compatible endpoint (fork)", () => {
+  it("sends no JSON Schema response format and no sampling fields", () => {
+    const body = buildSemanticStageRequestBody(
+      {
+        modelProvider: "openai-api",
+        apiBaseUrl: "https://api.anthropic.com/v1/",
+        apiModel: "claude-sonnet-5-5",
+        apiTemperature: 0.2,
+        apiTopP: 0.95,
+        apiTopK: 64,
+        maxTokens: 32768,
+      },
+      messages,
+      buildFixedBlockTranslationResponseFormat(["b1", "b2"]),
+      "translation",
+      2,
+    );
+    expect(body).toMatchObject({ model: "claude-sonnet-5-5", messages });
+    for (const field of ["response_format", "temperature", "top_p", "top_k"]) {
+      expect(body).not.toHaveProperty(field);
+    }
+  });
+});
+
+describe("API 400 reasons (fork)", () => {
+  const { classifyApiHttpFailure, apiFailureMessage } =
+    require("../src/main/runtime/transport/api-http-failure.cjs") as {
+      classifyApiHttpFailure: (
+        response: { status: number; headers: Headers },
+        rawText: string,
+      ) => { apiFailureKind: string; providerReason?: string };
+      apiFailureMessage: (
+        failure: { apiFailureKind: string; providerReason?: string },
+        status: number,
+        statusText: string,
+      ) => string | null;
+    };
+  const response = { status: 400, headers: new Headers() };
+
+  it("shows the service's own reason, masking key-like tokens", () => {
+    const failure = classifyApiHttpFailure(
+      response,
+      JSON.stringify({
+        error: {
+          type: "invalid_request_error",
+          message: "temperature is not supported (key sk-ant-abcdefghijkl)",
+        },
+      }),
+    );
+    expect(apiFailureMessage(failure, 400, "Bad Request")).toBe(
+      "API 오류 400: 서비스가 요청 형식을 거부했습니다. 모델과 고급 요청 설정을 확인하세요. (서비스 응답: temperature is not supported (key [redacted]))",
+    );
+  });
+
+  it("keeps the plain message when the body has no reason", () => {
+    const failure = classifyApiHttpFailure(response, "not json");
+    expect(failure.providerReason).toBeUndefined();
+    expect(apiFailureMessage(failure, 400, "")).toBe(
+      "API 오류 400: 서비스가 요청 형식을 거부했습니다. 모델과 고급 요청 설정을 확인하세요.",
+    );
+  });
+});

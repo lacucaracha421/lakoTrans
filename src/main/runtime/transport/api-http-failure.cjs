@@ -39,6 +39,7 @@ function classifyApiHttpFailure(response, rawText) {
         ? "unsupported-image"
         : "unsupported-request",
       nonRetriable: true,
+      providerReason: readProviderReason(rawText),
     };
   }
   return { apiFailureKind: status >= 500 ? "service" : "request" };
@@ -79,7 +80,7 @@ module.exports = {
   isTerminalApiFailure,
 };
 
-/** @param {{apiFailureKind:string}|undefined} failure @param {number} status @param {string} statusText */
+/** @param {{apiFailureKind:string;providerReason?:string}|undefined} failure @param {number} status @param {string} statusText */
 function apiFailureMessage(failure, status, statusText) {
   if (!failure && status === 401)
     return `API 오류 ${[String(status), statusText.trim()].filter(Boolean).join(" ")}: 인증에 실패했습니다. API 키가 올바르고 유효한지 확인하세요.`;
@@ -98,7 +99,28 @@ function apiFailureMessage(failure, status, statusText) {
     "unsupported-request":
       "서비스가 요청 형식을 거부했습니다. 모델과 고급 요청 설정을 확인하세요.",
   });
-  return descriptions[kind]
-    ? `API 오류 ${status}: ${descriptions[kind]}`
-    : null;
+  if (!descriptions[kind]) return null;
+  const reason = failure?.providerReason;
+  return `API 오류 ${status}: ${descriptions[kind]}${reason ? ` (서비스 응답: ${reason})` : ""}`;
+}
+
+/**
+ * Fork: the service's own reason for a rejected request (`error.message` of
+ * OpenAI-style bodies), so a 400 can be diagnosed without request logs. Key
+ * looking tokens are masked; the text is capped.
+ * @param {string} rawText
+ */
+function readProviderReason(rawText) {
+  let reason;
+  try {
+    reason = /** @type {{error?: {message?: unknown}}} */ (JSON.parse(rawText))
+      .error?.message;
+  } catch (_error) {
+    return undefined;
+  }
+  if (typeof reason !== "string" || !reason.trim()) return undefined;
+  return reason
+    .trim()
+    .replace(/\b(?:sk|key)-[\w-]{8,}/gi, "[redacted]")
+    .slice(0, 300);
 }

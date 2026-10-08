@@ -7,7 +7,9 @@ import type { LibraryTransaction } from "../libraryStore/libraryTransaction";
 import {
   assertPathWithinRootWithoutSymlinks,
   writeDurableJsonFile,
+  writeDurableFile,
 } from "../libraryStore/libraryTransactionStorage";
+import { retainInlineImages, restoreInlineImages } from "./mcpRetentionImages";
 import { McpEditError } from "../application/mcpEditPolicy";
 import {
   RetentionIndexSchema,
@@ -158,7 +160,13 @@ export class McpRetentionStorage {
     const old = await lstat(path);
     if (!old.isFile() || old.isSymbolicLink())
       throw new Error("Invalid retained record file.");
-    const sealed = await this.sealMetadata(value);
+    const packed = await retainInlineImages(
+      getLibraryRoot(),
+      value,
+      dirname(path),
+      (target, bytes) => transaction.stageBytesReplacement(target, bytes),
+    );
+    const sealed = await this.sealMetadata(packed.value);
     const bytes = Buffer.byteLength(JSON.stringify(sealed, null, 2)) + 1;
     if (bytes > 8 * 1024 * 1024)
       throw new Error("Retained metadata exceeds 8 MiB.");
@@ -179,7 +187,7 @@ export class McpRetentionStorage {
       // The previous connection's prepare request is not a new owner's admission.
       entry.requestId = null;
     }
-    entry.bytes += bytes - old.size;
+    entry.bytes += bytes - old.size + packed.addedBytes;
     await transaction.stageJsonReplacement(path, sealed);
     // A coupled publication stages its shared index once, after all records.
     if (!stagedIndex) await this.stageIndex(transaction, index);
@@ -191,13 +199,19 @@ export class McpRetentionStorage {
     return transaction.createPublishedDirectory(join(base, id));
   }
   async writeRecord(directory: string, value: unknown): Promise<number> {
-    const sealed = await this.sealMetadata(value);
+    const packed = await retainInlineImages(
+      getLibraryRoot(),
+      value,
+      directory,
+      writeDurableFile,
+    );
+    const sealed = await this.sealMetadata(packed.value);
     const bytes = Buffer.byteLength(JSON.stringify(sealed, null, 2)) + 1;
     if (bytes > 8 * 1024 * 1024)
       throw new Error("Retained metadata exceeds 8 MiB.");
     await writeDurableJsonFile(join(directory, "record.json"), sealed);
     await this.verifyRecord(directory, value);
-    return bytes;
+    return bytes + packed.addedBytes;
   }
   /** Native staged record check. Uses the same bounded reader as restarted sessions. */
   async verifyRecord(directory: string, expected: unknown): Promise<void> {
@@ -271,6 +285,10 @@ export class McpRetentionStorage {
     const text = await readFile(path, "utf8");
     if (Buffer.byteLength(text) > 8 * 1024 * 1024)
       throw new Error("Retained metadata grew while reading.");
-    return this.codec.open(JSON.parse(text));
+    return restoreInlineImages(
+      getLibraryRoot(),
+      await this.codec.open(JSON.parse(text)),
+      dirname(path),
+    );
   }
 }

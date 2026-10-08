@@ -1,17 +1,87 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import { generatedFixturePng } from "./mcpDetailedQuality.fixture";
+import { createHash } from "node:crypto";
+import { createPageRevision } from "../src/shared/pageRevision";
+import { compositeFingerprint } from "../src/main/application/mcpCompositeWorkflowPolicy";
 import { soundEffectToolsFixture } from "./mcpSoundEffectTools.fixture";
 import {
   persistedMcpJobResult,
   publicMcpJobResult,
 } from "../src/main/application/mcpJobJournal";
 
+it.each([true, false])(
+  "public verification returns independent composed-pixel receipts and saves no page (passed=%s)",
+  async (passed) => {
+    const rendered = generatedFixturePng();
+    const renderLettering = vi.fn(async () => rendered);
+    const f = await soundEffectToolsFixture({ renderLettering });
+    try {
+      const disk = JSON.parse(await readFile(f.chapterPath, "utf8"));
+      const block = disk.pages[0].blocks[0];
+      block.generatedLettering = {
+        version: 1,
+        dataUrl: rendered,
+        sourceText: block.sourceText,
+        translatedText: block.translatedText,
+        outline: { width: 2, color: "#ffffff" },
+      };
+      block.textRole = "ordinary";
+      await writeFile(f.chapterPath, JSON.stringify(disk));
+      const before = await readFile(f.chapterPath);
+      f.readerTurn.mockResolvedValueOnce({
+        itemId: "read",
+        threadId: "read",
+        turnId: "read",
+        text: JSON.stringify({
+          regions: [
+            { regionId: block.id, text: passed ? block.translatedText : "쿠□" },
+          ],
+        }),
+      });
+      const plan = await f.preparePlan({
+        kind: "verify",
+        blockIds: [block.id],
+        expectedModel: f.settings.codex.imageModel,
+        allowExternalProcessing: true,
+      });
+      expect(plan.glyphEvidenceIds).toHaveLength(1);
+      const { readMcpQualityEvidence } =
+        await import("../src/main/mcp/mcpQualityEvidenceStore");
+      const id = plan.glyphEvidenceIds?.[0];
+      if (!id) throw Error("Missing glyph receipt");
+      const receipt = await readMcpQualityEvidence(id);
+      expect(receipt).toMatchObject({
+        kind: "generated-glyphs",
+        passed,
+        expectedText: block.translatedText,
+        revision: createPageRevision((await f.snapshot()).pages[0]),
+        compositionFingerprint: compositeFingerprint(block),
+      });
+      expect(renderLettering).toHaveBeenCalledOnce();
+      const request = f.readerTurn.mock.calls[0][0];
+      expect(JSON.stringify(request)).not.toContain(block.translatedText);
+      expect(request.input.some((item) => item.type === "image")).toBe(true);
+      expect(receipt).toHaveProperty(
+        "imageSha256",
+        createHash("sha256")
+          .update(Buffer.from(rendered.split(",")[1], "base64"))
+          .digest("hex"),
+      );
+      expect(f.turn).not.toHaveBeenCalled();
+      expect(await readFile(f.chapterPath)).toEqual(before);
+    } finally {
+      await f.close();
+    }
+  },
+);
+
 it("connects preparation, bounded inspection, native application and exact recovery through registered tools", async () => {
   const f = await soundEffectToolsFixture();
   try {
     const before = await readFile(f.chapterPath),
       page = (await f.snapshot()).pages[0];
-    expect(f.soundSession.tools).toHaveLength(9);
+    expect(f.soundSession.tools).toHaveLength(10);
     const plan = await f.preparePlan({
       kind: "text",
       edits: [{ blockId: page.blocks[0].id, translatedText: "BANG!" }],

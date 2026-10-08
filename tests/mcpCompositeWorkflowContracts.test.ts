@@ -16,6 +16,23 @@ import {
   hash,
 } from "./mcpCompositeWorkflow.fixture";
 
+it("identifies exhausted model budgets without partially consuming an admission", async () => {
+  const f = compositeFixture();
+  try {
+    const record = await f.service.prepare(owner, compositePlan(), guard);
+    const before = structuredClone(record.used);
+    const cost = zeroCompositeCost();
+    cost.admissions = 1;
+    cost.models.erase = 1;
+    expect(() => reserveCompositeCost(record, cost)).toThrow(
+      "budgets.models.erase (used=0, cost=1, limit=0, remaining=0)",
+    );
+    expect(record.used).toEqual(before);
+  } finally {
+    await f.service.close();
+  }
+});
+
 it("caps cumulative selected edits at one hundred per qualified page across native phases", async () => {
   const f = compositeFixture();
   const plan = compositePlan();
@@ -27,7 +44,9 @@ it("caps cumulative selected edits at one hundred per qualified page across nati
   cost.pageEdits = [{ chapterId: "chapter", pageId: "page", edits: 60 }];
   reserveCompositeCost(record, cost);
   expect(record.used.selectedEdits).toBe(60);
-  expect(() => reserveCompositeCost(record, cost)).toThrow("budget");
+  expect(() => reserveCompositeCost(record, cost)).toThrow(
+    "pageEdits[chapter/page] (used=60, cost=60, limit=100, remaining=40)",
+  );
   expect(record.used.selectedEdits).toBe(60);
   expect(record.used.admissions).toBe(1);
 });

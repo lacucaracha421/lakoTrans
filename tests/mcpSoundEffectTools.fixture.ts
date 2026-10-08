@@ -2,13 +2,16 @@ import { vi } from "vitest";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
 import { soundEffectFixture } from "./mcpSoundEffect.fixture";
+import type { SoundEffectGenerationRuntime } from "../src/main/mcp/mcpSoundEffectGeneration";
 import {
   mcpSoundEffectOutputs,
   McpSoundEffectPlanReferenceSchema,
   type McpSoundEffectPrepare,
 } from "../src/shared/mcpSoundEffects";
 
-export async function soundEffectToolsFixture() {
+export async function soundEffectToolsFixture(
+  runtime: Partial<SoundEffectGenerationRuntime> = {},
+) {
   const f = await soundEffectFixture();
   const { McpOperationService } =
     await import("../src/main/application/mcpOperationService");
@@ -23,7 +26,7 @@ export async function soundEffectToolsFixture() {
     f.editing,
     true,
     true,
-    { startClient: f.startClient, startReader: f.startReader },
+    { startClient: f.startClient, startReader: f.startReader, ...runtime },
   );
   const invoke = async (name: string, args: object, caller = f.auth()) => {
     const tool = session.tools.find((tool) => tool.name === name);
@@ -42,9 +45,11 @@ export async function soundEffectToolsFixture() {
       ...(suppliedRequestId ? { requestId: suppliedRequestId } : {}),
     };
     const name =
-      command.kind === "generate"
-        ? "carrot_generate_sound_effects"
-        : "carrot_prepare_sound_effect_batch";
+      command.kind === "verify"
+        ? "carrot_verify_generated_lettering"
+        : command.kind === "generate"
+          ? "carrot_generate_sound_effects"
+          : "carrot_prepare_sound_effect_batch";
     const receipt = await invoke(name, input);
     const { jobId } = z
       .object({ jobId: z.uuid() })

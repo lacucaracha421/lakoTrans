@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { expect, it } from "vitest";
+import { validGlyphShapes } from "./generatedGlyphReview.fixture";
 import { soundEffectFixture } from "./mcpSoundEffect.fixture";
 import { captureSoundEffectPage } from "../src/shared/soundEffectPageSnapshot";
 import type { McpSoundEffectPrepare } from "../src/shared/mcpSoundEffects";
@@ -17,8 +18,73 @@ function command(
     replaceExisting: false,
     allowRenderAdjustment: true,
     invertColors: false,
+    attemptsPerCall: 4,
   };
 }
+it("retains a provider refusal and refuses further generation for the same region", async () => {
+  const f = await soundEffectFixture();
+  try {
+    const before = await readFile(f.chapterPath);
+    const block = (await f.snapshot()).pages[0].blocks[0];
+    f.turn.mockRejectedValueOnce(
+      Object.assign(new Error("Image provider refused"), {
+        imageGenerationDiagnostics: {
+          processError: {
+            code: "moderation_blocked",
+            moderationDetails: { categories: ["sexual"] },
+          },
+        },
+      }),
+    );
+    const first = await f.preview(command(f, [block.id]));
+    const stored = f.service.readOwnedPlan(f.owner, first.batchId, () => {});
+    expect(stored.generationCalls).toBe(1);
+    expect(stored.after.blocks[0].imageGenerationBlocked).toBeDefined();
+    const { McpSoundEffectCandidates } =
+      await import("../src/main/mcp/mcpSoundEffectCandidates");
+    const candidates = await new McpSoundEffectCandidates(f.env.root).list(
+      "chapter",
+      (await f.snapshot()).pages[0].id,
+    );
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].status).toBe("refused");
+    const second = await f.preview(command(f, [block.id]));
+    expect(
+      f.service.readOwnedPlan(f.owner, second.batchId, () => {})
+        .generationCalls,
+    ).toBe(0);
+    expect(f.turn).toHaveBeenCalledOnce();
+    expect(f.readerTurn).not.toHaveBeenCalled();
+    expect(await readFile(f.chapterPath)).toEqual(before);
+  } finally {
+    await f.close();
+  }
+});
+
+it("rejects an unavailable glyph-guide font before spending a generation attempt", async () => {
+  const f = await soundEffectFixture();
+  try {
+    const block = (await f.snapshot()).pages[0].blocks[0];
+    const request = command(f, [block.id]);
+    if (request.kind !== "generate") throw Error("Expected generation");
+    request.directions = {
+      [block.id]: {
+        creativeBrief: "Heavy ink lettering, preserve the approved text.",
+        glyphGuideFontId: "unavailable-font",
+      },
+    };
+    const plan = await f.preview(request);
+    const stored = f.service.readOwnedPlan(f.owner, plan.batchId, () => {});
+    expect(stored.generationCalls).toBe(0);
+    expect(stored.failedItems).toBe(1);
+    expect(stored.pages[0].changes[0].excludedReason).toMatch(
+      /available registered font/,
+    );
+    expect(f.turn).not.toHaveBeenCalled();
+  } finally {
+    await f.close();
+  }
+});
 it("blindly reads generated pixels, retries malformed Hangul and publishes only the corrected candidate", async () => {
   const f = await soundEffectFixture();
   try {
@@ -33,7 +99,7 @@ it("blindly reads generated pixels, retries malformed Hangul and publishes only 
     const stored = f.service.readOwnedPlan(f.owner, plan.batchId, () => {});
     expect(stored.generationCalls).toBe(2);
     expect(stored.failedItems).toBe(0);
-    expect(f.readerTurn).toHaveBeenCalledTimes(2);
+    expect(f.readerTurn).toHaveBeenCalledTimes(4);
     const request = f.readerTurn.mock.calls[0][0];
     expect(JSON.stringify(request)).not.toContain(block.translatedText);
     expect(request.input.filter((item) => item.type === "image")).toHaveLength(
@@ -42,6 +108,20 @@ it("blindly reads generated pixels, retries malformed Hangul and publishes only 
     expect(JSON.stringify(f.turn.mock.calls[1][0])).toContain("쿠□");
     expect(f.startReader.mock.calls[0][4]).toBe("isolated");
     expect(f.readerDispose).toHaveBeenCalledOnce();
+    const { McpSoundEffectCandidates } =
+      await import("../src/main/mcp/mcpSoundEffectCandidates");
+    const candidates = await new McpSoundEffectCandidates(f.env.root).list(
+      "chapter",
+      (await f.snapshot()).pages[0].id,
+    );
+    expect(candidates.map((item) => item.readback)).toMatchObject([
+      { readText: "쿠□", expectedText: block.translatedText, passed: false },
+      {
+        readText: block.translatedText,
+        expectedText: block.translatedText,
+        passed: true,
+      },
+    ]);
     expect(
       (await f.snapshot()).pages[0].blocks[0].generatedLettering,
     ).toBeUndefined();
@@ -49,20 +129,24 @@ it("blindly reads generated pixels, retries malformed Hangul and publishes only 
     await f.close();
   }
 });
-it("fails closed after three misspellings and preserves saved content on unreadable or failed inspection", async () => {
+it("fails closed after four misspellings and preserves saved content on unreadable or failed inspection", async () => {
   const f = await soundEffectFixture();
   try {
     const before = await readFile(f.chapterPath);
     const block = (await f.snapshot()).pages[0].blocks[0];
-    f.readerTurn.mockResolvedValue({
+    f.readerTurn.mockImplementation(async (request) => ({
       itemId: "read",
       threadId: "read",
       turnId: "read",
-      text: JSON.stringify({ regions: [{ regionId: block.id, text: "□" }] }),
-    });
+      text: JSON.stringify(
+        JSON.stringify(request.outputSchema).includes('"shape"')
+          ? validGlyphShapes([block.id])
+          : { regions: [{ regionId: block.id, text: "□" }] },
+      ),
+    }));
     const plan = await f.preview(command(f, [block.id]));
     const stored = f.service.readOwnedPlan(f.owner, plan.batchId, () => {});
-    expect(stored.generationCalls).toBe(3);
+    expect(stored.generationCalls).toBe(4);
     expect(stored.failedItems).toBe(1);
     expect(stored.after.blocks[0].generatedLettering).toBeUndefined();
     expect(await readFile(f.chapterPath)).toEqual(before);
@@ -362,15 +446,19 @@ it("counts host attempts against app internal generation retries", async () => {
   const f = await soundEffectFixture();
   try {
     const block = (await f.snapshot()).pages[0].blocks[0];
-    f.readerTurn.mockResolvedValue({
+    f.readerTurn.mockImplementation(async (input) => ({
       itemId: "read",
       threadId: "read",
       turnId: "read",
-      text: JSON.stringify({ regions: [{ regionId: block.id, text: "□" }] }),
-    });
+      text: JSON.stringify(
+        JSON.stringify(input.outputSchema).includes('"shape"')
+          ? validGlyphShapes([block.id])
+          : { regions: [{ regionId: block.id, text: "□" }] },
+      ),
+    }));
     const request = command(f, [block.id]);
     if (request.kind !== "generate") throw new Error("Expected generation");
-    request.priorGenerationAttempts = { [block.id]: 2 };
+    request.priorGenerationAttempts = { [block.id]: 3 };
     const plan = await f.preview(request);
     const stored = f.service.readOwnedPlan(f.owner, plan.batchId, () => {});
     expect(stored.generationCalls).toBe(1);

@@ -2735,7 +2735,7 @@
     "target": "修整对象",
     "asset": "文字形状",
     "page": "遮挡边界",
-    "mode": "画笔功能",
+    "mode": "修饰工具",
     "hide": "擦除",
     "restore": "恢复",
     "shape": "画笔形状",
@@ -2744,7 +2744,14 @@
     "size": "大小",
     "softness": "柔和度",
     "showMask": "显示蒙版",
-    "reset": "重置"
+    "reset": "重置",
+    "move": "局部移动",
+    "selectionShape": "选区形状",
+    "lasso": "自由选择",
+    "rectangle": "矩形选择",
+    "moveHint": "圈选要移动的笔画，再拖动选区内部。方向键微调，Shift 加大移动距离，Enter 应用，Esc 取消。",
+    "applyMove": "应用移动",
+    "cancelSelection": "取消选择"
   },
   "codexFonts": {
     "title": "编辑字体",

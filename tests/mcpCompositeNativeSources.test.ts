@@ -1,6 +1,37 @@
 import { readFile, stat, utimes, writeFile } from "node:fs/promises";
 import { expect, it } from "vitest";
 import { compositeNativeSourcesFixture } from "./mcpCompositeNativeSources.fixture";
+import { vi } from "vitest";
+import { migrateWorkTypographyProfile } from "../src/shared/fontMatchingProfileCodec";
+import { compositeFingerprint } from "../src/main/application/mcpCompositeWorkflowPolicy";
+
+it("invalidates pre-shape v2 completion bindings while preserving the explicit v1 policy", async () => {
+  const f = await compositeNativeSourcesFixture();
+  try {
+    for (const policy of [
+      "complete-translation-v1",
+      "complete-translation-v2",
+    ] as const) {
+      f.plan.qualityPolicy = policy;
+      const result = await f.read();
+      const page = result.snapshot.pages[0];
+      const previousPolicy = compositeFingerprint({
+        settingsFingerprint: page.settingsFingerprint,
+        fontFingerprint: page.fontFingerprint,
+        permissions: f.options.preferences,
+        authorizedRequirements: ["carrot.read"],
+        phases: f.plan.phases,
+        budgets: f.plan.budgets,
+        qualityPolicy: policy,
+      });
+      if (policy === "complete-translation-v1")
+        expect(result.snapshot.policyFingerprint).toBe(previousPolicy);
+      else expect(result.snapshot.policyFingerprint).not.toBe(previousPolicy);
+    }
+  } finally {
+    await f.close();
+  }
+});
 
 it("binds actual original bytes even when file size, mtime and page metadata are unchanged", async () => {
   const f = await compositeNativeSourcesFixture();
@@ -119,6 +150,53 @@ it("awaits fresh asynchronous settings reads on both sides of native source insp
       }),
     ).rejects.toMatchObject({ code: "revision_conflict" });
     expect(reads).toBe(2);
+  } finally {
+    await f.close();
+  }
+});
+
+it("binds v2 work palette revisions once per work and invalidates an unchanged page after palette edits", async () => {
+  const f = await compositeNativeSourcesFixture();
+  try {
+    f.plan.qualityPolicy = "complete-translation-v2";
+    const profile = migrateWorkTypographyProfile({
+      schemaVersion: 1,
+      workId: f.targets[0].workId,
+      dialogueAnchorFontId: "nanum-gothic",
+      evidenceCount: 1,
+      confidence: 0,
+      catalogVersion: "fixture",
+      modelVersion: "fixture",
+      rendererHash: "a".repeat(64),
+      createdAt: "2026-10-08T00:00:00.000Z",
+      updatedAt: "2026-10-08T00:00:00.000Z",
+    });
+    const readProfile = vi.fn(async () => profile);
+    const read = () =>
+      f.native.readMcpCompositeSources(f.targets, f.plan, f.guard, {
+        ...f.options,
+        readProfile,
+      });
+    const first = await read();
+    expect(readProfile).toHaveBeenCalledTimes(
+      new Set(f.targets.map((t) => t.workId)).size,
+    );
+    expect(first.values[0].paletteRevision).toBe(compositeFingerprint(profile));
+    profile.updatedAt = "2026-10-08T06:00:00.000Z";
+    const second = await read();
+    expect(second.snapshot.pages[0].revision).toBe(
+      first.snapshot.pages[0].revision,
+    );
+    expect(second.snapshot.pages[0].contextFingerprint).not.toBe(
+      first.snapshot.pages[0].contextFingerprint,
+    );
+    const absent = await f.native.readMcpCompositeSources(
+      f.targets,
+      f.plan,
+      f.guard,
+      { ...f.options, readProfile: async () => null },
+    );
+    expect(absent.values[0].paletteRevision).toBeNull();
   } finally {
     await f.close();
   }

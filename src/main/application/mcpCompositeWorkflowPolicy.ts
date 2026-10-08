@@ -68,12 +68,18 @@ export function reserveCompositeCost(
     "researchAttempts",
     "selectedEdits",
   ] as const)
-    next[key] = boundedSum(next[key], cost[key], record.plan.budgets[key]);
+    next[key] = boundedSum(
+      next[key],
+      cost[key],
+      record.plan.budgets[key],
+      `budgets.${key}`,
+    );
   for (const key of Object.keys(next.models) as Array<keyof typeof next.models>)
     next.models[key] = boundedSum(
       next.models[key],
       cost.models[key],
       record.plan.budgets.models[key],
+      `budgets.models.${key}`,
     );
   if (cost.admissions !== 1)
     compositeError(
@@ -82,10 +88,10 @@ export function reserveCompositeCost(
   next.pageEdits = reservePageEdits(record, cost);
   record.used = next;
 }
-function boundedSum(used: number, cost: number, limit: number) {
+function boundedSum(used: number, cost: number, limit: number, field: string) {
   if (!Number.isSafeInteger(cost) || cost < 0 || used + cost > limit)
     compositeError(
-      "The server-resolved native cost exceeds the authorized remaining budget.",
+      `The server-resolved native cost exceeds the authorized remaining budget: ${field} (used=${used}, cost=${cost}, limit=${limit}, remaining=${Math.max(0, limit - used)}). Retrying cannot expand this plan's fixed budget.`,
     );
   return used + cost;
 }
@@ -252,7 +258,12 @@ function reservePageEdits(record: McpCompositeRecord, cost: McpCompositeCost) {
         "Selected-edit costs cannot expand the prepared page scope.",
       );
     const key = `${page.chapterId}/${page.pageId}`;
-    const total = boundedSum(totals.get(key)?.edits ?? 0, page.edits, 100);
+    const total = boundedSum(
+      totals.get(key)?.edits ?? 0,
+      page.edits,
+      100,
+      `pageEdits[${key}]`,
+    );
     totals.set(key, {
       chapterId: page.chapterId,
       pageId: page.pageId,

@@ -34,6 +34,9 @@ export function relocateGeneratedLettering(
     paintStrokes: artwork.paintStrokes
       ? structuredClone(artwork.paintStrokes)
       : undefined,
+    partMoves: artwork.partMoves
+      ? structuredClone(artwork.partMoves)
+      : undefined,
     outline: artwork.outline ? { ...artwork.outline } : undefined,
     maskStrokes: artwork.maskStrokes?.map((stroke) =>
       stroke.space === "asset"

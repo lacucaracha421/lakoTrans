@@ -1,4 +1,5 @@
 import { inspectTranslationSavedQuality } from "../application/mcpTranslationQuality";
+import { verifyMcpDetailedReview } from "./mcpCompositeDetailedReview";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
 import {
@@ -34,6 +35,7 @@ const imageMetadata = z.object({
   width: z.number().int().positive().max(1600),
   height: z.number().int().positive().max(1600),
   pixelMapping: McpCompositeRenderEvidenceSchema.shape.pixelMapping,
+  layout: McpCompositeRenderEvidenceSchema.shape.layout,
 });
 type Issued = {
   evidence: McpCompositeRenderEvidence;
@@ -76,6 +78,9 @@ export class McpCompositeNativeReview {
         captured.evidence.savedQuality = inspectTranslationSavedQuality(
           before.values[index].page,
         );
+      if (record.plan.qualityPolicy === "complete-translation-v2")
+        captured.evidence.paletteRevision =
+          before.values[index].paletteRevision ?? null;
       bytes += captured.bytes.length;
       if (bytes > MAX_CACHE_BYTES) throw capacity();
       issued.push(captured);
@@ -105,7 +110,13 @@ export class McpCompositeNativeReview {
     const result = await invokeMcpCompositeNativeTool(
       this.tools,
       "carrot_render_page_preview",
-      { chapterId: page.chapterId, pageId: page.pageId },
+      {
+        chapterId: page.chapterId,
+        pageId: page.pageId,
+        ...(record.plan.qualityPolicy === "complete-translation-v2"
+          ? { includeLayout: true }
+          : {}),
+      },
       record.owner,
       guard,
     );
@@ -131,6 +142,7 @@ export class McpCompositeNativeReview {
       phaseId,
       pass,
       kind: "rendered-page",
+      ...(metadata.layout ? { layout: metadata.layout } : {}),
       fontEvidence: {
         appManaged: "bytes-sha256",
         systemFallback: "native-render-pixels-only",
@@ -254,6 +266,18 @@ export class McpCompositeNativeReview {
       if (evidence.phaseId !== report.phaseId || evidence.pass !== report.pass)
         throw stale();
     }
+    if (
+      record.plan.qualityPolicy === "complete-translation-v2" &&
+      report.verdict === "accepted"
+    )
+      await verifyMcpDetailedReview(
+        current.values,
+        report.assessments.map((assessment) => ({
+          assessment,
+          evidence: this.lookup(record, assessment.evidenceId).evidence,
+        })),
+        guard,
+      );
   };
   close() {
     this.stopped = true;

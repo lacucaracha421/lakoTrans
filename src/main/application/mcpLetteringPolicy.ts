@@ -64,6 +64,19 @@ export function createMcpLetteringPolicy(
     parse: (value) => McpLetteringPrepareSchema.parse(value),
     plan: async (saved, input, access) => {
       validateBatchTargets(saved, input);
+      if (input.command.kind === "generated-touchup") {
+        const ids = new Set(
+          input.pages.flatMap((page) => page.edits.map((edit) => edit.blockId)),
+        );
+        if (
+          input.command.edits.length !== ids.size ||
+          input.command.edits.some((edit) => !ids.has(edit.blockId))
+        )
+          throw new McpEditError(
+            "invalid_edit",
+            "Touchup edits must exactly match selected saved blocks.",
+          );
+      }
       const result = await prepare(saved, input, access);
       access.guard();
       const pages = input.pages.map((target) => {
@@ -148,9 +161,11 @@ function planChange(
   const after = afterPage.blocks.find((block) => block.id === edit.blockId);
   if (!before || !after)
     throw new McpEditError("not_found", "Selected lettering block is missing.");
-  const excludedReason = getActiveGeneratedLettering(before)
-    ? "generated_lettering"
-    : exclusion;
+  const excludedReason =
+    input.command.kind !== "generated-touchup" &&
+    getActiveGeneratedLettering(before)
+      ? "generated_lettering"
+      : exclusion;
   // Layout cannot change size in the first place; scalar/inline style requests protect manual size.
   const next = excludedReason
     ? before
@@ -171,7 +186,7 @@ function planChange(
     warnings: [
       "rendering_not_performed",
       "layout_shape_is_summarized",
-      ...(input.preserveManualFontSize && before.fontSizeIntent === "manual"
+      ...(manualSizePreserved(input, before)
         ? ["manual_font_size_preserved"]
         : []),
     ],
@@ -230,4 +245,11 @@ function createSnapshotRequest(
         return structuredClone(snapshot);
       }),
   };
+}
+
+function manualSizePreserved(
+  input: McpLetteringPrepare,
+  block: MangaPage["blocks"][number],
+) {
+  return input.preserveManualFontSize && block.fontSizeIntent === "manual";
 }

@@ -12,6 +12,55 @@ import {
   reviewReport,
 } from "./mcpCompositeWorkflow.fixture";
 
+it.each([0, 4, 5])(
+  "enforces a five-page review budget of %s without charging rejected work",
+  async (limit) => {
+    const f = compositeFixture();
+    try {
+      const plan = compositePlan(true);
+      if (plan.targets.kind !== "saved")
+        throw new Error("Expected saved pages");
+      const page = plan.targets.pages[0];
+      plan.targets.pages = Array.from({ length: 5 }, (_, index) => ({
+        ...page,
+        pageId: `page-${index}`,
+      }));
+      plan.phases = [{ kind: "review", id: "final-review" }];
+      plan.budgets.admissions = 1;
+      plan.budgets.pageAttempts = limit;
+      const prepared = await f.service.prepare(owner, plan, guard);
+      if (limit < 5) {
+        await expect(
+          f.service.run(owner, mutation(prepared), guard),
+        ).rejects.toMatchObject({
+          code: "invalid_edit",
+          message: expect.stringContaining(
+            `budgets.pageAttempts (used=0, cost=5, limit=${limit}, remaining=${limit})`,
+          ),
+        });
+        const unchanged = await f.service.get(owner, prepared.id, guard);
+        expect(unchanged.used).toEqual(prepared.used);
+        expect(unchanged.phases).toEqual(prepared.phases);
+        expect(f.events).toEqual([]);
+      } else {
+        await f.service.run(owner, mutation(prepared), guard);
+        const rendered = await f.service.waitForCompletion(
+          owner,
+          prepared.id,
+          guard,
+        );
+        expect(rendered).toMatchObject({
+          status: "awaiting-review",
+          used: { admissions: 1, pageAttempts: 5 },
+        });
+        expect(f.events).toEqual(["rendered"]);
+      }
+    } finally {
+      await f.service.close();
+    }
+  },
+);
+
 it("requires issued rendered page evidence and explicit host provenance before accepting review", async () => {
   const f = compositeFixture();
   const prepared = await f.service.prepare(owner, compositePlan(true), guard);

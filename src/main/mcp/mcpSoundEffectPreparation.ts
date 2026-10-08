@@ -6,6 +6,10 @@ import { readWorkContextForEdit } from "../library";
 import { assertContextTarget } from "../application/mcpContextEditPolicy";
 import { McpEditError } from "../application/mcpEditPolicy";
 import {
+  MCP_SNAPSHOT_BYTES,
+  packMcpSnapshot,
+} from "../application/mcpSnapshotPayload";
+import {
   captureMcpImageFiles,
   verifyMcpImageFiles,
   readMcpImageEditPage,
@@ -29,12 +33,7 @@ export function createMcpSoundEffectPreparation(
         "The previous image client cleanup failed. Reopen this session after resolving the local runtime.",
         { cause: generationFault },
       );
-    const before = captureSoundEffectPage(page);
-    if (Buffer.byteLength(JSON.stringify([before, before])) > 3 * 1024 * 1024)
-      throw new McpEditError(
-        "invalid_edit",
-        "Page snapshots exceed the bounded sound-effect plan budget; no model was started.",
-      );
+    const before = captureBoundedSnapshot(page);
     const files = await captureMcpImageFiles(page, access.guard);
     const verify = async () => {
       assertContextTarget(
@@ -65,7 +64,7 @@ export function createMcpSoundEffectPreparation(
       if (error instanceof SoundEffectCleanupError) generationFault = error;
       throw error;
     }
-    const { next, generationCalls, exclusions } = result;
+    const { next, generationCalls, exclusions, glyphEvidenceIds } = result;
     await verify();
     const after = captureSoundEffectPage(next);
     const changes = [
@@ -89,9 +88,24 @@ export function createMcpSoundEffectPreparation(
       files,
       changes,
       generationCalls,
+      ...(glyphEvidenceIds ? { glyphEvidenceIds } : {}),
       failedItems: generationFailures(exclusions),
     };
   };
+}
+
+function captureBoundedSnapshot(page: Parameters<SoundEffectPreparation>[0]) {
+  const before = captureSoundEffectPage(page);
+  const size = packMcpSnapshot([before, before]);
+  if (
+    size.metadataBytes > 3 * 1024 * 1024 ||
+    size.totalBytes > MCP_SNAPSHOT_BYTES
+  )
+    throw new McpEditError(
+      "invalid_edit",
+      "Page snapshots exceed 3 MiB of metadata or 32 MiB including lettering; no model was started.",
+    );
+  return before;
 }
 
 function generationFailures(items: ReturnType<typeof soundEffectChanges>) {

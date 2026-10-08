@@ -52,54 +52,85 @@ export function GeneratedLetteringControls({
             disabled={disabled}
             change={change}
           />
-          <div className={styles.row}>
-            <CheckboxField
-              label={t("letteringBrush.showMask")}
-              checked={tool.showMask}
-              onCheckedChange={(showMask) => change({ showMask })}
-              disabled={disabled}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={
-                disabled ||
-                (!artwork.maskStrokes?.some(
-                  (stroke) => stroke.space === tool.space,
-                ) &&
-                  !(tool.space === "asset" && artwork.paintStrokes?.length))
-              }
-              onClick={() =>
-                onUpdate({
-                  generatedLettering: {
-                    ...artwork,
-                    maskStrokes: artwork.maskStrokes?.filter(
-                      (stroke) => stroke.space !== tool.space,
-                    ),
-                    paintStrokes:
-                      tool.space === "asset" ? undefined : artwork.paintStrokes,
-                  },
-                })
-              }
-            >
-              {t("letteringBrush.reset")}
-            </Button>
-          </div>
+          <LetteringResetControls
+            artwork={artwork}
+            tool={tool}
+            disabled={disabled}
+            change={change}
+            onUpdate={onUpdate}
+          />
         </>
       ) : null}
     </div>
   );
 }
 
+function LetteringResetControls({
+  artwork,
+  tool,
+  disabled,
+  change,
+  onUpdate,
+}: {
+  artwork: NonNullable<TranslationBlock["generatedLettering"]>;
+  tool: LetteringTool;
+  disabled: boolean;
+  change: (patch: Partial<LetteringTool>) => void;
+  onUpdate: (patch: Partial<TranslationBlock>) => void;
+}) {
+  const { t } = useTranslation("components");
+  return (
+    <div className={styles.row}>
+      <CheckboxField
+        label={t("letteringBrush.showMask")}
+        checked={tool.showMask}
+        onCheckedChange={(showMask) => change({ showMask })}
+        disabled={disabled}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={
+          disabled ||
+          (!artwork.maskStrokes?.some(
+            (stroke) => stroke.space === tool.space,
+          ) &&
+            !(
+              tool.space === "asset" &&
+              (artwork.paintStrokes?.length || artwork.partMoves?.length)
+            ))
+        }
+        onClick={() =>
+          onUpdate({
+            generatedLettering: {
+              ...artwork,
+              maskStrokes: artwork.maskStrokes?.filter(
+                (stroke) => stroke.space !== tool.space,
+              ),
+              paintStrokes:
+                tool.space === "asset" ? undefined : artwork.paintStrokes,
+              partMoves: tool.space === "asset" ? undefined : artwork.partMoves,
+            },
+          })
+        }
+      >
+        {t("letteringBrush.reset")}
+      </Button>
+    </div>
+  );
+}
+
+type BrushSettingsProps = {
+  tool: LetteringTool;
+  disabled: boolean;
+  change: (patch: Partial<LetteringTool>) => void;
+};
+
 function LetteringBrushSettings({
   tool,
   disabled,
   change,
-}: {
-  tool: LetteringTool;
-  disabled: boolean;
-  change: (patch: Partial<LetteringTool>) => void;
-}) {
+}: BrushSettingsProps) {
   const { t } = useTranslation("components");
   return (
     <>
@@ -114,9 +145,10 @@ function LetteringBrushSettings({
         onChange={(space) =>
           change({
             space,
-            ...(space === "page" && tool.mode === "paint"
-              ? { mode: "hide" }
-              : {}),
+            mode:
+              space === "page" && ["paint", "move"].includes(tool.mode)
+                ? "hide"
+                : tool.mode,
           })
         }
         disabled={disabled}
@@ -134,21 +166,22 @@ function LetteringBrushSettings({
             },
             { id: "hide", label: t("letteringBrush.hide") },
             { id: "restore", label: t("letteringBrush.restore") },
+            {
+              id: "move",
+              label: t("letteringBrush.move"),
+              disabled: tool.space === "page",
+            },
           ]}
           onChange={(mode) => change({ mode })}
           disabled={disabled}
         />
-        <SegmentedControl
-          singleRow
-          ariaLabel={t("letteringBrush.shape")}
-          value={tool.shape}
-          options={[
-            { id: "circle", label: t("letteringBrush.circle") },
-            { id: "square", label: t("letteringBrush.square") },
-          ]}
-          onChange={(shape) => change({ shape })}
-          disabled={disabled}
-        />
+        {tool.mode !== "move" ? (
+          <LetteringBrushShape
+            tool={tool}
+            disabled={disabled}
+            change={change}
+          />
+        ) : null}
       </div>
       {tool.mode === "paint" ? (
         <ColorField
@@ -158,7 +191,67 @@ function LetteringBrushSettings({
           onChange={(color) => change({ color })}
         />
       ) : null}
-      <LetteringBrushSize tool={tool} change={change} disabled={disabled} />
+      {tool.mode === "move" ? (
+        <LetteringMoveSettings
+          tool={tool}
+          change={change}
+          disabled={disabled}
+        />
+      ) : (
+        <LetteringBrushSize tool={tool} change={change} disabled={disabled} />
+      )}
+    </>
+  );
+}
+
+function LetteringBrushShape({
+  tool,
+  disabled,
+  change,
+}: {
+  tool: LetteringTool;
+  disabled: boolean;
+  change: (patch: Partial<LetteringTool>) => void;
+}) {
+  const { t } = useTranslation("components");
+  return (
+    <SegmentedControl
+      singleRow
+      ariaLabel={t("letteringBrush.shape")}
+      value={tool.shape}
+      options={[
+        { id: "circle", label: t("letteringBrush.circle") },
+        { id: "square", label: t("letteringBrush.square") },
+      ]}
+      onChange={(shape) => change({ shape })}
+      disabled={disabled}
+    />
+  );
+}
+
+function LetteringMoveSettings({
+  tool,
+  change,
+  disabled,
+}: {
+  tool: LetteringTool;
+  change: (patch: Partial<LetteringTool>) => void;
+  disabled: boolean;
+}) {
+  const { t } = useTranslation("components");
+  return (
+    <>
+      <SegmentedControl
+        ariaLabel={t("letteringBrush.selectionShape")}
+        value={tool.selectionShape ?? "lasso"}
+        options={[
+          { id: "lasso", label: t("letteringBrush.lasso") },
+          { id: "rectangle", label: t("letteringBrush.rectangle") },
+        ]}
+        onChange={(selectionShape) => change({ selectionShape })}
+        disabled={disabled}
+      />
+      <p className={styles.hint}>{t("letteringBrush.moveHint")}</p>
     </>
   );
 }

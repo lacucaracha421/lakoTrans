@@ -117,6 +117,25 @@ Claude Code 안에서 **`/mcp` → carrot → Authenticate**를 선택합니다.
 
 **“로컬 모델은 사용하지 마”**, **“당근에 설정한 번역 엔진으로 실행해줘”**, **“수정 전에 변경안을 보여줘”**처럼 실행 조건도 붙일 수 있습니다. 실제 사용 가능 여부는 연결 권한·앱 모델 준비·클라이언트 도구 지원에 따라 결정됩니다.
 
+### 기본 번역과 완료 기준
+
+작품과 화가 정해져 있으면 **“이 화 번역해줘”**로 요청할 수 있습니다. 전체 번역의 기본은 정밀 작업입니다. 원본에서 대사·작은 글씨·효과음을 확인하고, 실제 한국어 폰트 견본과 작품 팔레트, 읽기 편한 크기·줄바꿈, 최종 렌더를 함께 검수합니다. 보통 5페이지 이하씩 진행하고 마지막에는 요청한 전체 범위의 완료 상태를 확인합니다. “빠르게 처리해줘”라고 명시한 간소화 작업은 정밀 검수 완료로 표시하지 않습니다.
+
+생성 효과음은 원문 제거와 한국어 글자 생성을 따로 확인합니다. **OCR이 의도한 단어를 맞혀도 자음·모음·받침의 모양이나 배치가 잘못되면 정밀 완료를 승인하지 않습니다.** 기본 번역에서는 AI가 획을 반복해서 칠하거나 자모를 옮기지 않습니다. 사용자가 조금 고치면 쓸 수 있는 결과는 원래 이미지와 확정 문구를 보존하고, 대상과 문제를 명시해 **사용자 보정 대기**로 남깁니다. 번역과 일반 식자는 계속 진행하되 보정 대기를 완료로 표시하지 않습니다. AI에게 직접 보정을 요청한 경우에는 보정한 실제 합성 결과를 다시 검사합니다. 생성 결과를 일반 폰트로 대체했다면 대상과 이유를 함께 반환합니다.
+
+현재 저장 상태의 원본 확인·폰트 선택 근거·최종 렌더·생성 글자 검사가 빠졌거나 오래됐으면 미완료입니다. 이 기준은 검수 근거를 확인하는 장치이며, AI의 미적 판단이나 모든 오자의 검출을 보장하지는 않습니다. [구현과 실제 시험 기록](mcp-translation-quality-v2-20261008.md)을 참고하세요.
+
+### 생성 효과음의 일부만 옮기기
+
+AI에게 “이 효과음의 어긋난 자모만 옮겨 고치고, 한글 모양과 최종 배치를 다시 확인해줘”라고 요청할 수 있습니다. 편집기에서도 직접 조정할 수 있습니다.
+
+1. 생성 효과음 블록을 선택하고 **효과음 보정 → 부분 이동**을 고릅니다.
+2. **자유 선택** 또는 **사각 선택**으로 옮길 획을 둘러쌉니다.
+3. 선택 영역 안쪽을 끌어 이동합니다. 방향키는 원본 페이지 기준 1px, Shift+방향키는 10px씩 조정합니다.
+4. **적용 / Enter**로 저장하거나 **취소 / Escape**로 미리보기를 취소합니다. 적용한 이동은 기존 Undo/Redo로 되돌릴 수 있습니다.
+
+원본 생성 이미지는 유지됩니다. 이동한 뒤 추가 붓 보정을 할 수 있으며, 이동 자체를 되돌릴 때는 Undo를 사용합니다. 앱을 업데이트한 뒤 새 기능이 보이지 않으면 편집 내용을 저장하고 앱을 다시 실행한 후 연결된 AI의 도구 목록을 갱신하세요.
+
 ### AI가 작성하는 번역과 앱 모델 실행
 
 | 방식                                    | 실행 주체·비용                                                                                                |
@@ -196,10 +215,14 @@ PSD는 원본 배경을 포함하며 복잡한 식자는 래스터 레이어로 
 | 완성 번역 시작 | `carrot_get_translation_guide` — 문맥·원본·식자·이미지 경로·최종 검수 절차 조회                                                             |
 | 번역문 수정    | `carrot_update_translations`, `carrot_preview_translation_batch`                                                                            |
 | 식자 확인      | `carrot_list_fonts`, `carrot_get_font_samples`, `carrot_render_page_preview`                                                                |
+| 작품 폰트      | `carrot_get_work_typography`, `carrot_preview_work_typography`, `carrot_apply_work_typography`                                              |
+| 생성 글자 보정 | `carrot_prepare_lettering_batch`의 `generated-touchup`, `carrot_get_sound_effect_candidates`, `carrot_touchup_sound_effect_candidate`       |
 | 작업 추적      | `carrot_get_job`, `carrot_cancel_job`                                                                                                       |
 | 출력           | `carrot_preflight_pages_export`, `carrot_export_pages_images`, `carrot_export_pages_psd`, `carrot_create_export_zip`, `carrot_get_job_file` |
 
 편집은 도구 스키마가 요구하는 최신 revision·미리보기·요청 ID를 사용합니다. 작업 상태 조회는 파일을 자동 첨부하지 않습니다. 출력 파일은 명시적으로 조회하며 페이지 이미지 출력은 한 화의 1~50페이지 단위입니다. 오래된 상태의 요청을 강제로 재시도하거나, 원본 미리보기를 완성 출력으로 취급하지 마세요.
+
+전체 번역은 `carrot_get_translation_guide`로 시작하고 마지막에 같은 요청 범위로 다시 조회합니다. `completion`에는 현재 revision의 검수와 누락 항목이 표시됩니다. `generated-touchup.edits[].moves`는 자산/페이지 좌표를 구분하며, 자형 검사에서 반환하는 문제 영역은 합성 crop 좌표이므로 `inspectionGeometry`로 대응시킨 뒤 사용합니다.
 
 검증 기록: [연결 테스트](mcp-tailscale-testing.md) · [클라이언트 검증](mcp-live-acceptance-20260924.md) · [복합 작업 계약](mcp-composite-workflows.md). 과거 개발 기록의 미구현 목록은 당시 상태이며 현재 지원 목록을 대신하지 않습니다.
 

@@ -1,3 +1,4 @@
+import { GeneratedGlyphShapeResponseSchema } from "../../shared/generatedGlyphReview";
 import { codexPageMemorySchema } from "./codexTypesettingMemorySchema";
 import { z } from "zod/v4";
 import type { BBox } from "../../shared/textTypes";
@@ -260,6 +261,14 @@ export const backgroundReviewSchema = z
 export function typesettingOutputSchema(
   stage: string,
 ): Record<string, unknown> {
+  if (stage.startsWith("glyph-shape-")) {
+    const result = z.toJSONSchema(GeneratedGlyphShapeResponseSchema, {
+      target: "draft-7",
+      io: "input",
+    });
+    requireOutputProperties(result);
+    return result;
+  }
   const schema = stage.startsWith("background-")
     ? backgroundReviewSchema
     : stage.startsWith("erase-")

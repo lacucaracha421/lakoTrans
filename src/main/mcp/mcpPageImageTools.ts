@@ -24,7 +24,7 @@ export function createMcpPageImageTools(
     requiredScopes: ["carrot.read", "carrot.images"],
     description: crop
       ? "Read an enlarged source-page region. Rectangle x,y,w,h is in ORIGINAL IMAGE PIXELS, not normalized block coordinates. Returns mapping from returned-image pixels to original pixels. Does not run OCR or modify anything."
-      : "Render the saved page with the actual app renderer, including saved text, styles and inpainting. Inspect once after the planned edits settle: compare source and translation at the same normal reading scale for readable glyph size/weight, text density, emphasis and artwork overlaps. Zoom only suspicious details; repeated unchanged previews or legibility only when enlarged are not quality improvements. Does NOT erase, OCR, translate or change layout. Returns a reduced PNG and pixel mapping, not an original-resolution export.",
+      : "Render the saved page with the actual app renderer, including saved text, styles and inpainting. Inspect once after the planned edits settle: compare source and translation at the same normal reading scale for readable glyph size/weight, text density, emphasis and artwork overlaps. Zoom only suspicious details; repeated unchanged previews or legibility only when enlarged are not quality improvements. includeLayout=true returns actual layout lines, em/ink sizes and review warnings; crop optionally crops the FINAL render in ORIGINAL IMAGE PIXELS, unlike get_page_crop which crops source. Generated assets include SHA for bounded touchup. Does NOT erase, OCR, translate or change layout. Returns a reduced PNG and pixel mapping, not an original-resolution export.",
     inputSchema: {
       type: "object",
       properties: {
@@ -44,25 +44,28 @@ export function createMcpPageImageTools(
                 additionalProperties: false,
               },
             }
-          : {}),
+          : {
+              includeLayout: { type: "boolean", default: false },
+              crop: z.toJSONSchema(pixelRect),
+            }),
       },
       required: ["chapterId", "pageId", ...(crop ? ["rect"] : [])],
       additionalProperties: false,
     },
     invoke: async (args) => {
-      allowArguments(args, ["chapterId", "pageId", ...(crop ? ["rect"] : [])]);
-      const rect = crop ? pixelRect.safeParse(args.rect) : undefined;
-      if (rect && !rect.success)
-        throw new McpInvalidParams(
-          rect.error.issues.map((issue) => ({
-            ...issue,
-            path: ["rect", ...issue.path],
-          })),
-        );
+      allowArguments(args, [
+        "chapterId",
+        "pageId",
+        ...(crop ? ["rect"] : ["includeLayout", "crop"]),
+      ]);
+      const rect = readRect(args, crop);
       const { imageData, ...metadata } = await service.read(
         readIdentifier(args.chapterId, "chapterId"),
         readIdentifier(args.pageId, "pageId"),
-        rect?.data,
+        crop ? rect?.data : undefined,
+        crop || (args.includeLayout === undefined && args.crop === undefined)
+          ? undefined
+          : { includeLayout: args.includeLayout === true, crop: rect?.data },
       );
       return [
         ...textContent(metadata),
@@ -70,4 +73,31 @@ export function createMcpPageImageTools(
       ];
     },
   }));
+}
+
+function readRect(args: Record<string, unknown>, crop: boolean) {
+  const rect =
+    crop || args.crop !== undefined
+      ? pixelRect.safeParse(crop ? args.rect : args.crop)
+      : undefined;
+  if (
+    !crop &&
+    args.includeLayout !== undefined &&
+    typeof args.includeLayout !== "boolean"
+  )
+    throw new McpInvalidParams([
+      {
+        code: "invalid_type",
+        path: ["includeLayout"],
+        expected: "boolean",
+      },
+    ]);
+  if (rect && !rect.success)
+    throw new McpInvalidParams(
+      rect.error.issues.map((issue) => ({
+        ...issue,
+        path: ["rect", ...issue.path],
+      })),
+    );
+  return rect;
 }

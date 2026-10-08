@@ -17,7 +17,7 @@ import type {
 import { compositeFingerprint } from "../application/mcpCompositeWorkflowPolicy";
 import { mcpBatchMembership } from "../application/mcpPageBatchPolicy";
 import { McpEditError } from "../application/mcpEditPolicy";
-import { readWorkContextForEdit } from "../library";
+import { readWorkContextForEdit, readWorkTypographyProfile } from "../library";
 import {
   captureRetainedPage,
   verifyRetainedFiles,
@@ -27,6 +27,7 @@ import { workflowSettingsFingerprint } from "./mcpWorkflowEvidence";
 
 type Saved = Awaited<ReturnType<typeof readWorkContextForEdit>>;
 export type McpCompositeNativePage = {
+  paletteRevision?: string | null;
   target: McpCompositePage;
   saved: Saved;
   page: Saved["chapter"]["pages"][number];
@@ -40,6 +41,7 @@ export type McpCompositeSourceOptions = {
   >;
   readContext?: typeof readWorkContextForEdit;
   readFonts?: typeof readMcpCompositeFontEnvironment;
+  readProfile?: typeof readWorkTypographyProfile;
   requirements?: (plan: McpCompositePrepare) => readonly string[];
 };
 
@@ -53,6 +55,7 @@ export async function readMcpCompositeSources(
   const requirements = options.requirements?.(plan) ?? ["carrot.read"];
   guard(requirements);
   if (targets.length) McpCompositePagesSchema.parse(targets);
+  const readContext = options.readContext ?? readWorkContextForEdit;
   const settings = await options.settings();
   const settingsFingerprint = compositeSettings(settings);
   const fontFingerprint = await (
@@ -65,17 +68,11 @@ export async function readMcpCompositeSources(
     authorizedRequirements: requirements,
     phases: plan.phases,
     budgets: plan.budgets,
-    ...(plan.qualityPolicy ? { qualityPolicy: plan.qualityPolicy } : {}),
+    ...qualityPolicyBinding(plan.qualityPolicy),
   });
   const values: McpCompositeNativePage[] = [];
   for (const target of targets)
-    values.push(
-      await readPage(
-        target,
-        guard,
-        options.readContext ?? readWorkContextForEdit,
-      ),
-    );
+    values.push(await readPage(target, guard, readContext));
   const pages: McpCompositeSnapshot["pages"] = values.map(
     ({ target, page, saved, state }) => ({
       ...target,
@@ -89,12 +86,14 @@ export async function readMcpCompositeSources(
       fontFingerprint,
     }),
   );
-  for (const value of values)
-    await verifyPage(
-      value,
-      guard,
-      options.readContext ?? readWorkContextForEdit,
+  if (plan.qualityPolicy === "complete-translation-v2") {
+    await bindPalettes(
+      values,
+      pages,
+      options.readProfile ?? readWorkTypographyProfile,
     );
+  }
+  for (const value of values) await verifyPage(value, guard, readContext);
   if (settingsFingerprint !== compositeSettings(await options.settings()))
     throw changed();
   guard();
@@ -105,6 +104,16 @@ export async function readMcpCompositeSources(
   };
   return { snapshot, values, settings };
 }
+function qualityPolicyBinding(qualityPolicy?: string) {
+  if (!qualityPolicy) return {};
+  return {
+    qualityPolicy,
+    ...(qualityPolicy === "complete-translation-v2"
+      ? { generatedGlyphShapeVersion: 2 }
+      : {}),
+  };
+}
+
 async function readPage(
   target: McpCompositePage,
   guard: McpCompositeGuard,
@@ -203,4 +212,24 @@ function changed() {
     "revision_conflict",
     "Composite page, source bytes, block membership, context or settings changed during inspection.",
   );
+}
+
+async function bindPalettes(
+  values: McpCompositeNativePage[],
+  pages: McpCompositeSnapshot["pages"],
+  read: typeof readWorkTypographyProfile,
+) {
+  const profiles = new Map<string, string | null>();
+  for (const [index, value] of values.entries()) {
+    const workId = value.saved.workId;
+    if (!profiles.has(workId)) {
+      const profile = await read(workId);
+      profiles.set(workId, profile ? compositeFingerprint(profile) : null);
+    }
+    value.paletteRevision = profiles.get(workId) ?? null;
+    pages[index].contextFingerprint = compositeFingerprint({
+      context: pages[index].contextFingerprint,
+      palette: value.paletteRevision,
+    });
+  }
 }

@@ -67,6 +67,13 @@ it("serves versioned sound-effect metadata to read-only OAuth and rejects malfor
       generation: { runtimeChecked: false },
     });
     expect(result.result.content).toHaveLength(1);
+    expect(result.result.structuredContent.letteringTargets).toEqual([
+      {
+        blockId: expect.any(String),
+        text: "쿥",
+        hangul: [{ syllable: "쿥", initial: "ㅋ", vowel: "ㅜ", final: "ㄵ" }],
+      },
+    ]);
     expect(JSON.parse(result.result.content[0].text)).toEqual(
       result.result.structuredContent,
     );

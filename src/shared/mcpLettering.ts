@@ -13,8 +13,11 @@ import {
   MAX_BUBBLE_LAYOUT_PADDING_RATIO,
 } from "./bubbleLayoutSettings";
 import type { TranslationBlock } from "./textTypes";
+import { McpGeneratedTouchupSchema } from "./mcpGeneratedTouchup";
+import { letteringPartMoveSchema } from "./generatedLetteringPartMove";
 
 const McpLetteringCommandSchema = z.discriminatedUnion("kind", [
+  McpGeneratedTouchupSchema,
   McpLetteringResourceCommandSchema,
   z
     .object({
@@ -101,6 +104,17 @@ const state = z
     translatedText: z.string().max(20000),
     fontSizeIntent: z.enum(["manual", "source-match"]).nullable(),
     fontWeight: z.number().nullable(),
+    generatedTouchup: z
+      .object({
+        maskStrokes: z.number().int(),
+        paintStrokes: z.number().int(),
+        partMoves: z.array(letteringPartMoveSchema).max(16).optional(),
+        hasOutline: z.boolean(),
+        occlusionPolygons: z.number().int(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
     renderBbox: rect.nullable(),
     renderBboxSpace: z.enum(["pixels", "normalized_1000"]).nullable(),
     bubbleLayout: z
@@ -133,6 +147,7 @@ export function projectMcpLetteringState(block: TranslationBlock) {
     translatedText: block.translatedText,
     fontSizeIntent: block.fontSizeIntent ?? null,
     fontWeight: block.fontWeight ?? null,
+    generatedTouchup: summarizeTouchup(block),
     renderBbox: block.renderBbox ?? null,
     renderBboxSpace: block.renderBboxSpace ?? null,
     bubbleLayout: block.bubbleLayout
@@ -178,3 +193,16 @@ export const mcpLetteringOutputs = {
   carrot_cancel_lettering_batch:
     mcpTranslationBatchOutputs.carrot_cancel_translation_batch,
 };
+
+function summarizeTouchup(block: TranslationBlock) {
+  return block.generatedLettering
+    ? {
+        maskStrokes: block.generatedLettering.maskStrokes?.length ?? 0,
+        paintStrokes: block.generatedLettering.paintStrokes?.length ?? 0,
+        partMoves: block.generatedLettering.partMoves ?? [],
+        hasOutline: Boolean(block.generatedLettering.outline),
+        occlusionPolygons:
+          block.generatedLettering.occlusionPolygons?.length ?? 0,
+      }
+    : null;
+}

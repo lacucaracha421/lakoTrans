@@ -183,7 +183,7 @@ export type FontStyleSelectionV2 = {
 export type TypographyAnchorV2 = {
   primaryFontId: string;
   allowedFontIds: string[];
-  origin: "learned" | "manual" | "migrated";
+  origin: "learned" | "manual" | "migrated" | "connected-ai";
   evidenceCount: number;
   confidence: number;
   replacementPolicy: {
@@ -244,6 +244,15 @@ export type WorkTypographyGenrePriorV2 = {
 };
 
 export type WorkTypographyProfileV2 = {
+  visualSelections?: Array<{
+    role: FontMatchingSemanticRole;
+    selection: FontStyleSelectionV2;
+    specimenId: string;
+    fontFingerprint: string;
+    reason: string;
+    origin: "connected-ai";
+    createdAt: string;
+  }>;
   schemaVersion: 2;
   workId: string;
   dialogueAnchor: TypographyAnchorV2 | null;

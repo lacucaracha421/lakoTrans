@@ -89,6 +89,7 @@ async function compositeNativeClient(root, app, editing, options = {}) {
       additionalTools: activeSession.tools,
       wrapTool: activeSession.wrapTool,
       bindNativeTools: activeSession.bindNativeTools,
+      readTranslationCompletion: activeSession.readTranslationCompletion,
       withPageEdit: createMcpPageEditScope(app, library.openChapter),
     });
     const activeServer = await startMcpHttpServer({

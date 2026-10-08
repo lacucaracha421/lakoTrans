@@ -10,7 +10,8 @@ export type LetteringMaskStroke = {
 export type LetteringTool = {
   blockId: string | null;
   space: LetteringMaskStroke["space"];
-  mode: LetteringMaskStroke["mode"] | "paint";
+  mode: LetteringMaskStroke["mode"] | "paint" | "move";
+  selectionShape?: "lasso" | "rectangle";
   color?: string;
   shape: LetteringMaskStroke["shape"];
   size: number;
@@ -23,4 +24,13 @@ export type LetteringPaintStroke = Omit<
   "mode" | "space"
 > & {
   color: string;
+};
+
+/** Cut and translate the selected composed pixels, before the final outline/warp. */
+export type LetteringPartMove = {
+  polygon: { x: number; y: number }[];
+  offset: { x: number; y: number };
+  /** Brush prefixes already present when this move was made. Page masks are excluded. */
+  paintCount: number;
+  maskCount: number;
 };

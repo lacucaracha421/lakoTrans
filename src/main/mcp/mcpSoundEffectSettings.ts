@@ -7,11 +7,16 @@ import { CODEX_TYPESETTING_MODEL } from "../../shared/codexTypesettingDefaults";
 import {
   CODEX_IMAGE_GENERATION_MODELS,
   CODEX_REASONING_EFFORTS,
+  isCodexImageModel,
 } from "../../shared/codexSettings";
+import { McpEditError } from "../application/mcpEditPolicy";
 
 /** No migrations, secret decoding, login, runtime start or settings writes on discovery. */
-export function readMcpSoundEffectSettings(paths: AppPaths) {
-  return inspectStoredPublicSettings(paths, (record) => ({
+export async function readMcpSoundEffectSettings(
+  paths: AppPaths,
+  expectedModel?: string,
+) {
+  const settings = await inspectStoredPublicSettings(paths, (record) => ({
     codex: z
       .object({
         imageModel: z.string().min(1).default(CODEX_TYPESETTING_MODEL),
@@ -26,4 +31,14 @@ export function readMcpSoundEffectSettings(paths: AppPaths) {
       {},
     ),
   }));
+  if (
+    expectedModel !== undefined &&
+    (settings.codex.imageModel !== expectedModel ||
+      !isCodexImageModel(expectedModel))
+  )
+    throw new McpEditError(
+      "invalid_edit",
+      "Requested image controller must match the configured supported app model; no fallback.",
+    );
+  return settings;
 }

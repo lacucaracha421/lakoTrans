@@ -11,16 +11,24 @@ import type { AppPaths } from "../appPaths";
 import { startCodexImageSession } from "../codexImageSession";
 import { readImageRedactionState } from "../imageRedactionStore";
 import { McpEditError } from "../application/mcpEditPolicy";
+import {
+  MCP_SNAPSHOT_BYTES,
+  packMcpSnapshot,
+} from "../application/mcpSnapshotPayload";
 import { readMcpSoundEffectSettings } from "./mcpSoundEffectSettings";
-import { isCodexImageModel } from "../../shared/codexSettings";
 import { logError } from "../logger";
 import { generateSoundEffectLayer } from "./mcpSoundEffectLayer";
 import { askAstraJson } from "../pipeline/codexTypesettingRequest";
 import type { CodexTypesettingPorts } from "../application/codexTypesettingContracts";
+import { McpSoundEffectCandidates } from "./mcpSoundEffectCandidates";
+import { hashMcpOriginalImage } from "./mcpTypographySourceEvidence";
+import { soundEffectCorrectionReferences } from "./mcpSoundEffectReferences";
+import type { renderMcpLetteringPixels } from "./mcpGeneratedGlyphRendering";
 
 export type SoundEffectGenerationRuntime = {
   startClient: typeof startCodexImageSession;
   startReader?: typeof startCodexImageSession;
+  renderLettering?: typeof renderMcpLetteringPixels;
 };
 type Command = Extract<McpSoundEffectPrepare["command"], { kind: "generate" }>;
 type Client = Awaited<ReturnType<typeof startCodexImageSession>>;
@@ -45,15 +53,10 @@ export async function generateMcpSoundEffects(options: Options) {
       "access_denied",
       "Explicit allowExternalProcessing is required for paid app image generation.",
     );
-  const settings = await readMcpSoundEffectSettings(paths);
-  if (
-    settings.codex.imageModel !== command.expectedModel ||
-    !isCodexImageModel(command.expectedModel)
-  )
-    throw new McpEditError(
-      "invalid_edit",
-      "The requested image controller must match the configured supported app model; no fallback.",
-    );
+  const settings = await readMcpSoundEffectSettings(
+    paths,
+    command.expectedModel,
+  );
   const targets = selectTargets(page, command);
   const exclusions = targets.flatMap((block) => {
     const reason = block.imageGenerationBlocked
@@ -81,7 +84,7 @@ export async function generateMcpSoundEffects(options: Options) {
     signal.throwIfAborted();
   };
   await check();
-  return withClient(
+  return withMcpSoundEffectClient(
     options,
     settings,
     check,
@@ -119,7 +122,7 @@ export class SoundEffectCleanupError extends AggregateError {
     this.name = "SoundEffectCleanupError";
   }
 }
-async function withClient<T>(
+export async function withMcpSoundEffectClient<T>(
   options: Options,
   settings: Awaited<ReturnType<typeof readMcpSoundEffectSettings>>,
   check: () => Promise<void>,
@@ -210,9 +213,21 @@ async function runTargets(
   ask: CodexTypesettingPorts["ask"],
 ) {
   const next = structuredClone(options.page);
+  const candidates = new McpSoundEffectCandidates(options.paths.dataRoot);
+  const sourceSha256 = await hashMcpOriginalImage(options.page.imagePath, () =>
+    options.signal.throwIfAborted(),
+  );
   for (const block of targets) {
     await check();
     try {
+      const references = await soundEffectCorrectionReferences(
+        options.input,
+        options.page,
+        block,
+        candidates,
+        () => options.signal.throwIfAborted(),
+        options.signal,
+      );
       const generated = await generateSoundEffectLayer(
         options.page,
         block,
@@ -221,19 +236,25 @@ async function runTargets(
         directory,
         options.signal,
         ask,
+        {
+          reserve: (instructions) =>
+            candidates.reserve(
+              options.input.chapterId,
+              options.page,
+              block,
+              sourceSha256,
+              command.priorGenerationAttempts?.[block.id] ?? 0,
+              instructions,
+            ),
+          save: (candidate) => candidates.save(candidate),
+        },
+        references,
       );
       await check();
       const candidate = next.blocks.map((item) =>
         item.id === block.id ? generated : item,
       );
-      if (
-        Buffer.byteLength(JSON.stringify([options.page.blocks, candidate])) >
-        3 * 1024 * 1024
-      )
-        throw new McpEditError(
-          "invalid_edit",
-          "Generated snapshots exceed the bounded plan budget; use fewer/smaller assets.",
-        );
+      assertSnapshotSize(options.page, candidate);
       next.blocks = candidate;
       if (generated.imageGenerationBlocked)
         exclusions.push(
@@ -283,7 +304,20 @@ function excluded(
     excludedReason: reason,
     warnings: [
       "inspect_reviewed_change_before_applying",
-      "up_to_3_readback_attempts_no_implicit_fallback",
+      "up_to_4_generation_attempts_retained_candidates_no_implicit_fallback",
     ],
   };
+}
+
+function assertSnapshotSize(page: MangaPage, candidate: TranslationBlock[]) {
+  // A saved result must remain editable/verifiable, which needs two full copies.
+  const size = packMcpSnapshot([page.blocks, candidate, candidate]);
+  if (
+    size.metadataBytes > 3 * 1024 * 1024 ||
+    size.totalBytes > MCP_SNAPSHOT_BYTES
+  )
+    throw new McpEditError(
+      "invalid_edit",
+      "Generated snapshots exceed the bounded plan budget; use fewer/smaller assets.",
+    );
 }

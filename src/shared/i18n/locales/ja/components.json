@@ -2735,7 +2735,7 @@
     "target": "補正対象",
     "asset": "文字の形",
     "page": "遮蔽境界",
-    "mode": "ブラシ機能",
+    "mode": "補正ツール",
     "hide": "消去",
     "restore": "復元",
     "shape": "ブラシ形状",
@@ -2744,7 +2744,14 @@
     "size": "サイズ",
     "softness": "ぼかし",
     "showMask": "マスク表示",
-    "reset": "リセット"
+    "reset": "リセット",
+    "move": "部分移動",
+    "selectionShape": "選択範囲",
+    "lasso": "自由選択",
+    "rectangle": "矩形選択",
+    "moveHint": "移動する線を囲み、選択範囲内をドラッグします。矢印キーで微調整、Shiftで大きく移動、Enterで適用、Escでキャンセルします。",
+    "applyMove": "移動を適用",
+    "cancelSelection": "選択を解除"
   },
   "codexFonts": {
     "title": "フォント編集",

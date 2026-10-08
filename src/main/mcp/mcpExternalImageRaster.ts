@@ -8,13 +8,24 @@ import type {
 } from "./mcpImageWorkerProtocol";
 
 export function composeExternalLetteringRaster(assets: McpExternalRasterInput) {
-  const image = decodeMcpUploadPng(bytes(assets.image), {
+  let image = decodeMcpUploadPng(bytes(assets.image), {
     ...assets,
     purpose: "image",
   }).png;
   const mask = effectiveMask(assets);
-  for (let i = 0; i < mask.selected.length; i++)
-    if (!mask.selected[i]) image.data.fill(0, i * 4, i * 4 + 4);
+  let outputMask = mask.selected;
+  if (assets.letteringPatch) {
+    const patched = patchLetteringAsset(
+      assets.letteringPatch,
+      image,
+      mask.selected,
+    );
+    image = patched.image;
+    outputMask = patched.mask;
+  } else {
+    for (let i = 0; i < mask.selected.length; i++)
+      if (!mask.selected[i]) image.data.fill(0, i * 4, i * 4 + 4);
+  }
   const result = PNG.sync.write(image);
   if (result.length > 2 * 1024 * 1024)
     throw new McpEditError(
@@ -23,13 +34,52 @@ export function composeExternalLetteringRaster(assets: McpExternalRasterInput) {
     );
   return {
     bytes: Uint8Array.from(result),
-    mask: mask.selected,
-    width: assets.width,
-    height: assets.height,
+    mask: outputMask,
+    width: image.width,
+    height: image.height,
     selectedPixels: count(mask.selected),
     protectedPixels: count(mask.protected),
     changedPixels: 0,
   };
+}
+
+/** Replace only selected RGBA pixels in exact asset coordinates; outside bytes remain identical. */
+function patchLetteringAsset(
+  patch: NonNullable<McpExternalRasterInput["letteringPatch"]>,
+  incoming: PNG,
+  selected: Uint8Array,
+) {
+  const base = bytes(patch.base);
+  if (base.length < 24)
+    throw new McpEditError("invalid_edit", "Invalid existing lettering PNG.");
+  const width = base.readUInt32BE(16),
+    height = base.readUInt32BE(20);
+  if (!width || !height || width * height > 16_000_000)
+    throw new McpEditError(
+      "invalid_edit",
+      "Lettering patch exceeds the raster budget.",
+    );
+  const image = decodeMcpUploadPng(base, {
+    width,
+    height,
+    purpose: "image",
+  }).png;
+  const { rect } = patch;
+  if (!validPatchRect(rect, width, height, incoming))
+    throw new McpEditError(
+      "invalid_edit",
+      "Lettering patch must exactly fit an original ASSET pixel rectangle.",
+    );
+  const mask = new Uint8Array(width * height);
+  for (let y = 0; y < rect.h; y++)
+    for (let x = 0; x < rect.w; x++) {
+      const source = y * rect.w + x,
+        target = (y + rect.y) * width + x + rect.x;
+      if (!selected[source]) continue;
+      incoming.data.copy(image.data, target * 4, source * 4, source * 4 + 4);
+      mask[target] = 1;
+    }
+  return { image, mask };
 }
 
 export function composeExternalBackgroundRaster(
@@ -139,4 +189,26 @@ function applyPatchPixels(input: {
     }
   }
   return changedPixels;
+}
+
+function validPatchRect(
+  rect: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  },
+  width: number,
+  height: number,
+  incoming: PNG,
+) {
+  return (
+    Object.values(rect).every(Number.isSafeInteger) &&
+    rect.x >= 0 &&
+    rect.y >= 0 &&
+    rect.w === incoming.width &&
+    rect.h === incoming.height &&
+    rect.x + rect.w <= width &&
+    rect.y + rect.h <= height
+  );
 }

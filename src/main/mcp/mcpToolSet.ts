@@ -9,6 +9,7 @@ import {
 import { McpPagePreviewService } from "../application/mcpPagePreviewService";
 import { createMcpReadTools } from "./mcpReadTools";
 import { createMcpPagePreviewTool } from "./mcpPagePreviewTool";
+import type { McpTranslationCompletionReader } from "../application/mcpTranslationCompletion";
 
 type PreviewRenderer = ConstructorParameters<
   typeof McpPagePreviewService
@@ -26,6 +27,7 @@ export function createMcpToolSet(
     lifetime?: AbortSignal;
   },
   extensions: McpTool[] = [],
+  readCompletion?: McpTranslationCompletionReader,
 ) {
   const editTools = editing
     ? createMcpPageEditTools(
@@ -35,10 +37,14 @@ export function createMcpToolSet(
         editing.lifetime,
       )
     : [];
-  const guide = createTranslationGuideTool(library, [
-    ...[...extensions, ...editTools].map((tool) => tool.name),
-    ...(renderApprovedPreview ? ["carrot_get_page_preview"] : []),
-  ]);
+  const guide = createTranslationGuideTool(
+    library,
+    [
+      ...[...extensions, ...editTools].map((tool) => tool.name),
+      ...(renderApprovedPreview ? ["carrot_get_page_preview"] : []),
+    ],
+    readCompletion,
+  );
   const tools = createMcpReadTools(
     new McpLibraryReadService(library),
     renderApprovedPreview !== undefined,

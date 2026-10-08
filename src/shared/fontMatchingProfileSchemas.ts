@@ -45,7 +45,7 @@ const TypographyAnchorV2Schema = z
   .object({
     primaryFontId: fontId,
     allowedFontIds: uniqueFontIds(1, 4),
-    origin: z.enum(["learned", "manual", "migrated"]),
+    origin: z.enum(["learned", "manual", "migrated", "connected-ai"]),
     evidenceCount: z.number().int().min(0).max(1_000_000),
     confidence: probability,
     replacementPolicy: z
@@ -173,6 +173,22 @@ const genrePriorSchema = z
 
 const workTypographyProfileV2ObjectSchema = z
   .object({
+    visualSelections: z
+      .array(
+        z
+          .object({
+            role: FontMatchingSemanticRoleSchema,
+            selection: FontStyleSelectionV2Schema,
+            specimenId: z.uuid(),
+            fontFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+            reason: z.string().trim().min(1).max(1000),
+            origin: z.literal("connected-ai"),
+            createdAt: timestamp,
+          })
+          .strict(),
+      )
+      .max(100)
+      .optional(),
     schemaVersion: z.literal(2),
     workId: storeId,
     dialogueAnchor: TypographyAnchorV2Schema.nullable(),

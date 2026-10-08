@@ -1,6 +1,8 @@
 import { expect, it, vi } from "vitest";
 import { createMcpFontSamplesTool } from "../src/main/mcp/mcpFontSamplesTool";
 import type { McpFontCatalog } from "../src/main/application/mcpTypographyReadService";
+import { McpQualityEvidenceSchema } from "../src/shared/mcpQualityEvidence";
+import { createHash } from "node:crypto";
 
 function fixture() {
   const inventory: McpFontCatalog = {
@@ -89,3 +91,72 @@ it("withholds rendered images if authorization or the catalog changes while rend
     "Font inventory changed",
   );
 });
+
+it.each([false, true])(
+  "binds font bytes, literal wording and optional context to actual PNG evidence (context=%s)",
+  async (contextual) => {
+    const f = fixture();
+    const saveEvidence = vi.fn(async (_value: unknown) => {});
+    const fontFingerprint = vi.fn(async () => "d".repeat(64));
+    const tool = createMcpFontSamplesTool({
+      catalog: f.catalog,
+      render: f.render,
+      fontFingerprint,
+      saveEvidence,
+    });
+    const context = contextual
+      ? {
+          chapterId: "chapter",
+          pageId: "page",
+          blockId: "a",
+          revision: "page-v1:" + "a".repeat(16),
+        }
+      : undefined;
+    const result = await tool.invoke({
+      ...f.input,
+      ...(context ? { context } : {}),
+    });
+    expect(result[0].type).toBe("text");
+    expect(saveEvidence).toHaveBeenCalledOnce();
+    const receipt = McpQualityEvidenceSchema.parse(
+      saveEvidence.mock.calls[0]?.[0],
+    );
+    expect(receipt).toMatchObject({
+      kind: "font-specimen",
+      text: f.input.text,
+      fontFingerprint: "d".repeat(64),
+      samples: [
+        {
+          fontId: "test-font",
+          imageSha256: createHash("sha256").update("hello").digest("hex"),
+        },
+      ],
+    });
+    if (context) expect(receipt).toHaveProperty("context", context);
+    fontFingerprint
+      .mockResolvedValueOnce("d".repeat(64))
+      .mockResolvedValueOnce("e".repeat(64));
+    await expect(tool.invoke(f.input)).rejects.toThrow(/Font bytes changed/);
+    expect(saveEvidence).toHaveBeenCalledOnce();
+  },
+);
+
+it.each(
+  [
+    [],
+    [{ label: "bad", dataUrl: "not-png" }],
+    [
+      {
+        label: "huge",
+        dataUrl: "data:image/png;base64," + "a".repeat(3 * 1024 * 1024),
+      },
+    ],
+  ].map((images) => ({ images })),
+)(
+  "rejects malformed renderer samples without issuing evidence",
+  async ({ images }) => {
+    const f = fixture();
+    f.render.mockResolvedValueOnce(images);
+    await expect(f.tool.invoke(f.input)).rejects.toThrow(/Invalid font sample/);
+  },
+);

@@ -10,6 +10,7 @@ import { McpEditError } from "../application/mcpEditPolicy";
 import { createMcpBatchTool } from "./mcpBatchTool";
 import { soundEffectItems } from "./mcpSoundEffectState";
 import { readMcpSoundEffectSettings } from "./mcpSoundEffectSettings";
+import { describeLetteringText } from "../../shared/letteringTextStructure";
 
 /** Only stored candidates are reported: listing never starts detection or generation. */
 export function createMcpSoundEffectReadTool(paths: AppPaths) {
@@ -19,7 +20,7 @@ export function createMcpSoundEffectReadTool(paths: AppPaths) {
     scopes: ["carrot.read"],
     write: false,
     description:
-      "Read stored sound-effect candidates and saved sound blocks with ORIGINAL pixel rectangles, pending/excluded/resolved/overlap-hidden decisions and active/disabled/stale image state. Existing OCR-produced candidates and manual review regions only; no new detection. Paginated reads require the returned reviewRevision after offset zero. Configured image controller is metadata, NOT account/quota/runtime readiness. No image bytes, paths, credentials, model calls, settings repair or page writes. Use independent selection OCR/translation and image-erasure tools for those stages; external images use validated uploads.",
+      "Read stored sound-effect candidates and saved sound blocks with ORIGINAL pixel rectangles, pending/excluded/resolved/overlap-hidden decisions and active/disabled/stale image state. letteringTargets supplies exact plain text and Unicode-derived Hangul initial/vowel/final components: use these identities when generating or repairing; do not substitute a different consonant based on a visual guess. This is target spelling metadata, not a visual verification. Existing OCR-produced candidates and manual review regions only; no new detection. Paginated reads require the returned reviewRevision after offset zero. Configured image controller is metadata, NOT account/quota/runtime readiness. No image bytes, paths, credentials, model calls, settings repair or page writes. Use independent selection OCR/translation and image-erasure tools for those stages; external images use validated uploads.",
     execute: async (value, _owner, guard) => {
       const input = McpSoundEffectReadSchema.parse(value);
       const saved = await readWorkContextForEdit(input.chapterId);
@@ -66,6 +67,13 @@ export function createMcpSoundEffectReadTool(paths: AppPaths) {
             ? input.offset + input.limit
             : null,
         items: items.slice(input.offset, input.offset + input.limit),
+        letteringTargets: items
+          .slice(input.offset, input.offset + input.limit)
+          .filter((item) => item.kind === "block")
+          .map((item) => ({
+            blockId: item.blockId,
+            ...describeLetteringText(item.translatedText),
+          })),
         generation: {
           provider: "codex" as const,
           configuredModel: settings.codex.imageModel,

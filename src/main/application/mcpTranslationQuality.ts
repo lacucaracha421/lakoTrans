@@ -59,8 +59,10 @@ export function assertTranslationQualityReport(
         "Quality translation requires every page's visual assessment and server-issued saved-quality evidence.",
       );
     assertImageHistory(record, assessment);
+    assertLegacyBudget(record, quality);
     if (report.verdict !== "accepted") continue;
     const saved = evidence.savedQuality;
+    const missingChecks = missingApplicableChecks(quality, saved);
     if (
       !translationQualityPassed(quality) ||
       [
@@ -70,11 +72,11 @@ export function assertTranslationQualityReport(
         saved.pendingSoundEffects,
       ].some((count) => count > 0) ||
       quality.soundEffectsFound < saved.soundEffects ||
-      !applicableChecksPassed(quality, saved)
+      missingChecks.length > 0
     )
       throw new McpEditError(
         "invalid_edit",
-        "Unresolved text, sound effects, artwork or visual checks require needs-correction/blocked, never accepted.",
+        `Unresolved text, sound effects, artwork or visual checks require needs-correction/blocked, never accepted. Page ${assessment.pageId}: ${missingChecks.length ? `required visual checks are ${missingChecks.join(", ")}. Inspect the current render before marking them passed. not-applicable means the relevant asset is absent, not that its editing was skipped or done earlier` : "resolve the reported failures and saved-quality omissions"}.`,
       );
   }
 }
@@ -91,12 +93,15 @@ function assertImageHistory(
         item.pageId === assessment.pageId,
     );
   const current = new Map(
-    assessment.quality?.imageHistory.map((item) => [item.regionId, item]),
+    assessment.quality?.imageHistory.map((item) => [
+      `${item.regionId}/${item.purpose ?? "legacy"}`,
+      item,
+    ]),
   );
   for (const prior of previous.flatMap(
     (item) => item.quality?.imageHistory ?? [],
   )) {
-    const next = current.get(prior.regionId);
+    const next = current.get(`${prior.regionId}/${prior.purpose ?? "legacy"}`);
     if (
       !next ||
       next.hostAttempts < prior.hostAttempts ||
@@ -110,15 +115,37 @@ function assertImageHistory(
   }
 }
 
-function applicableChecksPassed(
+function missingApplicableChecks(
   quality: NonNullable<
     McpCompositeReviewReport["assessments"][number]["quality"]
   >,
   saved: ReturnType<typeof inspectTranslationSavedQuality>,
 ) {
-  return (
-    (!saved.blocks || quality.typography === "passed") &&
-    (!saved.generatedLettering || quality.generatedGlyphs === "passed") &&
-    (!saved.hasCleanedImage || quality.backgroundRestoration === "passed")
-  );
+  return [
+    ...(saved.blocks && quality.typography !== "passed" ? ["typography"] : []),
+    ...(saved.generatedLettering && quality.generatedGlyphs !== "passed"
+      ? ["generatedGlyphs"]
+      : []),
+    ...(saved.hasCleanedImage && quality.backgroundRestoration !== "passed"
+      ? ["backgroundRestoration"]
+      : []),
+  ];
+}
+
+function assertLegacyBudget(
+  record: McpCompositeRecord,
+  quality: NonNullable<
+    McpCompositeReviewReport["assessments"][number]["quality"]
+  >,
+) {
+  if (
+    record.plan.qualityPolicy === "complete-translation-v1" &&
+    quality.imageHistory.some(
+      (item) => item.hostAttempts + item.appAttempts > 3,
+    )
+  )
+    throw new McpEditError(
+      "invalid_edit",
+      "Legacy v1 retains its three-generation budget; use v2 for the four-attempt detailed workflow.",
+    );
 }

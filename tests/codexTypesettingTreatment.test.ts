@@ -288,6 +288,8 @@ describe("font-guided editable treatment", () => {
           }
           if (stage.startsWith("readback-"))
             return { regions: [{ regionId, text: mixed.translatedText }] };
+          if (stage.startsWith("glyph-shape-"))
+            return validGlyphShapes([regionId]);
           if (stage.startsWith("review-"))
             return {
               issues: stage.endsWith("-0")
@@ -446,9 +448,12 @@ describe("font-guided editable treatment", () => {
       translatedText: block.translatedText,
       dataUrl: "pixels",
     };
-    const ask = vi.fn(async () => ({
-      regions: [{ regionId: "r1", text: mixed.translatedText }],
-    }));
+    let transcript = mixed.translatedText;
+    const ask = vi.fn(async (stage: string) =>
+      stage.startsWith("glyph-shape-")
+        ? validGlyphShapes(["r1"])
+        : { regions: [{ regionId: "r1", text: transcript }] },
+    );
     const ports = { ask, blockId: (id: string) => id, targetLanguage: "ko" };
     expect(
       await inspectGeneratedLettering(
@@ -459,9 +464,7 @@ describe("font-guided editable treatment", () => {
       ),
     ).toEqual([]);
     expect(ask.mock.calls[0]).toBeDefined();
-    ask.mockResolvedValue({
-      regions: [{ regionId: "r1", text: "잠깐! 아냐…" }],
-    });
+    transcript = "잠깐! 아냐…";
     expect(
       await inspectGeneratedLettering(
         { ...page, blocks: [block] },
@@ -472,3 +475,4 @@ describe("font-guided editable treatment", () => {
     ).toHaveLength(1);
   });
 });
+import { validGlyphShapes } from "./generatedGlyphReview.fixture";

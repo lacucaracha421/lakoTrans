@@ -1,0 +1,1173 @@
+{
+  "baselineCommit": "091fe85d47410ac237447ab71ae80915e318efd3",
+  "counts": {
+    "development": 15,
+    "generalization": 10,
+    "holdout": 15
+  },
+  "evaluationStatus": "not-run",
+  "frozenAt": "2026-10-08T05:56:18.996333+00:00",
+  "pages": [
+    {
+      "chapterId": "e80abaad-2300-452b-afe2-2c96c3d0f87d",
+      "chapterTitle": "4화",
+      "metadataFeatures": {
+        "generated": 1,
+        "long-text": 27,
+        "many-text-items": 9,
+        "narrow-region": 2,
+        "small-text": 3,
+        "touchup": 1
+      },
+      "original": {
+        "bytes": 499971,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/e80abaad-2300-452b-afe2-2c96c3d0f87d/pages/22.jpg",
+        "sha256": "7c62b099ef0a64ff82dc015d1d1a7abc9e6c76e68611688c9795f310205703b4"
+      },
+      "pageId": "7d46e47a-769a-4f16-b51c-8f9983c47907",
+      "pageName": "22.jpg",
+      "pageNumber": 22,
+      "split": "development",
+      "stratum": "touchup",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "c44da2e4d289205961f3ffea98031678680f1232f23b5501eb8c00fdb53f74f0",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "e80abaad-2300-452b-afe2-2c96c3d0f87d",
+      "chapterTitle": "4화",
+      "metadataFeatures": {
+        "generated": 4,
+        "long-text": 27,
+        "many-text-items": 10,
+        "narrow-region": 0,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 460433,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/e80abaad-2300-452b-afe2-2c96c3d0f87d/pages/12.jpg",
+        "sha256": "df30b7957a1c88c4460c86a4db7839040d24df5fe4d5d23e597563f80d7e15c9"
+      },
+      "pageId": "43dfdc66-e795-4cbb-afbe-748f1eae1292",
+      "pageName": "12.jpg",
+      "pageNumber": 12,
+      "split": "holdout",
+      "stratum": "generated",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "1351e5113b3ac5f5905530ce29d69d688538db6a856959e5d7e6c693e2c6a6a6",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "fafe4a55-6fab-4a9c-8477-f76a984e684b",
+      "chapterTitle": "5화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 80,
+        "many-text-items": 9,
+        "narrow-region": 1,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 404111,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/fafe4a55-6fab-4a9c-8477-f76a984e684b/pages/6.jpg",
+        "sha256": "65b1c960f88d88826cd976a801bcdbca259e661ee512ecdba16985cb7c604760"
+      },
+      "pageId": "619b6530-0235-4972-a04c-9e84b4cc30e0",
+      "pageName": "6.jpg",
+      "pageNumber": 6,
+      "split": "development",
+      "stratum": "long-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "636f53a6c57558f8fddbbb259cc1b481bbc770bef9a6adc89c5949fb5c382055",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "5f302ea5-3e95-486d-a355-b552e8455a53",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 29,
+        "many-text-items": 8,
+        "narrow-region": 6,
+        "small-text": 5,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 442947,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/5f302ea5-3e95-486d-a355-b552e8455a53/pages/008-5c4ff467-88d9-4fb0-b66e-33f4d6d0c0ce.jpg",
+        "sha256": "d9bb8b1b4cf5f578547e5a7f7610591f0307fcf83c100d589bdab86d43d861fc"
+      },
+      "pageId": "5c4ff467-88d9-4fb0-b66e-33f4d6d0c0ce",
+      "pageName": "008.jpg",
+      "pageNumber": 8,
+      "split": "holdout",
+      "stratum": "narrow-region",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "39e4b07afd08f7f1585fad9c1025d7700ec28e1956b2a231015712f41530cf31",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "fafe4a55-6fab-4a9c-8477-f76a984e684b",
+      "chapterTitle": "5화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 37,
+        "many-text-items": 13,
+        "narrow-region": 1,
+        "small-text": 4,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 390519,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/fafe4a55-6fab-4a9c-8477-f76a984e684b/pages/23.jpg",
+        "sha256": "ab296e7f660d466706f5dc8927d5c7fa97b7880fdc17d3c4acc3afe9d4d6571f"
+      },
+      "pageId": "5b41c5d3-74e4-4c08-986e-637e227c1558",
+      "pageName": "23.jpg",
+      "pageNumber": 23,
+      "split": "development",
+      "stratum": "many-text-items",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "8b0843e64b1b9e86b905adb97ba32f4718abb2b54489c70fedff809ddd8d4275",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "5f302ea5-3e95-486d-a355-b552e8455a53",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 44,
+        "many-text-items": 7,
+        "narrow-region": 0,
+        "small-text": 6,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 602641,
+        "originalRelativePath": "library/works/3998fffc-937d-4931-9f08-067110a2f773/chapters/5f302ea5-3e95-486d-a355-b552e8455a53/pages/028-986ecd4c-0b27-4094-a5bf-f9abc50f5210.jpg",
+        "sha256": "0c8f8df49e34dbd1f2594950812893be23b99b49337e21c37b74ce12e20774cd"
+      },
+      "pageId": "986ecd4c-0b27-4094-a5bf-f9abc50f5210",
+      "pageName": "028.jpg",
+      "pageNumber": 28,
+      "split": "holdout",
+      "stratum": "small-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "c82b6900918b81034911dbf5ef5e618b5e788e2a88045cfa23a9b8666f54463c",
+      "workId": "3998fffc-937d-4931-9f08-067110a2f773",
+      "workTitle": "공략 불가능한 쿠소게의 히로인이 되었기에, 살해당하기 전에 이탈하고 싶다 ~애정 루트? 그게 뭐야?~"
+    },
+    {
+      "chapterId": "ef0e942a-7784-465e-8c0e-dfe74b30240d",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 2,
+        "long-text": 34,
+        "many-text-items": 5,
+        "narrow-region": 1,
+        "small-text": 0,
+        "touchup": 2
+      },
+      "original": {
+        "bytes": 509719,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/ef0e942a-7784-465e-8c0e-dfe74b30240d/pages/3.jpg",
+        "sha256": "764a06a5edf4df80fad6e0c02f862470015e07c98071c1d89693167db26c128f"
+      },
+      "pageId": "f0c46da5-8f58-426d-9600-c6d412011fd9",
+      "pageName": "3.jpg",
+      "pageNumber": 3,
+      "split": "development",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 786879,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/1화/result/3.jpg",
+        "sha256": "fe9d2878513bf58f5bf4ace747814962ec9de3600ca43c506759ee25780e5aaf"
+      },
+      "userSavedPageSha256": "f017051fadcdda786fe378de9558a8ef17dcb6c1063f6d3af372f4c75929c1cd",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "ef0e942a-7784-465e-8c0e-dfe74b30240d",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 3,
+        "long-text": 3,
+        "many-text-items": 5,
+        "narrow-region": 0,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 843545,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/ef0e942a-7784-465e-8c0e-dfe74b30240d/pages/25.jpg",
+        "sha256": "138267334290bba233a8aefdd133998c978d83faccc68682c3b9294952b2f5cf"
+      },
+      "pageId": "6bbdf1bf-f8e0-4451-afb3-35f6c4d11682",
+      "pageName": "25.jpg",
+      "pageNumber": 25,
+      "split": "holdout",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 1102558,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/1화/result/25.jpg",
+        "sha256": "6144e86a452c950e8c8641f91476a55cd6dc7764efaa4204bc1ead975e696502"
+      },
+      "userSavedPageSha256": "8ac659555bcc363eef6ecf0b895801bbd124f317ce978567e2d952d2453c0f94",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "c5d1e21c-c43b-4c59-aa70-69dd03029f6d",
+      "chapterTitle": "2.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 155,
+        "many-text-items": 10,
+        "narrow-region": 1,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 477461,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/c5d1e21c-c43b-4c59-aa70-69dd03029f6d/pages/7.jpg",
+        "sha256": "894ba7135b70144eacbab757bb592711e2f6f5cbef16b2b964ca9a139c4eb2f2"
+      },
+      "pageId": "bc726012-28ff-414c-ac72-7f9c7f0119d4",
+      "pageName": "7.jpg",
+      "pageNumber": 7,
+      "split": "development",
+      "stratum": "long-text",
+      "userRenderedOutput": {
+        "bytes": 612563,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/2.3화/result/7.jpg",
+        "sha256": "9e5d13b69d771aaa6b85e4ab2e079d0c3907e9a187403a96ca3a18fdb19e7827"
+      },
+      "userSavedPageSha256": "7845b906bb6b6d18c5f46a0e18c79fc1f6ccf49f67ea14f4eead5e73a7f3415f",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "64a94e09-e512-4953-b9c1-78cface06be7",
+      "chapterTitle": "3.4화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 47,
+        "many-text-items": 10,
+        "narrow-region": 4,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 386923,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/64a94e09-e512-4953-b9c1-78cface06be7/pages/7.jpg",
+        "sha256": "e185f183f06f1bee26ae58d2aa6607b06d5fd8afda05f64dd3981846e4793a2b"
+      },
+      "pageId": "69db7c24-3afc-4aad-ab54-5a35a5b11913",
+      "pageName": "7.jpg",
+      "pageNumber": 7,
+      "split": "holdout",
+      "stratum": "narrow-region",
+      "userRenderedOutput": {
+        "bytes": 512229,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/3.4화/result/7.jpg",
+        "sha256": "56e54b57c6fbeb0726adeab8ed16b408f6e550e8d96d5eb71b0c737092445508"
+      },
+      "userSavedPageSha256": "713691083bd12efdd1f6686c09a8bd0cfc31c4902d3415b2a4f437e825152bc6",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "d780ac70-e99c-471a-9c58-fdb7c527554f",
+      "chapterTitle": "4.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 31,
+        "many-text-items": 15,
+        "narrow-region": 1,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 470982,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/d780ac70-e99c-471a-9c58-fdb7c527554f/pages/2.jpg",
+        "sha256": "86a846f0791fdd478c04058d25f65de093738a5436736b2d45f6ebb4dd28bfc5"
+      },
+      "pageId": "d5c15586-808c-4c13-a751-fee43a8129f2",
+      "pageName": "2.jpg",
+      "pageNumber": 2,
+      "split": "development",
+      "stratum": "many-text-items",
+      "userRenderedOutput": {
+        "bytes": 603332,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/4.3화/result/2.jpg",
+        "sha256": "25ee58a58c8624762bb5506384388068c94788b1d312d149847cdb1b58adb9a8"
+      },
+      "userSavedPageSha256": "ee1f753733af4296fa6ce5083c991ab59095c44e9e72b7d3229b8d90d62b2101",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "c5d1e21c-c43b-4c59-aa70-69dd03029f6d",
+      "chapterTitle": "2.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 32,
+        "many-text-items": 13,
+        "narrow-region": 0,
+        "small-text": 7,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 425366,
+        "originalRelativePath": "library/works/7efa661e-e82d-46b5-bd62-bcb231ffb68e/chapters/c5d1e21c-c43b-4c59-aa70-69dd03029f6d/pages/2.jpg",
+        "sha256": "0773c2c905513f7369aa642e5116883c2b5f669c909d11194fd4d1f2affb9175"
+      },
+      "pageId": "10551f2c-cd77-49d0-b0c5-deb46bc88c3c",
+      "pageName": "2.jpg",
+      "pageNumber": 2,
+      "split": "holdout",
+      "stratum": "small-text",
+      "userRenderedOutput": {
+        "bytes": 570423,
+        "originalRelativePath": "results/잊힌 영애는 자유롭게 살고 싶다/2.3화/result/2.jpg",
+        "sha256": "4a717b39c4254e794ceb263c85c074f9f43deef8a1a778e0ea042b41155940bc"
+      },
+      "userSavedPageSha256": "f4a88f5d29098c6cf7c7a6711726b0f2cb1c279175e80a89682131e58bb7e3b3",
+      "workId": "7efa661e-e82d-46b5-bd62-bcb231ffb68e",
+      "workTitle": "잊힌 영애는 자유롭게 살고 싶다"
+    },
+    {
+      "chapterId": "0869c65a-cd2c-449b-a02c-52e96058644f",
+      "chapterTitle": "4화",
+      "metadataFeatures": {
+        "generated": 4,
+        "long-text": 6,
+        "many-text-items": 5,
+        "narrow-region": 1,
+        "small-text": 0,
+        "touchup": 4
+      },
+      "original": {
+        "bytes": 626408,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/0869c65a-cd2c-449b-a02c-52e96058644f/pages/8.jpg",
+        "sha256": "590d51f7c3a1afd8d10853c34b2cbdf1cd92e81b7bae3b758fd0419a75fcaa42"
+      },
+      "pageId": "43161072-4204-42f3-90af-a7c756678fb6",
+      "pageName": "08.jpg",
+      "pageNumber": 8,
+      "split": "development",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 825174,
+        "originalRelativePath": "results/변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다/4화/result/08.jpg",
+        "sha256": "bcb7a93c0243532328f3adc9ad5370517da0fbfd5efd340d2023c4e22c9ebe85"
+      },
+      "userSavedPageSha256": "008bb70e8d0539c481cfa1ae7dfc34ecad6f3871f2dc5d7bf688d9ab0539aea3",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "0869c65a-cd2c-449b-a02c-52e96058644f",
+      "chapterTitle": "4화",
+      "metadataFeatures": {
+        "generated": 4,
+        "long-text": 8,
+        "many-text-items": 6,
+        "narrow-region": 2,
+        "small-text": 0,
+        "touchup": 3
+      },
+      "original": {
+        "bytes": 621617,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/0869c65a-cd2c-449b-a02c-52e96058644f/pages/2.jpg",
+        "sha256": "2914c8afd6919ee735aa8dd38539f4de4c8308d060f140d92aec747ab62ee245"
+      },
+      "pageId": "d299dd78-946f-4543-b99c-20f522f8f794",
+      "pageName": "02.jpg",
+      "pageNumber": 2,
+      "split": "holdout",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 807107,
+        "originalRelativePath": "results/변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다/4화/result/02.jpg",
+        "sha256": "b7721b0ec5d797ff48e88d305086ea49ca1eca7730bb72c0f43742d63d60ac47"
+      },
+      "userSavedPageSha256": "25e0e7589383a761f59622206c81f3d4e09e59859d4eebd2fc37cff5d2b9a768",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "e2ee234a-dff9-4789-96fc-8329aca7cc80",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 57,
+        "many-text-items": 8,
+        "narrow-region": 2,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 472965,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/e2ee234a-dff9-4789-96fc-8329aca7cc80/pages/012-38b0b5cf-6388-404b-876f-39a8e40212f6.jpg",
+        "sha256": "0c3c08cc7da7153ceecdca7793b1ba70aba623b26c9d8aacc18ecf62773e49b3"
+      },
+      "pageId": "38b0b5cf-6388-404b-876f-39a8e40212f6",
+      "pageName": "012.jpg",
+      "pageNumber": 12,
+      "split": "development",
+      "stratum": "long-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "7fe97b06be98e057d2533dcd61d7015ae12c2e63b8873a949d62e8de353ba21b",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "0869c65a-cd2c-449b-a02c-52e96058644f",
+      "chapterTitle": "4화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 29,
+        "many-text-items": 10,
+        "narrow-region": 6,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 525927,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/0869c65a-cd2c-449b-a02c-52e96058644f/pages/e78128a4-1650-460a-bad0-fbbe1537e975/007-d8a7331a-44bc-4542-b7d7-248173e196de.jpg",
+        "sha256": "f5e07b4c359e2291412d2118f0ac3fd08ed91617f77af7cbe3625cd61499dc1f"
+      },
+      "pageId": "d8a7331a-44bc-4542-b7d7-248173e196de",
+      "pageName": "17.jpg",
+      "pageNumber": 17,
+      "split": "holdout",
+      "stratum": "narrow-region",
+      "userRenderedOutput": {
+        "bytes": 634773,
+        "originalRelativePath": "results/변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다/4화/result/17.jpg",
+        "sha256": "1090d179da8ed425129a6ddf64b88e633fcb0a86b68e97e032855301a3ea7252"
+      },
+      "userSavedPageSha256": "0c0b2d649db10f11156a390b280c14cdba1ac3d2fd90c55b3f64c9c2c7b40870",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "e2ee234a-dff9-4789-96fc-8329aca7cc80",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 29,
+        "many-text-items": 13,
+        "narrow-region": 4,
+        "small-text": 3,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 455906,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/e2ee234a-dff9-4789-96fc-8329aca7cc80/pages/022-55c6c468-9d9d-4f41-9464-5d81af460a8f.jpg",
+        "sha256": "734979b20ac5978d0e2bcafc3a902f093d10068ba96e713c14cb6b3eb27ecfca"
+      },
+      "pageId": "55c6c468-9d9d-4f41-9464-5d81af460a8f",
+      "pageName": "022.jpg",
+      "pageNumber": 22,
+      "split": "development",
+      "stratum": "many-text-items",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "7913c30e9e90dcc8d17a6e5195a454a2a6997e9035c6104c9222bdd9da5dedf9",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "e2ee234a-dff9-4789-96fc-8329aca7cc80",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 39,
+        "many-text-items": 6,
+        "narrow-region": 4,
+        "small-text": 6,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 583397,
+        "originalRelativePath": "library/works/901f740a-3cc2-4d7c-80eb-6a06df55de2e/chapters/e2ee234a-dff9-4789-96fc-8329aca7cc80/pages/018-52956a9f-8ee8-403e-a600-9ed6d598ebe3.jpg",
+        "sha256": "6c089c5af81b7b47ad81d11b022a44bacdfbe6be31ffe4199db9c4a1b3a23319"
+      },
+      "pageId": "52956a9f-8ee8-403e-a600-9ed6d598ebe3",
+      "pageName": "018.jpg",
+      "pageNumber": 18,
+      "split": "holdout",
+      "stratum": "small-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "56ddd6b75b5e4ec7d0db6df63d86530ecc75ddd0190f419bf9fb2a43a9eca02f",
+      "workId": "901f740a-3cc2-4d7c-80eb-6a06df55de2e",
+      "workTitle": "변경 영주의 나는 악역 영애로 추방된 아내를 위해, 대국을 멸망시키기로 했다"
+    },
+    {
+      "chapterId": "ddf6db15-23a5-43db-b1f3-0f32b85f25d7",
+      "chapterTitle": "2화",
+      "metadataFeatures": {
+        "generated": 4,
+        "long-text": 15,
+        "many-text-items": 7,
+        "narrow-region": 3,
+        "small-text": 1,
+        "touchup": 4
+      },
+      "original": {
+        "bytes": 551065,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/ddf6db15-23a5-43db-b1f3-0f32b85f25d7/pages/7.jpg",
+        "sha256": "58ca613d7d83676f33736cb920a73c4d01f5371697c83e1765dcb5a9a3b393d7"
+      },
+      "pageId": "08f55b1c-720d-4cbf-b3ab-e402db51c164",
+      "pageName": "7.jpg",
+      "pageNumber": 7,
+      "split": "development",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 747465,
+        "originalRelativePath": "results/발효 영애의 슬로 라이프/2화/result/7.jpg",
+        "sha256": "0cabc415b52d5e31d9915378440caf26e9992b4fbfefbb013354338dcdc7db2c"
+      },
+      "userSavedPageSha256": "0828877586f779138fece42bc0187435c376d9ebcfcabe9270825b10b808f08d",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "ddf6db15-23a5-43db-b1f3-0f32b85f25d7",
+      "chapterTitle": "2화",
+      "metadataFeatures": {
+        "generated": 9,
+        "long-text": 32,
+        "many-text-items": 14,
+        "narrow-region": 4,
+        "small-text": 3,
+        "touchup": 1
+      },
+      "original": {
+        "bytes": 524644,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/ddf6db15-23a5-43db-b1f3-0f32b85f25d7/pages/12.jpg",
+        "sha256": "ee5e105c6e3cb38db27ab0e1fa8255bee1febe0037f900b63035576b9c8838a4"
+      },
+      "pageId": "a8881061-fbbf-4a4c-9c50-35175d7cd762",
+      "pageName": "12.jpg",
+      "pageNumber": 12,
+      "split": "holdout",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 715651,
+        "originalRelativePath": "results/발효 영애의 슬로 라이프/2화/result/12.jpg",
+        "sha256": "cc0e217b2ae752845393aeb68fb34531e0be4cde1d8b3f88dc2dbe3fc6394de9"
+      },
+      "userSavedPageSha256": "d8788b3b55bc55048134ab38fe76353e8ae142563b5f72c55e32da6cbf41e078",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "832cebe7-7661-4757-bd6b-9322026ac874",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 70,
+        "many-text-items": 8,
+        "narrow-region": 2,
+        "small-text": 3,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 476950,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/832cebe7-7661-4757-bd6b-9322026ac874/pages/27.jpg",
+        "sha256": "03afda60952cfcf90dd33ab42c9536b421f146558f0ba40fb42b698025e935e5"
+      },
+      "pageId": "d47ae507-70eb-40bc-a0b1-abff7ff826d0",
+      "pageName": "27.jpg",
+      "pageNumber": 27,
+      "split": "development",
+      "stratum": "long-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "bc930ee5f9ad42787fcff1e098205b4d08c393fb703f3ffd87e2463956aebe24",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "832cebe7-7661-4757-bd6b-9322026ac874",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 4,
+        "long-text": 43,
+        "many-text-items": 12,
+        "narrow-region": 9,
+        "small-text": 0,
+        "touchup": 1
+      },
+      "original": {
+        "bytes": 676325,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/832cebe7-7661-4757-bd6b-9322026ac874/pages/6.jpg",
+        "sha256": "194f85a077287976a588492af1c53a647245c175b5e41f1bd26bc4e55a3f7edc"
+      },
+      "pageId": "6813cdcc-dcb1-4559-8b6c-dc336abb6c93",
+      "pageName": "6.jpg",
+      "pageNumber": 6,
+      "split": "holdout",
+      "stratum": "narrow-region",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "2c6ed294c2393d5eba35e08bab0a92306a3d52dd8c73f0fa89830ecb3fd3a395",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "d4e1470c-1f09-4e9a-bfe0-ed40b8bf61fe",
+      "chapterTitle": "3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 42,
+        "many-text-items": 16,
+        "narrow-region": 7,
+        "small-text": 5,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 560703,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/d4e1470c-1f09-4e9a-bfe0-ed40b8bf61fe/pages/5.jpg",
+        "sha256": "ad1cc82f87f17c1b8df5c05c9c81937cc5cc2846278a5c28bbe60377ac19e156"
+      },
+      "pageId": "60298c7c-9686-43bf-b689-4fb79503efdf",
+      "pageName": "5.jpg",
+      "pageNumber": 5,
+      "split": "development",
+      "stratum": "many-text-items",
+      "userRenderedOutput": {
+        "bytes": 749530,
+        "originalRelativePath": "results/발효 영애의 슬로 라이프/3화/result/5.jpg",
+        "sha256": "441312d3a450da3ed92b8407f2a73c7402a8f218833cd938398d9c755e1b6bf5"
+      },
+      "userSavedPageSha256": "429a59c654a09e5ab7b1627c9994a0c9cb586c1d3ed2e6f4026f420919a5415d",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "832cebe7-7661-4757-bd6b-9322026ac874",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 62,
+        "many-text-items": 9,
+        "narrow-region": 5,
+        "small-text": 7,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 505806,
+        "originalRelativePath": "library/works/df796be1-f251-48a2-aa0d-405c11a8f6ab/chapters/832cebe7-7661-4757-bd6b-9322026ac874/pages/26.jpg",
+        "sha256": "b7f8053cff1a4791b0afab7434be2c5d86da84be62d530ce68c902ae4c00081d"
+      },
+      "pageId": "61c2e967-77b9-42c9-b91b-fb031efd7548",
+      "pageName": "26.jpg",
+      "pageNumber": 26,
+      "split": "holdout",
+      "stratum": "small-text",
+      "userRenderedOutput": null,
+      "userSavedPageSha256": "724cf942845efa227ac11e87485b0bdfcffdb8c7e7baed1776903425539ab726",
+      "workId": "df796be1-f251-48a2-aa0d-405c11a8f6ab",
+      "workTitle": "발효 영애의 슬로 라이프"
+    },
+    {
+      "chapterId": "4cb08010-3039-4b14-9045-01f9f29b0692",
+      "chapterTitle": "4.2화",
+      "metadataFeatures": {
+        "generated": 2,
+        "long-text": 24,
+        "many-text-items": 7,
+        "narrow-region": 3,
+        "small-text": 2,
+        "touchup": 2
+      },
+      "original": {
+        "bytes": 454878,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/4cb08010-3039-4b14-9045-01f9f29b0692/pages/4.jpg",
+        "sha256": "2abc97f93d980a3d5160064e18033fa97a9b7fb815917f7525809cb6f0a8426f"
+      },
+      "pageId": "6730113c-13de-4ec8-91f7-30d329ad5b49",
+      "pageName": "4.jpg",
+      "pageNumber": 4,
+      "split": "development",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 598981,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/4.2화/result/4.jpg",
+        "sha256": "42b43a0680bd967692b07ffc3e8f603c1e65a892bf1d31c8bc40bf787542e32b"
+      },
+      "userSavedPageSha256": "5f1b46fbd16ed3f4155c32529fbee2ff54303460ada612d86387c4e42b5d385e",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "4ebc42d7-9aba-4afd-a70a-a0f7a468c361",
+      "chapterTitle": "3화",
+      "metadataFeatures": {
+        "generated": 6,
+        "long-text": 27,
+        "many-text-items": 8,
+        "narrow-region": 1,
+        "small-text": 2,
+        "touchup": 1
+      },
+      "original": {
+        "bytes": 282461,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/4ebc42d7-9aba-4afd-a70a-a0f7a468c361/pages/15.jpg",
+        "sha256": "5830278c88e8d2af3ac226df94917a31975ca4cc02a14652c03777e311641c14"
+      },
+      "pageId": "2cc094ed-cb4e-4431-b092-26b5b463f50d",
+      "pageName": "15.jpg",
+      "pageNumber": 15,
+      "split": "holdout",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 386746,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/3화/result/15.jpg",
+        "sha256": "dbb72aa0d29cc9711455b6f65debdd932eb16334460cf913c851166e3522cd22"
+      },
+      "userSavedPageSha256": "d3208f1697835ff6322a9704d10121f572ad8f8d81f004efbb47e85d098823cc",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "4ebc42d7-9aba-4afd-a70a-a0f7a468c361",
+      "chapterTitle": "3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 89,
+        "many-text-items": 19,
+        "narrow-region": 0,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 267414,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/4ebc42d7-9aba-4afd-a70a-a0f7a468c361/pages/22.jpg",
+        "sha256": "ab832453f70c17efdad401d7c88606c4d01170b3196e5101c4a1dca44337fa99"
+      },
+      "pageId": "071d1094-16bf-48ae-b510-1a735ae71b6b",
+      "pageName": "22.jpg",
+      "pageNumber": 22,
+      "split": "development",
+      "stratum": "long-text",
+      "userRenderedOutput": {
+        "bytes": 415606,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/3화/result/22.jpg",
+        "sha256": "ff53aa9ccbc95e38ee892be4ebe68cf1f40631a56c20b8a5dd4a1703ab31cdae"
+      },
+      "userSavedPageSha256": "3e7628275025876e5936635a51bf49d3782cb523cd78fbc45f59354d47b7c2c2",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "ce0b52e5-df08-4754-ac06-acaf725415ac",
+      "chapterTitle": "2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 26,
+        "many-text-items": 7,
+        "narrow-region": 5,
+        "small-text": 2,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 238743,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/ce0b52e5-df08-4754-ac06-acaf725415ac/pages/24.jpg",
+        "sha256": "6c5d1cb4bddc47cf83737c53f93f34dcfd95c6ed0ccca94dcfabfd36799a133e"
+      },
+      "pageId": "f9b49414-11df-45f2-a2ea-755d1bc868f4",
+      "pageName": "24.jpg",
+      "pageNumber": 24,
+      "split": "holdout",
+      "stratum": "narrow-region",
+      "userRenderedOutput": {
+        "bytes": 322625,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/2화/result/24.jpg",
+        "sha256": "7839c3226878f0c52d1bbfbf24ad36e243dd8c770bf547c7dd7a2964907944d4"
+      },
+      "userSavedPageSha256": "14a0baddf589d1edbcb16e1c9899a679e503fea4ea51d6516da6a13c3e983d63",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "29191ac6-0809-4e4d-a594-9fdafadefa12",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 28,
+        "many-text-items": 14,
+        "narrow-region": 3,
+        "small-text": 4,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 484461,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/29191ac6-0809-4e4d-a594-9fdafadefa12/pages/5.jpg",
+        "sha256": "8af258dd78da88ff8a25f57b6c23616d66df1ea67139053c9dab0c0865216257"
+      },
+      "pageId": "8cae0e2c-64c0-46d9-9133-55245827c2fc",
+      "pageName": "5.jpg",
+      "pageNumber": 5,
+      "split": "development",
+      "stratum": "many-text-items",
+      "userRenderedOutput": {
+        "bytes": 627358,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/1화/result/5.jpg",
+        "sha256": "a19667bfbd8f01a78274ca7b19815f2ec9ab862d52f8dce6b45d468d507bf632"
+      },
+      "userSavedPageSha256": "59fe7772b0f0e892627e749167877765d0bba20c7524f72ca9eb9d4429045bc5",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "29191ac6-0809-4e4d-a594-9fdafadefa12",
+      "chapterTitle": "1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 23,
+        "many-text-items": 10,
+        "narrow-region": 3,
+        "small-text": 7,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 625362,
+        "originalRelativePath": "library/works/fc0971d6-050c-43f5-80e9-56d255085367/chapters/29191ac6-0809-4e4d-a594-9fdafadefa12/pages/21.jpg",
+        "sha256": "6e03d5c898f1fd36de8b3571bf9756d9fafff623c935fc80c5566e2701a26f9b"
+      },
+      "pageId": "f30f902f-1841-4b2c-bc87-73a46a367340",
+      "pageName": "21.jpg",
+      "pageNumber": 21,
+      "split": "holdout",
+      "stratum": "small-text",
+      "userRenderedOutput": {
+        "bytes": 801389,
+        "originalRelativePath": "results/내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~/1화/result/21.jpg",
+        "sha256": "49c652679d77bb20bf3891a17a5ba435d2acb9cd045fc09b4f29b9a900f4da06"
+      },
+      "userSavedPageSha256": "901d72bf2d2df16f34139dcf67877451d40bb9d5d17f05af63764dfce6fde34e",
+      "workId": "fc0971d6-050c-43f5-80e9-56d255085367",
+      "workTitle": "내려찍기 영애는 치트급 발뒤꿈치로 무쌍한다 ~마물을 즉사시키며 즐기고 있었더니, 나를 추방한 본가가 몰락했습니다~"
+    },
+    {
+      "chapterId": "4f706e18-058d-4f04-ae3a-ceed8d39fb03",
+      "chapterTitle": "10.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 34,
+        "many-text-items": 3,
+        "narrow-region": 0,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 472387,
+        "originalRelativePath": "library/works/e83d39e0-0ee2-4553-9a2c-507e873d12cb/chapters/4f706e18-058d-4f04-ae3a-ceed8d39fb03/pages/4.jpg",
+        "sha256": "7941afe216c803b8d9e34e9a64c565bdf73c6e04c5966bd2b0d5c53efbe5d400"
+      },
+      "pageId": "e00ca43b-7af9-47ac-8974-6d6424cce4d2",
+      "pageName": "4.jpg",
+      "pageNumber": 4,
+      "split": "generalization",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 546365,
+        "originalRelativePath": "results/최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다/10.2화/result/4.jpg",
+        "sha256": "d020ee26fefe79d550bfee093f4ad0694c88fa11f3e59c0aa8171d4a01fb90c6"
+      },
+      "userSavedPageSha256": "ae3d0ca33e6aacefab3a3460dc3627fb554f9ba4ebc4a767a4cd667e3f2fc6c0",
+      "workId": "e83d39e0-0ee2-4553-9a2c-507e873d12cb",
+      "workTitle": "최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다"
+    },
+    {
+      "chapterId": "4f706e18-058d-4f04-ae3a-ceed8d39fb03",
+      "chapterTitle": "10.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 24,
+        "many-text-items": 4,
+        "narrow-region": 0,
+        "small-text": 4,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 522640,
+        "originalRelativePath": "library/works/e83d39e0-0ee2-4553-9a2c-507e873d12cb/chapters/4f706e18-058d-4f04-ae3a-ceed8d39fb03/pages/14.jpg",
+        "sha256": "1c068e806c7e3d17832398ecce44c05c709136675ad6e8c6caae4a1e16e848f1"
+      },
+      "pageId": "5997284e-ab88-47d0-bd7b-77a1418676bc",
+      "pageName": "14.jpg",
+      "pageNumber": 14,
+      "split": "generalization",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 603220,
+        "originalRelativePath": "results/최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다/10.2화/result/14.jpg",
+        "sha256": "79d6ab560a3556004da2e39c1d02a975425c561928575610997caa7cd586c64d"
+      },
+      "userSavedPageSha256": "4ac6bbdb5c6879863d8296b73f3fad545998644323df9f93ed35e238e015626d",
+      "workId": "e83d39e0-0ee2-4553-9a2c-507e873d12cb",
+      "workTitle": "최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다"
+    },
+    {
+      "chapterId": "4f706e18-058d-4f04-ae3a-ceed8d39fb03",
+      "chapterTitle": "10.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 51,
+        "many-text-items": 6,
+        "narrow-region": 1,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 384052,
+        "originalRelativePath": "library/works/e83d39e0-0ee2-4553-9a2c-507e873d12cb/chapters/4f706e18-058d-4f04-ae3a-ceed8d39fb03/pages/2.jpg",
+        "sha256": "99d3b550e28422e67e8df5eacd9424512414f4ce8bad8453a39d21151d16746e"
+      },
+      "pageId": "e1a81b9e-d01a-49d4-8b7c-7349414f71ff",
+      "pageName": "2.jpg",
+      "pageNumber": 2,
+      "split": "generalization",
+      "stratum": "long-text",
+      "userRenderedOutput": {
+        "bytes": 445005,
+        "originalRelativePath": "results/최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다/10.2화/result/2.jpg",
+        "sha256": "c4af4713993de4b43af25d3b5eded5ac375694a284da9c24488645898becb263"
+      },
+      "userSavedPageSha256": "514a5baef35c6e91a3fd8dbeba221f80d7011a70f0f018c15744bd10c452cfaf",
+      "workId": "e83d39e0-0ee2-4553-9a2c-507e873d12cb",
+      "workTitle": "최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다"
+    },
+    {
+      "chapterId": "4f706e18-058d-4f04-ae3a-ceed8d39fb03",
+      "chapterTitle": "10.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 12,
+        "many-text-items": 10,
+        "narrow-region": 3,
+        "small-text": 4,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 394826,
+        "originalRelativePath": "library/works/e83d39e0-0ee2-4553-9a2c-507e873d12cb/chapters/4f706e18-058d-4f04-ae3a-ceed8d39fb03/pages/11.jpg",
+        "sha256": "c0d1ed1b976082ac3467ef78359cfe86c39105289aab3323b6d7352046e1450d"
+      },
+      "pageId": "4201ec90-adb4-4e9b-a047-7ea30a2091dc",
+      "pageName": "11.jpg",
+      "pageNumber": 11,
+      "split": "generalization",
+      "stratum": "narrow-region",
+      "userRenderedOutput": {
+        "bytes": 459893,
+        "originalRelativePath": "results/최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다/10.2화/result/11.jpg",
+        "sha256": "5bd2b681c1fe36a9a533ab59dac7deb922182120df94da9cb94d4d7144396fa5"
+      },
+      "userSavedPageSha256": "98393608a558d7190e0fefed87949ebd0032acb3ac080b1a4766e8bebc5994c3",
+      "workId": "e83d39e0-0ee2-4553-9a2c-507e873d12cb",
+      "workTitle": "최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다"
+    },
+    {
+      "chapterId": "4f706e18-058d-4f04-ae3a-ceed8d39fb03",
+      "chapterTitle": "10.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 26,
+        "many-text-items": 11,
+        "narrow-region": 0,
+        "small-text": 1,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 413612,
+        "originalRelativePath": "library/works/e83d39e0-0ee2-4553-9a2c-507e873d12cb/chapters/4f706e18-058d-4f04-ae3a-ceed8d39fb03/pages/9.jpg",
+        "sha256": "a3e34eb13a44ac6c3b6e39c9742b8ecb3d38ca781ad8677eed3d8ff594ef433d"
+      },
+      "pageId": "0a73cfd4-be3c-4e7a-8aa6-85d9409adb6d",
+      "pageName": "9.jpg",
+      "pageNumber": 9,
+      "split": "generalization",
+      "stratum": "many-text-items",
+      "userRenderedOutput": {
+        "bytes": 475153,
+        "originalRelativePath": "results/최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다/10.2화/result/9.jpg",
+        "sha256": "a32cf3aa41490c4ac3558eb83ac96886771638685a3fe29c79d96d1b5150d078"
+      },
+      "userSavedPageSha256": "b0136b5cf63682a4c1c9c9bb58b8f7137dad478aff395f49ecbcd4f494d213f9",
+      "workId": "e83d39e0-0ee2-4553-9a2c-507e873d12cb",
+      "workTitle": "최강의 검성, 미소녀 메이드로 전생해 빗자루로 무쌍하다"
+    },
+    {
+      "chapterId": "d518ad46-60f4-4960-b063-7bcb6428329b",
+      "chapterTitle": "17.1화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 38,
+        "many-text-items": 9,
+        "narrow-region": 0,
+        "small-text": 9,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 203300,
+        "originalRelativePath": "library/works/d0677e98-4019-420f-80bb-5d5e865dedce/chapters/d518ad46-60f4-4960-b063-7bcb6428329b/pages/5.jpg",
+        "sha256": "cdf2a0d491ff9068f6696e4741a031fb3f4b227f383c154c7e59ac04b559becd"
+      },
+      "pageId": "9d1068ef-762d-4adb-9291-fcf4323a2cba",
+      "pageName": "5.jpg",
+      "pageNumber": 5,
+      "split": "generalization",
+      "stratum": "touchup",
+      "userRenderedOutput": {
+        "bytes": 265442,
+        "originalRelativePath": "results/나는 악역 기사단장으로 환생한다/17.1화/result/5.jpg",
+        "sha256": "9898aa02529dca60a87f3482fe0d776c49f8dca9576d1af63028b10c80ccd3b1"
+      },
+      "userSavedPageSha256": "e3d0fae0097d4f6619c89e01c6c8b988d332ba036c9291f3de2421488c817398",
+      "workId": "d0677e98-4019-420f-80bb-5d5e865dedce",
+      "workTitle": "나는 악역 기사단장으로 환생한다."
+    },
+    {
+      "chapterId": "1e06e752-0da8-476d-b6e6-d2eec3dccb79",
+      "chapterTitle": "17.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 24,
+        "many-text-items": 5,
+        "narrow-region": 4,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 166438,
+        "originalRelativePath": "library/works/d0677e98-4019-420f-80bb-5d5e865dedce/chapters/1e06e752-0da8-476d-b6e6-d2eec3dccb79/pages/5.jpg",
+        "sha256": "1fe5309696b07f1f2773004ef19cc3d59f68437ed199d571bd1a8dc931778ce1"
+      },
+      "pageId": "e0522a49-6469-4c3b-b6a9-bc6cc644ba54",
+      "pageName": "5.jpg",
+      "pageNumber": 5,
+      "split": "generalization",
+      "stratum": "generated",
+      "userRenderedOutput": {
+        "bytes": 221088,
+        "originalRelativePath": "results/나는 악역 기사단장으로 환생한다/17.3화/result/5.jpg",
+        "sha256": "9e37de6eb7ef5ee953c6d6e80fedd126c16a4a2bcaad2c6eec08e1de3d31c330"
+      },
+      "userSavedPageSha256": "6bf67336a431c4422f097dbda2b6234ff97bc5c022a6a01b613fe705360f84fe",
+      "workId": "d0677e98-4019-420f-80bb-5d5e865dedce",
+      "workTitle": "나는 악역 기사단장으로 환생한다."
+    },
+    {
+      "chapterId": "fc50ec64-2e05-4863-89f5-4e674a8de3ff",
+      "chapterTitle": "17.2화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 46,
+        "many-text-items": 8,
+        "narrow-region": 1,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 196900,
+        "originalRelativePath": "library/works/d0677e98-4019-420f-80bb-5d5e865dedce/chapters/fc50ec64-2e05-4863-89f5-4e674a8de3ff/pages/4.jpg",
+        "sha256": "7cf05ecdca1bbc0a1e001b885afbb5b31d9a6eb6a62c1ca883869f09ca3f3892"
+      },
+      "pageId": "a2514c27-fa3c-43ec-9afc-08290a8f9417",
+      "pageName": "4.jpg",
+      "pageNumber": 4,
+      "split": "generalization",
+      "stratum": "long-text",
+      "userRenderedOutput": {
+        "bytes": 284386,
+        "originalRelativePath": "results/나는 악역 기사단장으로 환생한다/17.2화/result/4.jpg",
+        "sha256": "c251fac570bd7024d49fb97189aca982c67493cb7f6c67105daae821a152765b"
+      },
+      "userSavedPageSha256": "d7239d8708c7426c0ab3dd47e86c4a06e3daf10f79c8e23485b8f1daa001d495",
+      "workId": "d0677e98-4019-420f-80bb-5d5e865dedce",
+      "workTitle": "나는 악역 기사단장으로 환생한다."
+    },
+    {
+      "chapterId": "1e06e752-0da8-476d-b6e6-d2eec3dccb79",
+      "chapterTitle": "17.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 21,
+        "many-text-items": 6,
+        "narrow-region": 5,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 186437,
+        "originalRelativePath": "library/works/d0677e98-4019-420f-80bb-5d5e865dedce/chapters/1e06e752-0da8-476d-b6e6-d2eec3dccb79/pages/10.jpg",
+        "sha256": "224fce91e5b5ce60981d0ff5f59b9eb021b4b5c88080b7592d35d23130036a56"
+      },
+      "pageId": "80ec7528-6882-4b7f-b68e-8045a468465b",
+      "pageName": "10.jpg",
+      "pageNumber": 10,
+      "split": "generalization",
+      "stratum": "narrow-region",
+      "userRenderedOutput": {
+        "bytes": 255761,
+        "originalRelativePath": "results/나는 악역 기사단장으로 환생한다/17.3화/result/10.jpg",
+        "sha256": "209bbaf9d61bb2558c38e0c8d623640548c4fa1fa35184c358ffd6974c9b3e3e"
+      },
+      "userSavedPageSha256": "c1e3718906f72b843c77daede123c282d7af2e0c2f5abc230b2ecca219cf8f09",
+      "workId": "d0677e98-4019-420f-80bb-5d5e865dedce",
+      "workTitle": "나는 악역 기사단장으로 환생한다."
+    },
+    {
+      "chapterId": "1e06e752-0da8-476d-b6e6-d2eec3dccb79",
+      "chapterTitle": "17.3화",
+      "metadataFeatures": {
+        "generated": 0,
+        "long-text": 35,
+        "many-text-items": 11,
+        "narrow-region": 3,
+        "small-text": 0,
+        "touchup": 0
+      },
+      "original": {
+        "bytes": 195832,
+        "originalRelativePath": "library/works/d0677e98-4019-420f-80bb-5d5e865dedce/chapters/1e06e752-0da8-476d-b6e6-d2eec3dccb79/pages/3.jpg",
+        "sha256": "b1388fa1e86f0da5350b908c755fbe08be7fde20b8180701d5df0c8e2b22d9f5"
+      },
+      "pageId": "5f0fd896-358e-4b45-acb1-db8d6c07e971",
+      "pageName": "3.jpg",
+      "pageNumber": 3,
+      "split": "generalization",
+      "stratum": "many-text-items",
+      "userRenderedOutput": {
+        "bytes": 285223,
+        "originalRelativePath": "results/나는 악역 기사단장으로 환생한다/17.3화/result/3.jpg",
+        "sha256": "05f96dc2e9e2b716497f7872c09e4e3c98d277d5183ad78e7b4ff97a5a4bf6f6"
+      },
+      "userSavedPageSha256": "00f08b381f352c646186a7c0687255feaba67c772a5a80558835054fe8ecca54",
+      "workId": "d0677e98-4019-420f-80bb-5d5e865dedce",
+      "workTitle": "나는 악역 기사단장으로 환생한다."
+    }
+  ],
+  "readingScale": {
+    "detailCrop": "original pixels",
+    "normalPageHeightPx": 1000
+  },
+  "referenceMeaning": "user taste/comparison reference; not human gold or training data",
+  "schemaVersion": 1,
+  "seed": "mcp-quality-v2-20261008",
+  "selection": "predeclared metadata strata; descending feature count with SHA(workId+pageId) tie break; alternating development/holdout; no output scoring",
+  "successCriteria": "Each of five works: at least 2/3 holdouts better than user output, remainder no worse; disclose every regression. AI ratings are not human gold."
+}

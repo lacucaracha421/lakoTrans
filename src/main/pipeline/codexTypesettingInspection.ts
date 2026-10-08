@@ -13,12 +13,15 @@ export function prepareTypesettingInspection(
   prompt: string,
   images: TypesettingImage[],
 ): { prompt: string; images: TypesettingImage[] } {
-  if (!stage.startsWith("readback-") || !images.length)
+  if (
+    (!stage.startsWith("readback-") && !stage.startsWith("glyph-shape-")) ||
+    !images.length
+  )
     return { prompt, images };
   return {
     prompt:
       prompt +
-      " Each distinct region ID is shown twice: the SAME lettering pixels composited on opaque white and opaque black. These are complementary views, not repeated words. Transcribe the lettering ONCE per distinct ID, using the view where its ink is visible. Do not duplicate words because there are two views.",
+      " Each distinct region ID is shown twice: the SAME lettering pixels composited on opaque white and opaque black. These are complementary views, not repeated words. Inspect the lettering ONCE per distinct ID, using the view where its ink is visible. If transcription is requested, transcribe once. Do not duplicate words because there are two views.",
     images: images.flatMap(inspectionMattes),
   };
 }

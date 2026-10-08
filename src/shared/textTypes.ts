@@ -101,6 +101,7 @@ export type TranslationBlock = {
   generatedLettering?: {
     maskStrokes?: import("./generatedLetteringMaskTypes").LetteringMaskStroke[];
     paintStrokes?: import("./generatedLetteringMaskTypes").LetteringPaintStroke[];
+    partMoves?: import("./generatedLetteringMaskTypes").LetteringPartMove[];
     outline?: { width: number; color: string };
     occlusionPolygons?: Point[][];
     version: 1;

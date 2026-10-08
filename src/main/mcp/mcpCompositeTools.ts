@@ -37,12 +37,21 @@ function preparationTools(service: McpCompositeToolPort["service"]): McpTool[] {
       scopes,
       write: true,
       description:
-        "For complete translation use carrot_get_translation_guide and qualityPolicy=complete-translation-v1. Plan wording, typography and placement together before edits, batch changes, and declare one final visual review after all content changes. maxReviewPasses is only a ceiling for targeted fixes of observed defects, never a request to schedule repeated passes. Persist a same-owner, ordered composite with at most 32 declared native/review phases, 10 chapters and 50 pages. Preparation checks every declared family's required scopes and fixed settings/provider policy but starts no model, import, render or edit. Exact saved targets or the reviewed import mapping bound the plan. Native admissions, per-page edits, model attempts and 1-3 review passes have finite explicit budgets; unknown usage is never refunded. No automatic execution, cross-owner handoff or grant-based target expansion.",
+        "For complete translation use carrot_get_translation_guide and qualityPolicy=complete-translation-v2. Plan wording, typography and placement together before edits, batch changes, and declare one final visual review after all content changes. A review-only plan captures exact CURRENT revisions: prepare it AFTER direct tool edits and active saves settle. Every review pass consumes one admission and one pageAttempt per selected page, even without edits or model calls: a five-page review-only plan needs budgets.admissions>=1 and budgets.pageAttempts>=5; model budgets may stay zero. Budgets accumulate across phases and passes. If preparing before edits, bind/run those edits through the declared native phases or await-external workflow; later direct edits cannot refresh this snapshot. maxReviewPasses is only a ceiling for targeted fixes of observed defects, never a request to schedule repeated passes. Persist a same-owner, ordered composite with at most 32 declared native/review phases, 10 chapters and 50 pages. Preparation checks every declared family's required scopes and fixed settings/provider policy but starts no model, import, render or edit. Exact saved targets or the reviewed import mapping bound the plan. Native admissions, per-page edits, model attempts and 1-3 review passes have finite explicit budgets; unknown usage is never refunded. No automatic execution, cross-owner handoff or grant-based target expansion.",
       execute: async (args, owner, guard, authorize) =>
         compositeWorkflowView(
           await service.prepare(
             owner,
-            McpCompositePrepareSchema.parse(args),
+            McpCompositePrepareSchema.parse({
+              ...(args as object),
+              ...(!(args as { qualityPolicy?: string; mode?: string })
+                .qualityPolicy &&
+              !["manual", "quick"].includes(
+                (args as { mode?: string }).mode ?? "",
+              )
+                ? { mode: "detailed", qualityPolicy: "complete-translation-v2" }
+                : {}),
+            }),
             authorizeMcpComposite(guard, authorize),
           ),
         ),
@@ -144,7 +153,7 @@ function reviewTools(service: McpCompositeToolPort["service"]): McpTool[] {
       scopes,
       write: true,
       description:
-        "With complete-translation-v1, supply assessments[].quality for every page: sourceCoverage, translationAccuracy, contextConsistency, soundEffectCoverage, backgroundRestoration, typography, generatedGlyphs, soundEffectsFound, soundEffectsCompleted, unresolved and cumulative per-region imageHistory (hostAttempts/appAttempts, outcome, reason). Unverified checks or remaining saved text/SFX block acceptance. Submit a bounded connected-AI, host-reported judgment only after retrieving the issued actual render images for every assessed page. Native source, permissions, exact evidence IDs/pass and current revisions are checked again. This records the host's assessment, not a native quality guarantee, and does not set page reviewStatus. Corrections must be explicitly bound native actions followed by a fresh declared render pass. Findings overflow, exhausted passes, no progress and oscillation remain unresolved stops.",
+        "For complete-translation-v2 (the detailed default), supply assessments[].quality and quality.detailed for every page: full original sourceEvidenceId, unique source inventory with treatment/restoration, selected font specimen IDs, current paletteRevision, layoutReviewed and fresh generated-glyph evidence where applicable. Retrieve the issued actual final render images before judging them; missing or stale source/font/palette/page/glyph evidence prevents acceptance. Both v1 and v2 require sourceCoverage, translationAccuracy, contextConsistency, soundEffectCoverage, backgroundRestoration, typography, generatedGlyphs, soundEffectsFound, soundEffectsCompleted, unresolved and per-region imageHistory with separate background-restoration/korean-lettering purposes. Unverified checks or remaining saved text/SFX block acceptance. Native permissions, evidence IDs/pass and current revisions are checked again. This records a bounded connected-AI, host-reported assessment, not a native aesthetic guarantee, and does not set page reviewStatus. Corrections require explicitly bound native actions and a fresh declared render pass. Findings overflow, exhausted passes, no progress and oscillation remain unresolved stops.",
       execute: async (args, owner, guard, authorize) =>
         compositeWorkflowView(
           await service.report(

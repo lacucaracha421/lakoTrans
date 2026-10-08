@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { McpSourceRectPatchSchema } from "./mcpSourceRect";
 import { mcpTranslationBatchOutputs } from "./mcpTranslationBatch";
+import { LetteringTextStructureSchema } from "./letteringTextStructure";
 
 const { chapterId, pageId, blockId, revision, sourceRect } =
   McpSourceRectPatchSchema.shape;
@@ -87,8 +88,51 @@ const command = z.discriminatedUnion("kind", [
       allowRenderAdjustment: z.boolean().default(false),
       invertColors: z.boolean().default(false),
       priorGenerationAttempts: z
-        .record(z.string(), z.number().int().min(0).max(2))
+        .record(z.string(), z.number().int().min(0).max(3))
         .optional(),
+      attemptsPerCall: z.number().int().min(1).max(4).optional(),
+      directions: z
+        .record(
+          z.string(),
+          z
+            .object({
+              creativeBrief: z.string().trim().max(4000),
+              correctionInstruction: z.string().trim().max(4000).optional(),
+              previousCandidateId: z.uuid().optional(),
+              glyphGuideFontId: z
+                .string()
+                .regex(/^[A-Za-z0-9_-]{1,128}$/)
+                .optional(),
+            })
+            .strict(),
+        )
+        .optional(),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("candidate"),
+      candidateId: z.uuid().optional(),
+      candidateIds: z
+        .array(z.uuid())
+        .min(1)
+        .max(10)
+        .refine((ids) => new Set(ids).size === ids.length)
+        .optional(),
+    })
+    .strict()
+    .refine(
+      (value) => Boolean(value.candidateId) !== Boolean(value.candidateIds),
+      {
+        message: "Supply candidateId or candidateIds, not both.",
+      },
+    ),
+  z
+    .object({
+      kind: z.literal("verify"),
+      blockIds: blockIds.refine((ids) => ids.length <= 10),
+      expectedModel: z.string().trim().min(1).max(128),
+      allowExternalProcessing: z.boolean().default(false),
     })
     .strict(),
 ]);
@@ -124,6 +168,7 @@ export const McpSoundEffectPlanReferenceSchema = z
     expiresAt: z.number().int().nonnegative(),
     generationCalls: z.number().int().nonnegative(),
     failedItems: z.number().int().nonnegative(),
+    glyphEvidenceIds: z.array(z.uuid()).max(10).optional(),
   })
   .strict();
 const state = z
@@ -174,6 +219,14 @@ export const mcpSoundEffectOutputs = {
       limit: z.number().int().positive(),
       nextOffset: z.number().int().nonnegative().nullable(),
       items: z.array(item).max(25),
+      letteringTargets: z
+        .array(
+          LetteringTextStructureSchema.extend({
+            blockId: z.string().nullable(),
+          }),
+        )
+        .max(25)
+        .optional(),
       generation: z
         .object({
           provider: z.literal("codex"),

@@ -17222,6 +17222,28 @@
         "pct": 86.66
       }
     },
+    "src/shared/fontMatchingProfileTypes.ts": {
+      "lines": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "statements": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "functions": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
     "src/shared/gemmaMemoryPolicy.ts": {
       "lines": {
         "covered": 14,
@@ -18368,6 +18390,28 @@
         "pct": 100
       }
     },
+    "src/main/application/codexLetteringShapeReview.ts": {
+      "lines": {
+        "total": 5,
+        "covered": 5,
+        "pct": 100
+      },
+      "statements": {
+        "total": 5,
+        "covered": 5,
+        "pct": 100
+      },
+      "functions": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
     "src/main/application/codexTypesettingBackground.ts": {
       "lines": {
         "covered": 38,
@@ -19380,6 +19424,28 @@
         "pct": 78.12
       }
     },
+    "src/main/application/mcpDetailedTranslationQuality.ts": {
+      "lines": {
+        "total": 89,
+        "covered": 79,
+        "pct": 88.76
+      },
+      "statements": {
+        "total": 102,
+        "covered": 89,
+        "pct": 87.25
+      },
+      "functions": {
+        "total": 23,
+        "covered": 23,
+        "pct": 100
+      },
+      "branches": {
+        "total": 109,
+        "covered": 92,
+        "pct": 84.4
+      }
+    },
     "src/main/application/mcpEditPolicy.ts": {
       "lines": {
         "covered": 17,
@@ -19554,6 +19620,28 @@
         "covered": 41,
         "total": 46,
         "pct": 89.13
+      }
+    },
+    "src/main/application/mcpGeneratedTouchup.ts": {
+      "lines": {
+        "total": 33,
+        "covered": 31,
+        "pct": 93.93
+      },
+      "statements": {
+        "total": 34,
+        "covered": 31,
+        "pct": 91.17
+      },
+      "functions": {
+        "total": 6,
+        "covered": 6,
+        "pct": 100
+      },
+      "branches": {
+        "total": 36,
+        "covered": 26,
+        "pct": 72.22
       }
     },
     "src/main/application/mcpImageEditPolicy.ts": {
@@ -20656,6 +20744,28 @@
         "pct": 93.58
       }
     },
+    "src/main/application/mcpSnapshotPayload.ts": {
+      "lines": {
+        "total": 18,
+        "covered": 18,
+        "pct": 100
+      },
+      "statements": {
+        "total": 18,
+        "covered": 18,
+        "pct": 100
+      },
+      "functions": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      },
+      "branches": {
+        "total": 10,
+        "covered": 10,
+        "pct": 100
+      }
+    },
     "src/main/application/mcpSoundEffectBlocks.ts": {
       "lines": {
         "covered": 24,
@@ -20876,6 +20986,28 @@
         "pct": 100
       }
     },
+    "src/main/application/mcpTranslationCompletion.ts": {
+      "lines": {
+        "total": 54,
+        "covered": 54,
+        "pct": 100
+      },
+      "statements": {
+        "total": 56,
+        "covered": 56,
+        "pct": 100
+      },
+      "functions": {
+        "total": 16,
+        "covered": 16,
+        "pct": 100
+      },
+      "branches": {
+        "total": 60,
+        "covered": 58,
+        "pct": 96.66
+      }
+    },
     "src/main/application/mcpTranslationGuide.ts": {
       "lines": {
         "covered": 33,
@@ -21050,6 +21182,28 @@
         "total": 6,
         "covered": 6,
         "pct": 100
+      }
+    },
+    "src/main/application/mcpWorkTypographyPolicy.ts": {
+      "lines": {
+        "total": 26,
+        "covered": 23,
+        "pct": 88.46
+      },
+      "statements": {
+        "total": 27,
+        "covered": 24,
+        "pct": 88.88
+      },
+      "functions": {
+        "total": 10,
+        "covered": 9,
+        "pct": 90
+      },
+      "branches": {
+        "total": 34,
+        "covered": 30,
+        "pct": 88.23
       }
     },
     "src/main/application/mcpWorkflowHandoffService.ts": {
@@ -26376,6 +26530,28 @@
         "pct": 100
       }
     },
+    "src/main/mcp/mcpCompositeDetailedReview.ts": {
+      "lines": {
+        "total": 8,
+        "covered": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 8,
+        "covered": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 3,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 6,
+        "covered": 0,
+        "pct": 0
+      }
+    },
     "src/main/mcp/mcpCompositeNativeActions.ts": {
       "lines": {
         "covered": 6,
@@ -27936,6 +28112,50 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/main/mcp/mcpGeneratedGlyphRendering.ts": {
+      "lines": {
+        "total": 24,
+        "covered": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 26,
+        "covered": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 1,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 6,
+        "covered": 0,
+        "pct": 0
+      }
+    },
+    "src/main/mcp/mcpGeneratedGlyphVerification.ts": {
+      "lines": {
+        "total": 29,
+        "covered": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 33,
+        "covered": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 8,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 16,
+        "covered": 0,
+        "pct": 0
       }
     },
     "src/main/mcp/mcpHttpPolicy.ts": {
@@ -29918,6 +30138,50 @@
         "pct": 100
       }
     },
+    "src/main/mcp/mcpQualityEvidenceStore.ts": {
+      "lines": {
+        "total": 15,
+        "covered": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 16,
+        "covered": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 3,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 4,
+        "covered": 0,
+        "pct": 0
+      }
+    },
+    "src/main/mcp/mcpQualityTools.ts": {
+      "lines": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "statements": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "functions": {
+        "total": 1,
+        "covered": 1,
+        "pct": 100
+      },
+      "branches": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      }
+    },
     "src/main/mcp/mcpReadTools.ts": {
       "lines": {
         "covered": 18,
@@ -30268,6 +30532,28 @@
         "covered": 34,
         "total": 38,
         "pct": 89.47
+      }
+    },
+    "src/main/mcp/mcpRetentionImages.ts": {
+      "lines": {
+        "total": 62,
+        "covered": 55,
+        "pct": 88.7
+      },
+      "statements": {
+        "total": 68,
+        "covered": 59,
+        "pct": 86.76
+      },
+      "functions": {
+        "total": 7,
+        "covered": 7,
+        "pct": 100
+      },
+      "branches": {
+        "total": 42,
+        "covered": 33,
+        "pct": 78.57
       }
     },
     "src/main/mcp/mcpRetentionRecords.ts": {
@@ -30622,6 +30908,50 @@
         "pct": 100
       }
     },
+    "src/main/mcp/mcpSoundEffectCandidateTools.ts": {
+      "lines": {
+        "total": 51,
+        "covered": 6,
+        "pct": 11.76
+      },
+      "statements": {
+        "total": 53,
+        "covered": 6,
+        "pct": 11.32
+      },
+      "functions": {
+        "total": 13,
+        "covered": 4,
+        "pct": 30.76
+      },
+      "branches": {
+        "total": 32,
+        "covered": 1,
+        "pct": 3.12
+      }
+    },
+    "src/main/mcp/mcpSoundEffectCandidates.ts": {
+      "lines": {
+        "total": 43,
+        "covered": 37,
+        "pct": 86.04
+      },
+      "statements": {
+        "total": 46,
+        "covered": 39,
+        "pct": 84.78
+      },
+      "functions": {
+        "total": 12,
+        "covered": 10,
+        "pct": 83.33
+      },
+      "branches": {
+        "total": 16,
+        "covered": 12,
+        "pct": 75
+      }
+    },
     "src/main/mcp/mcpSoundEffectCommands.ts": {
       "lines": {
         "covered": 18,
@@ -30796,6 +31126,28 @@
         "covered": 12,
         "total": 14,
         "pct": 85.71
+      }
+    },
+    "src/main/mcp/mcpSoundEffectReferences.ts": {
+      "lines": {
+        "total": 19,
+        "covered": 6,
+        "pct": 31.57
+      },
+      "statements": {
+        "total": 20,
+        "covered": 6,
+        "pct": 30
+      },
+      "functions": {
+        "total": 3,
+        "covered": 1,
+        "pct": 33.33
+      },
+      "branches": {
+        "total": 21,
+        "covered": 3,
+        "pct": 14.28
       }
     },
     "src/main/mcp/mcpSoundEffectSession.ts": {
@@ -31214,6 +31566,28 @@
         "covered": 4,
         "total": 4,
         "pct": 100
+      }
+    },
+    "src/main/mcp/mcpTranslationSourceTool.ts": {
+      "lines": {
+        "total": 16,
+        "covered": 2,
+        "pct": 12.5
+      },
+      "statements": {
+        "total": 18,
+        "covered": 2,
+        "pct": 11.11
+      },
+      "functions": {
+        "total": 4,
+        "covered": 1,
+        "pct": 25
+      },
+      "branches": {
+        "total": 4,
+        "covered": 0,
+        "pct": 0
       }
     },
     "src/main/mcp/mcpTypographyAnalysisAdapter.ts": {
@@ -31676,6 +32050,28 @@
         "total": 2,
         "covered": 2,
         "pct": 100
+      }
+    },
+    "src/main/mcp/mcpWorkTypographyTools.ts": {
+      "lines": {
+        "total": 40,
+        "covered": 5,
+        "pct": 12.5
+      },
+      "statements": {
+        "total": 41,
+        "covered": 5,
+        "pct": 12.19
+      },
+      "functions": {
+        "total": 13,
+        "covered": 4,
+        "pct": 30.76
+      },
+      "branches": {
+        "total": 21,
+        "covered": 2,
+        "pct": 9.52
       }
     },
     "src/main/mcp/mcpWorkflowAuthorization.ts": {
@@ -32490,6 +32886,28 @@
         "total": 2,
         "covered": 2,
         "pct": 100
+      }
+    },
+    "src/main/pipeline/codexLetteringCorrectionReferences.ts": {
+      "lines": {
+        "total": 5,
+        "covered": 3,
+        "pct": 60
+      },
+      "statements": {
+        "total": 5,
+        "covered": 3,
+        "pct": 60
+      },
+      "functions": {
+        "total": 3,
+        "covered": 1,
+        "pct": 33.33
+      },
+      "branches": {
+        "total": 7,
+        "covered": 6,
+        "pct": 85.71
       }
     },
     "src/main/pipeline/codexLetteringGroups.ts": {
@@ -37838,6 +38256,28 @@
         "pct": 0
       }
     },
+    "src/renderer/src/components/LetteringMoveSurface.tsx": {
+      "lines": {
+        "total": 4,
+        "covered": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 4,
+        "covered": 0,
+        "pct": 0
+      },
+      "functions": {
+        "total": 1,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 7,
+        "covered": 0,
+        "pct": 0
+      }
+    },
     "src/renderer/src/components/LinkedWorkspaceFolderRoles.tsx": {
       "lines": {
         "total": 4,
@@ -42898,6 +43338,28 @@
         "pct": 75
       }
     },
+    "src/renderer/src/hooks/useLetteringPartMove.ts": {
+      "lines": {
+        "total": 90,
+        "covered": 87,
+        "pct": 96.66
+      },
+      "statements": {
+        "total": 96,
+        "covered": 89,
+        "pct": 92.7
+      },
+      "functions": {
+        "total": 20,
+        "covered": 20,
+        "pct": 100
+      },
+      "branches": {
+        "total": 55,
+        "covered": 44,
+        "pct": 80
+      }
+    },
     "src/renderer/src/hooks/useLetteringStroke.ts": {
       "lines": {
         "covered": 0,
@@ -43558,6 +44020,50 @@
         "pct": 93.75
       }
     },
+    "src/renderer/src/lib/letteringPartMoveDraft.ts": {
+      "lines": {
+        "total": 26,
+        "covered": 23,
+        "pct": 88.46
+      },
+      "statements": {
+        "total": 32,
+        "covered": 26,
+        "pct": 81.25
+      },
+      "functions": {
+        "total": 9,
+        "covered": 8,
+        "pct": 88.88
+      },
+      "branches": {
+        "total": 12,
+        "covered": 6,
+        "pct": 50
+      }
+    },
+    "src/renderer/src/lib/letteringPointer.ts": {
+      "lines": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      },
+      "statements": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      },
+      "functions": {
+        "total": 1,
+        "covered": 1,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
     "src/renderer/src/lib/modalWorkCenterHandoff.ts": {
       "lines": {
         "total": 80,
@@ -43886,6 +44392,28 @@
         "covered": 0,
         "total": 6,
         "pct": 0
+      }
+    },
+    "src/renderer/src/lib/renderedGlyphEvidence.ts": {
+      "lines": {
+        "total": 23,
+        "covered": 1,
+        "pct": 4.34
+      },
+      "statements": {
+        "total": 28,
+        "covered": 2,
+        "pct": 7.14
+      },
+      "functions": {
+        "total": 3,
+        "covered": 1,
+        "pct": 33.33
+      },
+      "branches": {
+        "total": 17,
+        "covered": 1,
+        "pct": 5.88
       }
     },
     "src/renderer/src/lib/richTextEditorDom.ts": {
@@ -45076,6 +45604,28 @@
         "pct": 76.63
       }
     },
+    "src/shared/generatedGlyphReview.ts": {
+      "lines": {
+        "total": 8,
+        "covered": 8,
+        "pct": 100
+      },
+      "statements": {
+        "total": 8,
+        "covered": 8,
+        "pct": 100
+      },
+      "functions": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "branches": {
+        "total": 16,
+        "covered": 15,
+        "pct": 93.75
+      }
+    },
     "src/shared/generatedLettering.ts": {
       "lines": {
         "covered": 2,
@@ -45096,6 +45646,28 @@
         "covered": 6,
         "total": 6,
         "pct": 100
+      }
+    },
+    "src/shared/generatedLetteringComposition.ts": {
+      "lines": {
+        "total": 31,
+        "covered": 2,
+        "pct": 6.45
+      },
+      "statements": {
+        "total": 34,
+        "covered": 2,
+        "pct": 5.88
+      },
+      "functions": {
+        "total": 6,
+        "covered": 0,
+        "pct": 0
+      },
+      "branches": {
+        "total": 18,
+        "covered": 0,
+        "pct": 0
       }
     },
     "src/shared/generatedLetteringMask.ts": {
@@ -45162,6 +45734,28 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/shared/generatedLetteringPartMove.ts": {
+      "lines": {
+        "total": 30,
+        "covered": 30,
+        "pct": 100
+      },
+      "statements": {
+        "total": 31,
+        "covered": 31,
+        "pct": 100
+      },
+      "functions": {
+        "total": 7,
+        "covered": 7,
+        "pct": 100
+      },
+      "branches": {
+        "total": 28,
+        "covered": 27,
+        "pct": 96.42
       }
     },
     "src/shared/glossaryOmission.ts": {
@@ -45778,6 +46372,28 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/shared/letteringTextStructure.ts": {
+      "lines": {
+        "total": 10,
+        "covered": 10,
+        "pct": 100
+      },
+      "statements": {
+        "total": 11,
+        "covered": 11,
+        "pct": 100
+      },
+      "functions": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      },
+      "branches": {
+        "total": 8,
+        "covered": 7,
+        "pct": 87.5
       }
     },
     "src/shared/linkedWorkspaceSchemas.ts": {
@@ -46418,6 +47034,28 @@
         "pct": 93.18
       }
     },
+    "src/shared/mcpGeneratedTouchup.ts": {
+      "lines": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "statements": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "functions": {
+        "total": 3,
+        "covered": 3,
+        "pct": 100
+      },
+      "branches": {
+        "total": 2,
+        "covered": 2,
+        "pct": 100
+      }
+    },
     "src/shared/mcpImageEditing.ts": {
       "lines": {
         "total": 17,
@@ -46548,6 +47186,28 @@
         "total": 19,
         "covered": 19,
         "pct": 100
+      }
+    },
+    "src/shared/mcpLayoutReview.ts": {
+      "lines": {
+        "total": 15,
+        "covered": 15,
+        "pct": 100
+      },
+      "statements": {
+        "total": 18,
+        "covered": 18,
+        "pct": 100
+      },
+      "functions": {
+        "total": 10,
+        "covered": 10,
+        "pct": 100
+      },
+      "branches": {
+        "total": 39,
+        "covered": 34,
+        "pct": 87.17
       }
     },
     "src/shared/mcpLettering.ts": {
@@ -46823,6 +47483,50 @@
       "statements": {
         "total": 8,
         "covered": 8,
+        "pct": 100
+      },
+      "functions": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
+    "src/shared/mcpQualityEvidence.ts": {
+      "lines": {
+        "total": 8,
+        "covered": 8,
+        "pct": 100
+      },
+      "statements": {
+        "total": 8,
+        "covered": 8,
+        "pct": 100
+      },
+      "functions": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
+    "src/shared/mcpQualityOutputs.ts": {
+      "lines": {
+        "total": 7,
+        "covered": 7,
+        "pct": 100
+      },
+      "statements": {
+        "total": 7,
+        "covered": 7,
         "pct": 100
       },
       "functions": {
@@ -47273,6 +47977,28 @@
       "branches": {
         "total": 8,
         "covered": 8,
+        "pct": 100
+      }
+    },
+    "src/shared/mcpWorkTypography.ts": {
+      "lines": {
+        "total": 6,
+        "covered": 6,
+        "pct": 100
+      },
+      "statements": {
+        "total": 7,
+        "covered": 7,
+        "pct": 100
+      },
+      "functions": {
+        "total": 4,
+        "covered": 4,
+        "pct": 100
+      },
+      "branches": {
+        "total": 0,
+        "covered": 0,
         "pct": 100
       }
     },

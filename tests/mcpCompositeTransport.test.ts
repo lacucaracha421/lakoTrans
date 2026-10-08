@@ -13,6 +13,38 @@ import {
 } from "./mcpCompositeWorkflow.fixture";
 import { compositeTransportFixture } from "./mcpCompositeTransport.fixture";
 
+it("defaults new translation composites to detailed evidence and requires an explicit quick or manual mode to opt out", async () => {
+  const f = compositeTransportFixture();
+  try {
+    const plan = { ...compositePlan(true), mode: undefined };
+    const result = await f.invoke("carrot_prepare_composite", plan);
+    const view = McpCompositeViewSchema.parse(result.structuredContent);
+    expect(view.plan.qualityPolicy).toBe("complete-translation-v2");
+    const quick = await f.invoke("carrot_prepare_composite", {
+      ...compositePlan(),
+      mode: "quick",
+    });
+    expect(
+      McpCompositeViewSchema.parse(quick.structuredContent).plan.qualityPolicy,
+    ).toBeUndefined();
+    await expect(
+      f.invoke("carrot_prepare_composite", {
+        ...compositePlan(true),
+        mode: "quick",
+        qualityPolicy: "complete-translation-v2",
+      }),
+    ).rejects.toThrow();
+    await expect(
+      f.invoke("carrot_prepare_composite", {
+        ...compositePlan(),
+        mode: undefined,
+      }),
+    ).rejects.toThrow(/final rendered review/);
+  } finally {
+    await f.service.close();
+  }
+});
+
 it("registers fifteen strict operations and keeps parent/read inspection free of rendering or execution", async () => {
   const f = compositeTransportFixture();
   try {

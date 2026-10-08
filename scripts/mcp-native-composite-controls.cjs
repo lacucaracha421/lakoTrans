@@ -29,6 +29,7 @@ const {
  * @param {import("../src/shared/mcpCompositeWorkflow").McpCompositePrepare["phases"]} phases */
 async function prepareCompositeControl(client, pages, phases) {
   return client.call("prepare_composite", {
+    mode: "manual",
     requestId: randomUUID(),
     reason: "Native composite bounded control acceptance",
     targets: { kind: "saved", pages },

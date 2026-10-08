@@ -114,6 +114,12 @@ UI 표면과 primitive 선택은 [`ui-design-rules.md`](ui-design-rules.md)를 �
 
 ## 공용 계약과 SSOT
 
+생성 레터링의 자모 기준은 `letteringTextStructure`가 확정 문구의 Unicode 음절을
+분해해 제공한다. 기존 `richTextMarkup` parser로 표시 문구를 얻으며 해당 모듈의
+직접 소비 상한만 38로 기록한다. 생성 지시와 MCP 수정용 메타데이터에 공유하고,
+정답을 숨기는 이미지 재판독·자형 검사에는 전달하지 않는다. NFC/NFD·혼합 문자·
+겹받침·서식 문구와 실제 MCP HTTP/미리보기 응답 테스트로 이 경계를 확인한다.
+
 클립보드는 렌더러와 같은 `richTextMarkup` parser로 표시 문자열을 얻어 자동 확장된
 텍스트 상자를 보존한다. 이 직접 소비자를 포함해 parser fan-in은 29다.
 원문 글자 크기 측정·페이지 내 대체 측정과 말풍선 배치의 원래 계약을 유지하며,

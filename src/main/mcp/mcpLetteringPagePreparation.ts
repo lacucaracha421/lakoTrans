@@ -86,7 +86,8 @@ function selectTargets(
       const reason =
         command.kind === "layout"
           ? mcpLayoutExclusion(block, command)
-          : getActiveGeneratedLettering(block)
+          : command.kind !== "generated-touchup" &&
+              getActiveGeneratedLettering(block)
             ? "generated_lettering"
             : null;
       if (reason) {

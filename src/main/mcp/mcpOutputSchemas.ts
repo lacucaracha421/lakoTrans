@@ -1,4 +1,8 @@
 import { McpTranslationGuideOutputSchema } from "../../shared/mcpTranslationGuide";
+import {
+  mcpQualityOutputs,
+  mcpRenderedPageEvidenceFields,
+} from "../../shared/mcpQualityOutputs";
 import { mcpWorkFileOutputs } from "../../shared/mcpWorkFileImport";
 import { mcpCompositeWorkflowOutputs } from "../../shared/mcpCompositeWorkflowOutputs";
 import { mcpTextExchangeOutputs } from "../../shared/mcpTextExchange";
@@ -84,7 +88,8 @@ const block = z
 const image = z
   .object({
     ...target,
-    kind: z.enum(["source-crop", "rendered-page"]),
+    kind: z.enum(["source-crop", "rendered-page", "rendered-crop"]),
+    ...mcpRenderedPageEvidenceFields,
     sourceWidth: size,
     sourceHeight: size,
     width: size,
@@ -102,6 +107,7 @@ const image = z
   .strict();
 /** Public projections only. JSON Schema and runtime validation share these definitions. */
 export const mcpOutputSchemas: Record<string, z.ZodType> = {
+  ...mcpQualityOutputs,
   carrot_get_translation_guide: McpTranslationGuideOutputSchema,
   ...mcpCompositeWorkflowOutputs,
   ...mcpTextExchangeOutputs,
@@ -138,6 +144,7 @@ export const mcpOutputSchemas: Record<string, z.ZodType> = {
   ...mcpSoundEffectOutputs,
   carrot_prepare_sound_effect_batch: mcpJobReceiptOutput,
   carrot_generate_sound_effects: mcpJobReceiptOutput,
+  carrot_verify_generated_lettering: mcpJobReceiptOutput,
   ...mcpSelectionBatchOutputs,
   ...mcpTypographyBatchOutputs,
   ...mcpTypographyReadOutputs,

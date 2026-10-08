@@ -1,3 +1,4 @@
+import { letteringGenerationReferences } from "./codexLetteringCorrectionReferences";
 import { ImageCheckpointError } from "./imageJobFailure";
 import { nativeImage } from "electron";
 import { writeFile } from "node:fs/promises";
@@ -11,6 +12,7 @@ import type { MangaPage } from "../../shared/libraryTypes";
 import { normalizedRegionToPixelRect } from "../../shared/region";
 import { getActiveGeneratedLettering } from "../../shared/generatedLettering";
 import { parseRichText } from "../../shared/richTextMarkup";
+import { describeLetteringText } from "../../shared/letteringTextStructure";
 import type { TranslationBlock } from "../../shared/textTypes";
 import type { CodexAppServerClient } from "../codexAppServerClient";
 import { generateImage } from "./codexTypesettingImageRequest";
@@ -142,7 +144,7 @@ function letteringPrompt(
   const hangul = typography.plainText.normalize("NFC").match(/[가-힣]/gu);
   return `Create a foreground lettering asset that transfers the visual treatment of the attached ORIGINAL source glyphs to the approved target text. Render exactly ${JSON.stringify(typography.plainText)}. Every character must be correct. Do not translate, extend or paraphrase that text.
 SCRIPT: The approved text is the sole authority for character identity and internal glyph structure. Construct complete, readable target-script glyphs first, then apply the reference treatment. Never trace or morph source-script letter skeletons into hybrid lookalikes. Correct target-script anatomy takes priority over resemblance to individual source glyphs. Source-only letters, diacritics and elongation marks must not survive as detached decorative strokes when absent from the approved text.
-${hangul ? `KOREAN HANGUL: Required syllable blocks in reading order: ${JSON.stringify(hangul)}. Keep each syllable's initial consonant, vowel and any final consonant (받침) together in one correctly assembled block. Preserve every vowel stem and final consonant. Even a one-syllable sound effect needs its complete Korean structure; do not spread its jamo into separate source-character slots or replace them with kana-like strokes. Slant, stretch and texture complete syllable blocks without changing their internal letter identities. This spelling guide is not extra text to render.` : ""}
+${hangul ? `KOREAN HANGUL: Required syllable blocks in reading order: ${JSON.stringify(hangul)}. Exact Unicode-derived components: ${JSON.stringify(describeLetteringText(block.translatedText).hangul)}. These component identities are authoritative; never replace them with a different consonant or vowel. Keep each syllable's initial consonant, vowel and any final consonant (받침) together in one correctly assembled block. Preserve every vowel stem and final consonant. Even a one-syllable sound effect needs its complete Korean structure; do not spread its jamo into separate source-character slots or replace them with kana-like strokes. Slant, stretch and texture complete syllable blocks without changing their internal letter identities. This spelling guide is not extra text to render.` : ""}
 ORIGINAL source lettering crop: ${sourceReferenceLabel}. Inspect the lettering itself, separate from surrounding artwork. Its visual treatment is authoritative, not its source-script skeleton. Match the interior tone and ink coverage, spatial texture and grain, speckles and worn patches, the shape and continuity of outlines, the relation of edge color to interior color, pen pressure, terminal finish, slant, spacing and character-size hierarchy. Preserve the source's variations within strokes and across letters at a comparable relative scale. Apply these attributes to correct target-script anatomy. Do not normalize the reference into a standard brush-lettering treatment or substitute default text styling.
 LAYOUT: The reference is the exact source bounding box, and its full canvas maps edge-to-edge to the destination canvas. Preserve the original lettering's relative positions, reading path, separate groups, changing character sizes, slants and empty gaps at the word/group level. Place complete target glyphs along the same path and within the corresponding occupied areas, adapting different character counts proportionally rather than mapping individual source strokes or character slots. Keep intervening artwork areas empty. Do not recenter, straighten, evenly distribute, or collapse scattered lettering into a single column. Do not reproduce surrounding artwork.
 ${style?.description ? `Additional observed family characteristics: ${JSON.stringify(style.description)}. Use only where consistent with the source crop.` : ""}
@@ -326,17 +328,18 @@ async function generateRegionLayer(
     client,
     directory,
     signal,
-    letteringPrompt(
-      block,
-      region.id,
-      canvas.size,
-      context,
-      canvas.reference.label,
-    ) +
-      (anchor
-        ? "\nImage 2 is the FIRST completed target lettering in this same visual family. Use it as a fixed STYLE anchor (tone, texture, edge treatment and pen pressure), never as text or glyph anatomy to copy. The current approved text and its correct script structure remain authoritative, even if the anchor has malformed letters. Use the layout from image 1. Preserve differences that are visible in the current original; do not progressively invent a new style."
-        : ""),
-    anchor ? [canvas.reference.dataUrl, anchor] : [canvas.reference.dataUrl],
+    ...letteringGenerationReferences(
+      letteringPrompt(
+        block,
+        region.id,
+        canvas.size,
+        context,
+        canvas.reference.label,
+      ),
+      canvas.reference.dataUrl,
+      context.correctionReferences?.[region.id],
+      anchor,
+    ),
     { width: canvas.size.w, height: canvas.size.h },
     "lettering",
   );

@@ -2735,7 +2735,7 @@
     "target": "보정 대상",
     "asset": "글자 모양",
     "page": "가림 경계",
-    "mode": "붓 기능",
+    "mode": "보정 기능",
     "hide": "지우기",
     "restore": "복구",
     "shape": "붓 모양",
@@ -2744,7 +2744,14 @@
     "size": "크기",
     "softness": "부드러움",
     "showMask": "마스크 표시",
-    "reset": "초기화"
+    "reset": "초기화",
+    "move": "부분 이동",
+    "selectionShape": "선택 모양",
+    "lasso": "자유 선택",
+    "rectangle": "사각 선택",
+    "moveHint": "옮길 획을 둘러싼 뒤 선택 안쪽을 끌어 옮기세요. 방향키로 미세 조정, Shift로 크게 이동, Enter로 적용, Esc로 취소합니다.",
+    "applyMove": "이동 적용",
+    "cancelSelection": "선택 취소"
   },
   "codexFonts": {
     "title": "폰트 편집",

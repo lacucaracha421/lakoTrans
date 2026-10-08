@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { PNG } from "pngjs";
 import { vi } from "vitest";
 import { imageEditingFixture } from "./mcpImageEditing.fixture";
+import { validGlyphShape } from "./generatedGlyphReview.fixture";
 import {
   McpSoundEffectPrepareSchema,
   mcpSoundEffectOutputs,
@@ -10,7 +11,9 @@ import {
 } from "../src/shared/mcpSoundEffects";
 import type { SoundEffectGenerationRuntime } from "../src/main/mcp/mcpSoundEffectGeneration";
 
-export async function soundEffectFixture() {
+export async function soundEffectFixture(
+  runtime: Partial<SoundEffectGenerationRuntime> = {},
+) {
   const f = await imageEditingFixture();
   const stored = JSON.parse(await readFile(f.chapterPath, "utf8"));
   stored.pages[0].blocks[0].textRole = "sound";
@@ -76,7 +79,11 @@ export async function soundEffectFixture() {
       text: JSON.stringify({
         regions: page.blocks
           .filter((block) => ids.has(block.id))
-          .map((block) => ({ regionId: block.id, text: block.translatedText })),
+          .map((block) =>
+            JSON.stringify(request.outputSchema).includes('"shape"')
+              ? { regionId: block.id, shape: validGlyphShape }
+              : { regionId: block.id, text: block.translatedText },
+          ),
       }),
     };
   });
@@ -101,6 +108,7 @@ export async function soundEffectFixture() {
       createMcpSoundEffectPreparation(f.app.appPaths, {
         startClient,
         startReader,
+        ...runtime,
       }),
     ),
     Date.now,

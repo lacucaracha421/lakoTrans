@@ -1,4 +1,5 @@
 import { McpPageBatchPreparation } from "./mcpPageBatchPreparation";
+import { packMcpSnapshot } from "./mcpSnapshotPayload";
 import { randomUUID } from "node:crypto";
 import { createPageRevision } from "../../shared/pageRevision";
 import { mcpContextRevision } from "../../shared/mcpContextEditing";
@@ -132,15 +133,15 @@ export class McpPageBatchService<
     });
     this.check(owner, guard);
     this.prune();
-    const bytes =
-      Buffer.byteLength(JSON.stringify(plan)) + Buffer.byteLength(signature);
+    const size = packMcpSnapshot(plan);
+    const bytes = size.totalBytes + Buffer.byteLength(signature);
     const occupied = [...this.entries.values()].reduce(
       (sum, entry) => sum + entry.bytes,
       0,
     );
     if (
       this.entries.size >= 32 ||
-      bytes > 4 * 1024 * 1024 ||
+      size.metadataBytes + Buffer.byteLength(signature) > 4 * 1024 * 1024 ||
       occupied + bytes > 32 * 1024 * 1024
     )
       throw new McpEditError(

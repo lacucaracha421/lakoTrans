@@ -1,9 +1,8 @@
+import { createMcpQualityTools } from "./mcpQualityTools";
 import { createMcpContextReferenceTools } from "./mcpContextReferenceTools";
 import { McpTypographyReadService } from "../application/mcpTypographyReadService";
 import { createMcpTypographyReadTools } from "./mcpTypographyReadTools";
 import { readMcpFontCatalog } from "./mcpFontCatalogAdapter";
-import { createMcpFontSamplesTool } from "./mcpFontSamplesTool";
-import { renderMcpFontSamples } from "./mcpFontSamplesAdapter";
 import { createMcpTranslationBatchTools } from "./mcpTranslationBatchTools";
 import { createMcpFormatBatchTools } from "./mcpFormatBatchTools";
 import {
@@ -28,10 +27,12 @@ import {
   openChapter,
   savePageBlocks,
   readWorkContextForEdit,
+  readWorkTypographyProfile,
 } from "../library";
 import { McpPageEditService } from "../application/mcpPageEditService";
 import { createMcpToolSet } from "./mcpToolSet";
 import { renderMcpPagePreview } from "./mcpPreviewImage";
+import type { McpTranslationCompletionReader } from "../application/mcpTranslationCompletion";
 
 /** Connect tool use cases to the same public library facade and redaction adapter as the app. */
 export function createMcpAppTools(options: {
@@ -39,6 +40,7 @@ export function createMcpAppTools(options: {
   additionalTools?: McpTool[];
   wrapTool?: (tool: McpTool) => McpTool;
   bindNativeTools?: (tools: readonly McpTool[]) => void;
+  readTranslationCompletion?: McpTranslationCompletionReader;
   withPageEdit?: McpPageEditScope;
   lifetime?: AbortSignal;
   assertWritable: (chapterId: string, pageId: string) => Promise<void>;
@@ -53,10 +55,8 @@ export function createMcpAppTools(options: {
   });
   const extensions = [
     ...createMcpContextReferenceTools(),
-    ...typographyReadTools(
-      options.additionalTools ?? [],
-      options.preferences.allowImages,
-    ),
+    ...createMcpQualityTools(options.preferences),
+    ...typographyReadTools(options.additionalTools ?? []),
     ...(options.additionalTools ?? []),
     ...createMcpTranslationBatchTools(
       createMcpTranslationBatchPorts(edits),
@@ -89,18 +89,14 @@ export function createMcpAppTools(options: {
         }),
       ),
     );
-  if (options.preferences.allowImages)
-    extensions.push(
-      ...createMcpPageImageTools(
-        new McpPageImageService({
-          openChapter,
-          crop: cropMcpPage,
-          render: renderMcpSavedPage,
-        }),
-      ),
-    );
+  if (options.preferences.allowImages) extensions.push(...pageImageTools());
   const tools = createMcpToolSet(
-    { listLibrary, openChapter, readContext: readWorkContextForEdit },
+    {
+      listLibrary,
+      openChapter,
+      readContext: readWorkContextForEdit,
+      readTypography: readWorkTypographyProfile,
+    },
     options.preferences.allowImages ? renderMcpPagePreview : undefined,
     true,
     {
@@ -110,15 +106,13 @@ export function createMcpAppTools(options: {
       lifetime: options.lifetime,
     },
     extensions,
+    options.readTranslationCompletion,
   ).map((tool) => configureMcpTool(tool, options.wrapTool));
   options.bindNativeTools?.(tools);
   return tools;
 }
 
-function typographyReadTools(
-  operations: readonly McpTool[],
-  images: boolean,
-): McpTool[] {
+function typographyReadTools(operations: readonly McpTool[]): McpTool[] {
   const tools = createMcpTypographyReadTools(
     new McpTypographyReadService({
       openChapter,
@@ -131,13 +125,6 @@ function typographyReadTools(
       ),
     }),
   );
-  if (images)
-    tools.push(
-      createMcpFontSamplesTool({
-        catalog: readMcpFontCatalog,
-        render: renderMcpFontSamples,
-      }),
-    );
   return tools;
 }
 
@@ -153,4 +140,14 @@ function configureMcpTool(
         : (tool.requiredScopes ?? ["carrot.read"]),
   };
   return wrap ? wrap(scoped) : scoped;
+}
+
+function pageImageTools() {
+  return createMcpPageImageTools(
+    new McpPageImageService({
+      openChapter,
+      crop: cropMcpPage,
+      render: renderMcpSavedPage,
+    }),
+  );
 }

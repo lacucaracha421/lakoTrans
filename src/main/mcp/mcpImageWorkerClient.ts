@@ -259,9 +259,7 @@ function validateRasterResult(
   result: Record<string, unknown>,
 ): void {
   const raster = input as McpImageOperations["lettering"]["input"];
-  const background = input as McpImageOperations["background"]["input"];
-  const width = kind === "background" ? background.pageWidth : raster.width;
-  const height = kind === "background" ? background.pageHeight : raster.height;
+  const { width, height } = expectedRasterDimensions(kind, input);
   if (
     result.width !== width ||
     result.height !== height ||
@@ -273,6 +271,28 @@ function validateRasterResult(
     if (!countInRange(result[field], raster.width * raster.height))
       throw new Error("Invalid image worker pixel count.");
   validateRasterBytes(kind, width * height, result);
+}
+function expectedRasterDimensions(
+  kind: "lettering" | "background",
+  input: McpImageOperations[McpImageOperation]["input"],
+) {
+  if (kind === "background") {
+    const background = input as McpImageOperations["background"]["input"];
+    return { width: background.pageWidth, height: background.pageHeight };
+  }
+  const raster = input as McpImageOperations["lettering"]["input"];
+  if (!raster.letteringPatch) return raster;
+  // Patch input dimensions describe the small insert; output retains the original asset size.
+  // The worker's existing PNG decoder remains responsible for CRC/container validation.
+  const bytes = raster.letteringPatch.base;
+  if (bytes.byteLength < 24)
+    throw new Error("Invalid lettering patch asset header.");
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const width = header.getUint32(16),
+    height = header.getUint32(20);
+  if (!width || !height || width * height > 16_000_000)
+    throw new Error("Invalid lettering patch asset dimensions.");
+  return { width, height };
 }
 function validateRasterBytes(
   kind: "lettering" | "background",

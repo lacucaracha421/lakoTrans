@@ -9,6 +9,25 @@ import {
 import { createConditionalLiteralMatcher } from "../src/shared/conditionalTextPattern";
 import { parseRichText } from "../src/shared/richTextMarkup";
 
+it("keeps already-matching formatting unchanged without treating it as excluded or writing pages", async () => {
+  const f = letteringFixture();
+  try {
+    for (const page of f.chapter.pages) page.blocks[0].bold = true;
+    const before = structuredClone(f.chapter.pages);
+    const plan = await f.service.preview(
+      f.owner,
+      f.request({ kind: "format", fields: { bold: true } }),
+      f.guard,
+    );
+    const result = await f.inspect(plan.batchId);
+    expect(result.pages.every((page) => page.state === "unchanged")).toBe(true);
+    expect(f.chapter.pages).toEqual(before);
+    expect(f.save).not.toHaveBeenCalled();
+  } finally {
+    await f.close();
+  }
+});
+
 it("plans without writes, applies native styles, and restores exact optional state", async () => {
   const f = letteringFixture();
   const before = structuredClone(f.chapter);

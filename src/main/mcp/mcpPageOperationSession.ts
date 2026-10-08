@@ -71,6 +71,7 @@ export function createMcpPageOperationSession(options: PageSessionOptions) {
   return {
     tools: [...(parents?.tools ?? []), ...nativeTools],
     bindNativeTools: parents?.bindNativeTools,
+    readTranslationCompletion: parents?.readTranslationCompletion,
     artifacts,
     wrapTool: retained?.wrap,
     ready: () => readyPageSession(operations, retained),

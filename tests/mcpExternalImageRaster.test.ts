@@ -44,6 +44,61 @@ const cases = [
     protected: [0, 0, 1, 0],
   },
 ];
+it("patches a malformed syllable in asset coordinates, preserving exact outside and protected RGBA", () => {
+  const base = new PNG({ width: 4, height: 4 });
+  for (let i = 0; i < base.data.length; i++) base.data[i] = i;
+  const incoming = makePng(true);
+  const before = Buffer.from(base.data);
+  const result = composeExternalLetteringRaster({
+    image: PNG.sync.write(incoming),
+    width: 2,
+    height: 2,
+    protectedMask: mask([0, 1, 0, 0]),
+    letteringPatch: {
+      base: PNG.sync.write(base),
+      rect: { x: 1, y: 1, w: 2, h: 2 },
+    },
+  });
+  const after = PNG.sync.read(Buffer.from(result.bytes));
+  expect([after.width, after.height]).toEqual([4, 4]);
+  for (let index = 0; index < 16; index++) {
+    const source = new Map([
+      [5, 0],
+      [9, 2],
+      [10, 3],
+    ]).get(index);
+    expect(after.data.subarray(index * 4, index * 4 + 4)).toEqual(
+      source === undefined
+        ? before.subarray(index * 4, index * 4 + 4)
+        : incoming.data.subarray(source * 4, source * 4 + 4),
+    );
+  }
+  for (const x of [-1, 3])
+    expect(() =>
+      composeExternalLetteringRaster({
+        image: PNG.sync.write(incoming),
+        width: 2,
+        height: 2,
+        letteringPatch: {
+          base: PNG.sync.write(base),
+          rect: { x, y: 1, w: 2, h: 2 },
+        },
+      }),
+    ).toThrow();
+});
+it("rejects truncated or oversized base assets before allocating a lettering patch", () => {
+  const input = { image: PNG.sync.write(makePng(true)), width: 2, height: 2 };
+  const oversized = Buffer.alloc(24);
+  oversized.writeUInt32BE(100_000, 16);
+  oversized.writeUInt32BE(100_000, 20);
+  for (const base of [Buffer.alloc(8), oversized])
+    expect(() =>
+      composeExternalLetteringRaster({
+        ...input,
+        letteringPatch: { base, rect: { x: 0, y: 0, w: 2, h: 2 } },
+      }),
+    ).toThrow();
+});
 function makePng(alpha: boolean) {
   const png = new PNG({ width: 2, height: 2 });
   png.data = Buffer.from([

@@ -24,6 +24,7 @@ type PreparedSoundEffect = {
   changes: McpSoundEffectChange[];
   generationCalls: number;
   failedItems: number;
+  glyphEvidenceIds?: string[];
 };
 export type SoundEffectPlan = BatchPlan<McpSoundEffectChange> &
   PreparedSoundEffect;

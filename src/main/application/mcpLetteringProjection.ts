@@ -14,6 +14,10 @@ import type { TranslationBlock } from "../../shared/textTypes";
 import type { GlossaryEntry } from "../../shared/workContextTypes";
 import { McpEditError } from "./mcpEditPolicy";
 import { applyMcpBlockPatch } from "./mcpBlockEditPolicy";
+import {
+  applyGeneratedTouchup,
+  assertGeneratedTouchupOnly,
+} from "./mcpGeneratedTouchup";
 
 export type McpLetteringRecipe = {
   schemes: ConditionalBatchSchemeDraftV2[];
@@ -66,6 +70,19 @@ export function projectMcpLetteringPage(options: {
     );
   let current = structuredClone(page);
   if (!blockIds.length) return current;
+  if (command.kind === "generated-touchup") {
+    current.blocks = current.blocks.map((block) => {
+      if (!blockIds.includes(block.id)) return block;
+      const edit = command.edits.find((item) => item.blockId === block.id);
+      if (!edit)
+        throw new McpEditError(
+          "invalid_edit",
+          "Each selected touchup block needs an edit and asset SHA.",
+        );
+      return applyGeneratedTouchup(page, block, edit);
+    });
+    return current;
+  }
   for (const scheme of recipe.schemes) {
     const context = {
       ...chapter,
@@ -151,6 +168,8 @@ export function assertMcpLetteringOnly(
   after: TranslationBlock,
   command: McpLetteringCommand,
 ) {
+  if (command.kind === "generated-touchup")
+    return assertGeneratedTouchupOnly(before, after);
   const layout = command.kind === "layout";
   const allowed = new Set(
     layout

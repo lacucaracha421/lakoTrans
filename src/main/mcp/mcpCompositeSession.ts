@@ -9,6 +9,10 @@ import type { McpTool } from "./mcpReadTools";
 import { createMcpCompositeNative } from "./mcpCompositeNativeAdapter";
 import type { CompositeNativeOptions } from "./mcpCompositeNativeResolve";
 import { createMcpCompositeTools } from "./mcpCompositeTools";
+import {
+  inspectMcpTranslationCompletion,
+  type McpTranslationCompletionReader,
+} from "../application/mcpTranslationCompletion";
 
 type Options = Omit<CompositeNativeOptions, "tools"> & {
   repository: McpCompositeRepository;
@@ -72,27 +76,55 @@ export function createMcpCompositeSession(options: Options) {
   };
   return {
     tools,
+    readTranslationCompletion: completionReader(
+      registry,
+      repository,
+      native.verifySnapshot,
+    ),
     bindNativeTools: registry.bind,
     stop,
-    close: async () => {
-      stop();
-      const errors: unknown[] = [];
-      try {
-        await service.close();
-      } catch (error) {
-        errors.push(error);
-      }
-      try {
-        await native.close();
-      } catch (error) {
-        errors.push(error);
-      }
-      registry.clear();
-      if (errors.length)
-        throw new AggregateError(errors, "Composite session cleanup failed.", {
-          cause: errors[0],
-        });
-    },
+    close: () => closeCompositeSession(stop, service, native, registry),
+  };
+}
+
+async function closeCompositeSession(
+  stop: () => void,
+  service: McpCompositeWorkflowService,
+  native: ReturnType<typeof createMcpCompositeNative>,
+  registry: CompositeToolRegistry,
+) {
+  stop();
+  const errors: unknown[] = [];
+  try {
+    await service.close();
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    await native.close();
+  } catch (error) {
+    errors.push(error);
+  }
+  registry.clear();
+  if (errors.length)
+    throw new AggregateError(errors, "Composite session cleanup failed.", {
+      cause: errors[0],
+    });
+}
+
+function completionReader(
+  registry: CompositeToolRegistry,
+  repository: McpCompositeRepository,
+  verifySources: Parameters<
+    typeof inspectMcpTranslationCompletion
+  >[3]["verifySources"],
+): McpTranslationCompletionReader {
+  return (owner, selection, guard) => {
+    registry.assertBound();
+    return inspectMcpTranslationCompletion(owner, selection, guard, {
+      list: (owner) => repository.list(owner),
+      verifySources,
+    });
   };
 }
 

@@ -3,7 +3,12 @@ import { editingChapter } from "./mcpEditing.fixture";
 import { McpPageImageService } from "../src/main/application/mcpPageImageService";
 import { createMcpPageImageTools } from "../src/main/mcp/mcpPageImageTools";
 import { invokeMcpTool } from "../src/main/mcp/mcpReadTools";
+import { mcpToolResult } from "../src/main/mcp/mcpToolResult";
 import { createPageRevision } from "../src/shared/pageRevision";
+import {
+  detailedQualityFixture,
+  generatedFixturePng,
+} from "./mcpDetailedQuality.fixture";
 
 function fixture() {
   const chapter = editingChapter();
@@ -21,6 +26,55 @@ function fixture() {
   };
 }
 describe("independent MCP page images", () => {
+  it.each([
+    { includeLayout: true },
+    { includeLayout: false, crop: { x: 20, y: 30, w: 100, h: 100 } },
+    { includeLayout: true, crop: { x: 20, y: 30, w: 100, h: 100 } },
+  ])(
+    "returns actual renderer observations and mapped final crops: %j",
+    async (options) => {
+      const f = fixture();
+      const layout = detailedQualityFixture().input.evidence.layout;
+      const block = f.chapter.pages[0].blocks[0];
+      block.translatedText = "쾅";
+      block.generatedLettering = {
+        version: 1,
+        sourceText: block.sourceText,
+        translatedText: block.translatedText,
+        dataUrl: generatedFixturePng(),
+      };
+      f.render.mockResolvedValueOnce({
+        data: "APPROVED_PNG",
+        width: 200,
+        height: 100,
+        layout,
+      } as Awaited<ReturnType<typeof f.render>>);
+      const result = await invokeMcpTool(f.tools[0], {
+        chapterId: "chapter",
+        pageId: "page",
+        ...options,
+      });
+      if (result[0].type !== "text") throw Error("Expected metadata");
+      const metadata = JSON.parse(result[0].text);
+      expect(metadata.layout).toEqual(layout);
+      expect(metadata.generatedAssets).toHaveLength(
+        f.chapter.pages[0].blocks.filter((item) => item.generatedLettering)
+          .length,
+      );
+      expect(metadata.generatedAssets[0].assetSha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(metadata.generatedAssets[0].targetStructure).toEqual({
+        text: "쾅",
+        hangul: [{ syllable: "쾅", initial: "ㅋ", vowel: "ㅘ", final: "ㅇ" }],
+      });
+      expect(mcpToolResult(f.tools[0], result).structuredContent).toEqual(
+        metadata,
+      );
+      expect(metadata.kind).toBe(
+        "crop" in options ? "rendered-crop" : "rendered-page",
+      );
+      expect(f.crop).not.toHaveBeenCalled();
+    },
+  );
   it("renders current saved blocks without running crop/OCR/edit paths or leaking artifacts", async () => {
     const f = fixture();
     const content = await invokeMcpTool(f.tools[0], {
@@ -74,6 +128,13 @@ describe("independent MCP page images", () => {
   });
   it("rejects injected paths/unknown arguments and absent pages", async () => {
     const f = fixture();
+    await expect(
+      invokeMcpTool(f.tools[0], {
+        chapterId: "chapter",
+        pageId: "page",
+        includeLayout: "true",
+      }),
+    ).rejects.toThrow();
     await expect(
       invokeMcpTool(f.tools[0], {
         chapterId: "chapter",

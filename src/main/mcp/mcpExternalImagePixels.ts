@@ -5,6 +5,7 @@ import { loadPageImage } from "../inpainting/imageIO";
 import { McpEditError } from "../application/mcpEditPolicy";
 import type { ExternalImageAssets } from "./mcpExternalImageAssets";
 import type { McpExternalRasterInput } from "./mcpImageWorkerProtocol";
+import { generatedAssetSha256 } from "../application/mcpGeneratedTouchup";
 
 type Command = McpExternalImagePreview["command"];
 /** No model or image sizing heuristic. External pixels use exact declared placement. */
@@ -21,6 +22,26 @@ export async function composeMcpExternalImage(
     height: assets.height,
   };
   if (command.kind === "lettering") {
+    if (command.patch) {
+      const block = page.blocks.find((item) => item.id === command.blockId);
+      if (
+        !block?.generatedLettering ||
+        generatedAssetSha256(block) !== command.patch.assetSha256 ||
+        !command.replaceExisting ||
+        command.existingDecorations !== "preserve"
+      )
+        throw new McpEditError(
+          "revision_conflict",
+          "Lettering patch requires the current asset SHA, explicit replacement and preserved decorations.",
+        );
+      input.letteringPatch = {
+        base: Buffer.from(
+          block.generatedLettering.dataUrl.split(",")[1],
+          "base64",
+        ),
+        rect: command.patch.rect,
+      };
+    }
     const result = await assets.processing.run(
       "lettering",
       input,

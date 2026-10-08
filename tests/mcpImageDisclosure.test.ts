@@ -5,6 +5,7 @@ import { PNG } from "pngjs";
 import { expect, it, vi } from "vitest";
 import { editingChapter } from "./mcpEditing.fixture";
 import { mcpAppEnvironment } from "./mcpAppEnvironment.fixture";
+import { imageNativeBoundary } from "./mcpImageNative.fixture";
 
 async function fixture() {
   const page = editingChapter().pages[0];
@@ -19,7 +20,10 @@ async function fixture() {
     crop: () => image,
     resize: () => image,
   };
-  const environment = await mcpAppEnvironment({ createFromPath: () => image });
+  const environment = await mcpAppEnvironment({
+    createFromPath: () => image,
+    createFromBuffer: imageNativeBoundary.createFromBuffer,
+  });
   page.imagePath = join(environment.root, "original.png");
   const cleanedPath = join(environment.root, "clean.png");
   page.inpaintedImagePath = cleanedPath;
@@ -248,3 +252,79 @@ it.each(["jpeg", "webp"] as const)(
     }
   },
 );
+
+it("reads layout after rendering and uses the transparent native renderer for corrected lettering", async () => {
+  const f = await fixture();
+  try {
+    const layout = vi.fn(async () => []);
+    const rendered = vi.fn(async () => f.png);
+    const opened = vi.fn(async () => ({
+      renderPage: f.renderPage,
+      renderTransparentPage: rendered,
+      inspectLastLayout: layout,
+      close: f.rendererClosed,
+    }));
+    const inspected = vi.fn(async () => {
+      await layout();
+    });
+    await f.adapter.renderMcpPageImage(
+      f.page,
+      undefined,
+      { format: "png", omitText: false },
+      1000,
+      opened,
+      inspected,
+      true,
+    );
+    expect(rendered).toHaveBeenCalledOnce();
+    expect(layout).toHaveBeenCalledOnce();
+    expect(f.renderPage).not.toHaveBeenCalled();
+    expect(f.rendererClosed).toHaveBeenCalledOnce();
+    await expect(
+      f.adapter.renderMcpPageImage(
+        f.page,
+        undefined,
+        { format: "png", omitText: false },
+        1000,
+        f.openRenderer,
+        undefined,
+        true,
+      ),
+    ).rejects.toThrow(/transparent/i);
+  } finally {
+    await f.close();
+  }
+});
+
+it("returns actual layout and final-render crops, failing closed when inspection is unavailable", async () => {
+  const f = await fixture();
+  try {
+    const layout = vi.fn(async () => []);
+    const opened = async () => ({
+      renderPage: f.renderPage,
+      inspectLastLayout: layout,
+      close: f.rendererClosed,
+    });
+    const result = await f.adapter.renderMcpSavedPage(
+      f.page,
+      { includeLayout: true, crop: { x: 1, y: 2, w: 100, h: 100 } },
+      opened,
+    );
+    expect(result.layout).toEqual([]);
+    expect(result.width).toBe(100);
+    expect(result.height).toBe(100);
+    expect(layout).toHaveBeenCalledOnce();
+    await expect(
+      f.adapter.renderMcpSavedPage(
+        f.page,
+        { includeLayout: true },
+        f.openRenderer,
+      ),
+    ).rejects.toThrow(/inspection/);
+    expect(
+      await f.adapter.renderMcpSavedPage(f.page, undefined, f.openRenderer),
+    ).not.toHaveProperty("layout");
+  } finally {
+    await f.close();
+  }
+});

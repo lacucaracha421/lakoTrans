@@ -33,6 +33,7 @@ export function letteringFixture() {
             .map((edit) => edit.blockId)
             .filter(
               (id) =>
+                command.kind === "generated-touchup" ||
                 !saved.chapter.pages
                   .find((page) => page.id === target.pageId)
                   ?.blocks.find((block) => block.id === id)?.generatedLettering,

@@ -117,10 +117,17 @@ export const McpCompositePrepareSchema = z
     phases: z.array(McpCompositePhaseSchema).min(1).max(MCP_COMPOSITE_PHASES),
     maxReviewPasses: count.min(1).max(3).default(1),
     qualityPolicy: McpTranslationQualityPolicySchema.optional(),
+    mode: z.enum(["detailed", "quick", "manual"]).optional(),
     budgets: McpCompositeBudgetSchema,
   })
   .strict()
   .superRefine((plan, context) => {
+    if (plan.mode === "quick" && plan.qualityPolicy)
+      context.addIssue({
+        code: "custom",
+        message:
+          "Quick processing cannot claim a detailed or complete quality policy.",
+      });
     if (
       new Set(plan.phases.map((phase) => phase.id)).size !== plan.phases.length
     )

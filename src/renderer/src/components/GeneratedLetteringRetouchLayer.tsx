@@ -7,6 +7,7 @@ import type { TranslationBlock } from "../../../shared/textTypes";
 import type { LetteringTool } from "../../../shared/generatedLetteringMaskTypes";
 import type { WorkspaceInteractionPreviewStore } from "../lib/workspaceInteractionPreview";
 import styles from "./GeneratedLetteringRetouchLayer.module.css";
+import { LetteringMoveSurface } from "./LetteringMoveSurface";
 
 export type LetteringRetouchProps = {
   tool: LetteringTool;
@@ -25,6 +26,20 @@ export function GeneratedLetteringRetouchLayer({
   preview: WorkspaceInteractionPreviewStore;
 }): React.JSX.Element | null {
   const block = page.blocks.find((item) => item.id === selectedBlockId);
+  if (
+    block?.generatedLettering &&
+    controls.tool.blockId === block.id &&
+    controls.tool.mode === "move"
+  )
+    return (
+      <LetteringMoveSurface
+        key={`${page.id}:${block.id}`}
+        page={page}
+        block={block}
+        controls={controls}
+        preview={preview}
+      />
+    );
   return block?.generatedLettering && controls.tool.blockId === block.id ? (
     <LetteringStrokeSurface
       key={`${page.id}:${block.id}`}

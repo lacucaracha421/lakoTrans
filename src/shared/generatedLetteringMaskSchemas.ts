@@ -4,7 +4,8 @@ export const letteringToolSchema = z
   .object({
     blockId: z.string().max(200).nullable(),
     space: z.enum(["asset", "page"]),
-    mode: z.enum(["hide", "restore", "paint"]),
+    mode: z.enum(["hide", "restore", "paint", "move"]),
+    selectionShape: z.enum(["lasso", "rectangle"]).optional(),
     color: z
       .string()
       .regex(/^#[0-9a-f]{6}$/i)

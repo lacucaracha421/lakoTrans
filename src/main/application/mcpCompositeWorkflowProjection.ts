@@ -9,6 +9,7 @@ import type {
 } from "./mcpCompositeWorkflowPorts";
 import { parseCompositeRecord } from "./mcpCompositeWorkflowRecord";
 import { McpEditError } from "./mcpEditPolicy";
+import { nextCompositePhase } from "./mcpCompositeWorkflowPolicy";
 
 type Window = { offset: number; limit: number; snapshot?: string };
 
@@ -113,13 +114,42 @@ function summary(record: McpCompositeRecord) {
       (phase) => phase.status === "completed" || phase.status === "skipped",
     ).length,
     usageUnknown: record.usageUnknown,
+    ...reviewRecovery(record),
     ...(record.plan.qualityPolicy
-      ? { qualityReview: qualityReviewStatus(record) }
+      ? {
+          qualityReview: qualityReviewStatus(record),
+          fontSubstitutions: fontSubstitutions(record),
+        }
       : {}),
     retention:
       "seven-days; same-profile-and-owner; no-automatic-reexecution" as const,
     automaticResume: false as const,
     crossOwnerHandoff: false as const,
+  };
+}
+
+function reviewRecovery(record: McpCompositeRecord) {
+  const phase = nextCompositePhase(record);
+  const descriptor = record.plan.phases.find((item) => item.id === phase?.id);
+  if (
+    record.status !== "held" ||
+    record.stopReason !== "interrupted" ||
+    record.usageUnknown ||
+    descriptor?.kind !== "review" ||
+    !phase ||
+    phase.attemptId ||
+    phase.binding ||
+    phase.evidence?.length ||
+    phase.report
+  )
+    return {};
+  return {
+    reviewRecovery: {
+      kind: "unissued-review" as const,
+      phaseId: phase.id,
+      instruction:
+        "The review render did not issue evidence; there is no native edit receipt for carrot_reconcile_composite. Keep the saved translation and this failed record. Inspect current pages and wait for active saves to settle, then prepare a new review-only composite at current revisions and retrieve its actual renders. Do not repeat translation, erasure or generation, reuse old evidence, or treat this held review as completed. Native attempts, unknown usage and blocked quality findings cannot use this recovery path.",
+    },
   };
 }
 
@@ -178,6 +208,27 @@ function qualityReviewStatus(record: McpCompositeRecord) {
     ),
   );
   return reviewed.report?.verdict === "accepted" && matches
-    ? ("accepted-at-reviewed-revision" as const)
+    ? fontSubstitutions(record).length
+      ? ("accepted-with-font-substitutions" as const)
+      : ("accepted-at-reviewed-revision" as const)
     : ("partial" as const);
+}
+
+function fontSubstitutions(record: McpCompositeRecord) {
+  return (
+    record.phases
+      .filter((phase) => phase.report)
+      .at(-1)
+      ?.report?.assessments.flatMap(
+        (assessment) =>
+          assessment.quality?.detailed?.inventory
+            .filter((item) => item.outcome === "font-fallback")
+            .map((item) => ({
+              chapterId: assessment.chapterId,
+              pageId: assessment.pageId,
+              itemId: item.itemId,
+              reason: item.reason,
+            })) ?? [],
+      ) ?? []
+  );
 }

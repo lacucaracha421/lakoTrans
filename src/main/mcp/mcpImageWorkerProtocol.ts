@@ -6,6 +6,10 @@ export type McpExternalRasterInput = {
   protectedMask?: Uint8Array;
   width: number;
   height: number;
+  letteringPatch?: {
+    base: Uint8Array;
+    rect: { x: number; y: number; w: number; h: number };
+  };
 };
 type McpExternalRasterStats = {
   mask: Uint8Array;

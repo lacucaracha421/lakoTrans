@@ -3,6 +3,62 @@ import { randomUUID } from "node:crypto";
 import { PNG } from "pngjs";
 import { expect, it } from "vitest";
 import { externalImageFixture, externalPng } from "./mcpExternalImage.fixture";
+import { generatedAssetSha256 } from "../src/main/application/mcpGeneratedTouchup";
+
+it("applies a bound asset patch with native decorations preserved and rejects stale SHAs", async () => {
+  const f = await externalImageFixture();
+  try {
+    const disk = JSON.parse(await readFile(f.chapterPath, "utf8")),
+      block = disk.pages[0].blocks[0];
+    const base = externalPng(8, 6);
+    block.generatedLettering = {
+      version: 1,
+      dataUrl: `data:image/png;base64,${PNG.sync.write(base).toString("base64")}`,
+      sourceText: block.sourceText,
+      translatedText: block.translatedText,
+      outline: { width: 2, color: "#ffffff" },
+    };
+    await writeFile(f.chapterPath, JSON.stringify(disk));
+    const upload = await f.upload(externalPng(2, 2));
+    const command = {
+      kind: "lettering" as const,
+      blockId: block.id,
+      imageUploadId: upload.uploadId,
+      replaceExisting: true,
+      existingDecorations: "preserve" as const,
+      patch: {
+        assetSha256: generatedAssetSha256(block) ?? "",
+        rect: { x: 2, y: 1, w: 2, h: 2 },
+      },
+    };
+    await expect(
+      f.preview({
+        ...command,
+        patch: { ...command.patch, assetSha256: "a".repeat(64) },
+      }),
+    ).rejects.toThrow(/asset SHA/);
+    const plan = await f.preview(command);
+    expect((await f.action(plan.batchId, "apply")).result.status).toBe(
+      "completed",
+    );
+    const after = (await f.snapshot()).pages[0].blocks[0];
+    expect(after.generatedLettering?.outline).toEqual(
+      block.generatedLettering.outline,
+    );
+    const png = PNG.sync.read(
+      Buffer.from(
+        after.generatedLettering?.dataUrl.split(",")[1] ?? "",
+        "base64",
+      ),
+    );
+    expect([png.width, png.height]).toEqual([8, 6]);
+    expect(png.data.subarray(0, 8 * 4)).toEqual(base.data.subarray(0, 8 * 4));
+    await f.action(plan.batchId, "undo");
+    expect((await f.snapshot()).pages[0].blocks[0]).toEqual(block);
+  } finally {
+    await f.close();
+  }
+});
 
 it("stores only the reviewed native lettering field and exactly undoes/redoes after staging discard", async () => {
   const f = await externalImageFixture();

@@ -51,6 +51,7 @@ export function createMcpParentSessions(
   return {
     tools: [...workflow.tools, ...composite.tools],
     bindNativeTools: composite.bindNativeTools,
+    readTranslationCompletion: composite.readTranslationCompletion,
     stop: () => {
       composite.stop();
       workflow.stop();

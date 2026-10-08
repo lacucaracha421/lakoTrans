@@ -27,6 +27,10 @@ const command = z.discriminatedUnion("kind", [
       blockId,
       replaceExisting: z.boolean().default(false),
       existingDecorations: z.enum(["preserve", "clear"]).default("preserve"),
+      patch: z
+        .object({ rect, assetSha256: z.string().regex(/^[a-f0-9]{64}$/) })
+        .strict()
+        .optional(),
     })
     .strict(),
 ]);

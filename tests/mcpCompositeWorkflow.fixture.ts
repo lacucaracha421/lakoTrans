@@ -35,6 +35,7 @@ export function compositePlan(review = false) {
   return McpCompositePrepareSchema.parse({
     requestId: randomUUID(),
     reason: "Explicit bounded test plan",
+    mode: "manual",
     targets: {
       kind: "saved",
       pages: [

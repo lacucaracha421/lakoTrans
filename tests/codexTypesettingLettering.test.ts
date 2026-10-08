@@ -519,6 +519,7 @@ describe("lettering generation binding and reuse", () => {
   });
 
   it.each([
+    ["쾅", ["쾅"]],
     ["두근", ["두", "근"]],
     ["탓", ["탓"]],
     ["끼익!", ["끼", "익"]],
@@ -557,6 +558,10 @@ describe("lettering generation binding and reuse", () => {
       expect(prompt).toContain('sourceText="ドン"');
       expect(prompt).not.toContain('target="ドン"');
       if (syllables) {
+        if (translatedText === "쾅")
+          expect(prompt).toContain(
+            '"syllable":"쾅","initial":"ㅋ","vowel":"ㅘ","final":"ㅇ"',
+          );
         expect(prompt).toContain(
           `Required syllable blocks in reading order: ${JSON.stringify(syllables)}`,
         );

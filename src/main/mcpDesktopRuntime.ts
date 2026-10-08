@@ -186,6 +186,7 @@ async function openPageServer(
         preferences: options.preferences,
         wrapTool: pageOperations.wrapTool,
         bindNativeTools: pageOperations.bindNativeTools,
+        readTranslationCompletion: pageOperations.readTranslationCompletion,
         lifetime: scope.signal,
         additionalTools: [
           ...pageOperations.tools,

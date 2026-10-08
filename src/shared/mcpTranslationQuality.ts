@@ -1,8 +1,10 @@
 import { z } from "zod/v4";
+import { McpDetailedPageAssessmentSchema } from "./mcpQualityEvidence";
 
-export const McpTranslationQualityPolicySchema = z.literal(
+export const McpTranslationQualityPolicySchema = z.enum([
   "complete-translation-v1",
-);
+  "complete-translation-v2",
+]);
 const imageFailure = z.enum([
   "generation-failed",
   "delivery-failed",
@@ -18,8 +20,10 @@ const optionalCheck = z.enum([
 const imageHistory = z
   .object({
     regionId: z.string().trim().min(1).max(200),
-    hostAttempts: z.number().int().min(0).max(3),
-    appAttempts: z.number().int().min(0).max(3),
+    hostAttempts: z.number().int().min(0).max(4),
+    appAttempts: z.number().int().min(0).max(4),
+    purpose: z.enum(["background-restoration", "korean-lettering"]).optional(),
+    touchupPasses: z.number().int().min(0).max(8).optional(),
     outcome: z.enum([
       "generated",
       "local-fallback",
@@ -29,9 +33,9 @@ const imageHistory = z
     reason: z.string().trim().min(1).max(500),
   })
   .strict()
-  .refine((value) => value.hostAttempts + value.appAttempts <= 3, {
+  .refine((value) => value.hostAttempts + value.appAttempts <= 4, {
     message:
-      "A region has at most three total generation attempts across providers and internal retries.",
+      "A region has at most four total generation attempts across providers and internal retries.",
   });
 export const McpTranslationQualityAssessmentSchema = z
   .object({
@@ -46,6 +50,7 @@ export const McpTranslationQualityAssessmentSchema = z
     soundEffectsCompleted: z.number().int().nonnegative().max(1000),
     unresolved: z.array(z.string().trim().min(1).max(500)).max(100),
     imageHistory: z.array(imageHistory).max(100).default([]),
+    detailed: McpDetailedPageAssessmentSchema.optional(),
   })
   .strict()
   .refine((value) => value.soundEffectsCompleted <= value.soundEffectsFound, {
@@ -53,9 +58,12 @@ export const McpTranslationQualityAssessmentSchema = z
   })
   .refine(
     (value) =>
-      new Set(value.imageHistory.map((item) => item.regionId)).size ===
-      value.imageHistory.length,
-    { message: "Image history regions must be unique." },
+      new Set(
+        value.imageHistory.map(
+          (item) => `${item.regionId}/${item.purpose ?? "legacy"}`,
+        ),
+      ).size === value.imageHistory.length,
+    { message: "Image history region/purpose pairs must be unique." },
   );
 export type McpTranslationQualityAssessment = z.infer<
   typeof McpTranslationQualityAssessmentSchema
@@ -86,7 +94,7 @@ export const McpImageRouteInputSchema = z
     appGeneration: z
       .enum(["available", "unavailable", "unknown"])
       .default("unknown"),
-    attemptsUsed: z.number().int().min(0).max(3).default(0),
+    attemptsUsed: z.number().int().min(0).max(4).default(0),
     policyRefused: z.boolean().default(false),
     hostFailure: imageFailure.optional(),
     appFailure: imageFailure.optional(),
@@ -96,7 +104,7 @@ export type McpImageRouteInput = z.infer<typeof McpImageRouteInputSchema>;
 
 /** Host capabilities are explicitly host-reported; MCP cannot discover another tool namespace. */
 export function selectMcpImageRoute(input: McpImageRouteInput) {
-  const remainingAttempts = 3 - input.attemptsUsed;
+  const remainingAttempts = 4 - input.attemptsUsed;
   if (input.hostFailure)
     input = {
       ...input,

@@ -54,6 +54,7 @@ async function prepareCompositeImport(root, client, packagePath) {
   });
   assert.equal(envelope.itemKeys.length, chapter.pageCount);
   const parent = await client.call("prepare_composite", {
+    mode: "manual",
     requestId: randomUUID(),
     reason: "Isolated real Electron zero-model composite acceptance",
     targets: envelope,

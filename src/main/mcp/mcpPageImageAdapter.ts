@@ -17,6 +17,8 @@ import { getAppPaths } from "../appPaths";
 import { probePageExportSourceImage } from "../pageExportRasterSafety";
 import { McpEditError } from "../application/mcpEditPolicy";
 import { assertMcpPsdBudget, renderMcpPsdInSession } from "./mcpPsdExport";
+import type { McpRenderedPageOptions } from "../application/mcpPageImageService";
+import type { PageExportLayoutEvidence } from "../../shared/pageExportContracts";
 
 function reduced(image: Electron.NativeImage) {
   const size = image.getSize();
@@ -44,11 +46,37 @@ export async function cropMcpPage(page: MangaPage, rect: PixelRect) {
 }
 
 /** Derived images remain blocked while redaction review is enabled. */
-export async function renderMcpSavedPage(page: MangaPage) {
-  const bytes = await renderMcpPagePng(page, undefined, 25_000);
+export async function renderMcpSavedPage(
+  page: MangaPage,
+  options?: McpRenderedPageOptions,
+  openRenderer = createPageExportRenderSession,
+) {
+  let layout: PageExportLayoutEvidence | undefined;
+  const bytes = await renderMcpPageImage(
+    page,
+    undefined,
+    { format: "png", omitText: false },
+    25_000,
+    openRenderer,
+    options?.includeLayout
+      ? async (session) => {
+          if (!session.inspectLastLayout)
+            throw new Error("Renderer layout inspection is unavailable.");
+          layout = await session.inspectLastLayout();
+        }
+      : undefined,
+  );
   const image = nativeImage.createFromBuffer(bytes);
   if (image.isEmpty()) throw new Error("App renderer returned an invalid PNG.");
-  return reduced(image);
+  const rect = options?.crop;
+  return {
+    ...reduced(
+      rect
+        ? image.crop({ x: rect.x, y: rect.y, width: rect.w, height: rect.h })
+        : image,
+    ),
+    ...(layout ? { layout } : {}),
+  };
 }
 export function renderMcpPagePng(
   page: MangaPage,
@@ -70,6 +98,10 @@ export async function renderMcpPageImage(
   input: McpPageExportOptions,
   timeoutMs = 120_000,
   openRenderer = createPageExportRenderSession,
+  onRendered?: (
+    session: Awaited<ReturnType<typeof createPageExportRenderSession>>,
+  ) => Promise<void>,
+  transparent = false,
 ) {
   const options = McpPageExportOptionsSchema.parse(input);
   await assertDerivedImageAccess();
@@ -103,7 +135,11 @@ export async function renderMcpPageImage(
     const bytes =
       options.format === "psd"
         ? await renderMcpPsdInSession(prepared, session, lifetime.signal)
-        : await session.renderPage(prepared, {
+        : await (
+            transparent
+              ? requireTransparentRenderer(session)
+              : session.renderPage
+          )(prepared, {
             format: options.format,
             ...(options.quality === undefined
               ? {}
@@ -111,6 +147,7 @@ export async function renderMcpPageImage(
             resolutionMode: "original",
           });
     lifetime.signal.throwIfAborted();
+    await onRendered?.(session);
     await assertDerivedImageAccess();
     lifetime.signal.throwIfAborted();
     return bytes;
@@ -119,6 +156,14 @@ export async function renderMcpPageImage(
     signal?.removeEventListener("abort", cancel);
     await lease.release();
   }
+}
+
+function requireTransparentRenderer(
+  session: Awaited<ReturnType<typeof createPageExportRenderSession>>,
+) {
+  if (!session.renderTransparentPage)
+    throw new Error("Transparent native rendering is unavailable.");
+  return session.renderTransparentPage;
 }
 
 async function prepareOutputPage(

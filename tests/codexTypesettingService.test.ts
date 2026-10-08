@@ -96,7 +96,9 @@ describe("chapter typesetting acceptance", () => {
         expect(images).toEqual([
           { label: "page:good", dataUrl: "image-pixels" },
         ]);
-        return { regions: [{ regionId: "page:good", text: "쿵" }] };
+        return _stage.startsWith("glyph-shape-")
+          ? validGlyphShapes(["page:good"])
+          : { regions: [{ regionId: "page:good", text: "쿵" }] };
       },
     });
     expect(issues).toEqual([
@@ -382,3 +384,4 @@ it("reviews overflow from the actual renderer while accepting intentional origin
     expect.objectContaining({ regionId: "page:good", kind: "text" }),
   ]);
 });
+import { validGlyphShapes } from "./generatedGlyphReview.fixture";

@@ -2735,7 +2735,7 @@
     "target": "修整對象",
     "asset": "文字形狀",
     "page": "遮擋邊界",
-    "mode": "畫筆功能",
+    "mode": "修飾工具",
     "hide": "擦除",
     "restore": "復原",
     "shape": "畫筆形狀",
@@ -2744,7 +2744,14 @@
     "size": "大小",
     "softness": "柔和度",
     "showMask": "顯示遮罩",
-    "reset": "重設"
+    "reset": "重設",
+    "move": "局部移動",
+    "selectionShape": "選取形狀",
+    "lasso": "自由選取",
+    "rectangle": "矩形選取",
+    "moveHint": "圈選要移動的筆畫，再拖曳選取範圍內部。方向鍵微調，Shift 加大移動距離，Enter 套用，Esc 取消。",
+    "applyMove": "套用移動",
+    "cancelSelection": "取消選取"
   },
   "codexFonts": {
     "title": "編輯字型",

@@ -2735,7 +2735,7 @@
     "target": "Mask target",
     "asset": "Lettering",
     "page": "Occlusion",
-    "mode": "Brush mode",
+    "mode": "Retouch tool",
     "hide": "Erase",
     "restore": "Restore",
     "shape": "Brush shape",
@@ -2744,7 +2744,14 @@
     "size": "Size",
     "softness": "Softness",
     "showMask": "Show mask",
-    "reset": "Reset"
+    "reset": "Reset",
+    "move": "Move part",
+    "selectionShape": "Selection shape",
+    "lasso": "Lasso",
+    "rectangle": "Rectangle",
+    "moveHint": "Outline the strokes to move, then drag inside the selection. Arrow keys nudge; Shift moves farther. Enter applies and Esc cancels.",
+    "applyMove": "Apply move",
+    "cancelSelection": "Cancel selection"
   },
   "codexFonts": {
     "title": "Edit fonts",

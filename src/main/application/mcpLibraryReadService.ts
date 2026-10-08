@@ -3,6 +3,12 @@ import type { ChapterSnapshot, LibraryIndex } from "../../shared/libraryTypes";
 export type McpPageWindow = { offset: number; limit: number };
 
 export type McpLibraryReadPort = {
+  readTypography?: (
+    workId: string,
+  ) => Promise<
+    | import("../../shared/fontMatchingProfileTypes").WorkTypographyProfileV2
+    | null
+  >;
   readContext?: (
     chapterId: string,
   ) => Promise<import("./mcpContextEditPolicy").McpContextSnapshot>;

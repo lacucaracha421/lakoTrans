@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { pageExportLayoutEvidenceSchema } from "./pageExportContracts";
 import {
   McpTranslationQualityAssessmentSchema,
   McpTranslationSavedQualitySchema,
@@ -20,6 +21,8 @@ export const McpCompositeRenderEvidenceSchema = z
     pass: z.number().int().min(1).max(3),
     kind: z.literal("rendered-page"),
     savedQuality: McpTranslationSavedQualitySchema.optional(),
+    layout: pageExportLayoutEvidenceSchema.optional(),
+    paletteRevision: z.string().nullable().optional(),
     workId: id,
     chapterId: id,
     pageId: id,

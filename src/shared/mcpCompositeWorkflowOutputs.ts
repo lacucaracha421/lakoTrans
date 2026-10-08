@@ -119,8 +119,29 @@ const summary = z
     phaseCount: count.min(1).max(32),
     completedPhases: count.max(32),
     usageUnknown: z.boolean(),
+    reviewRecovery: z
+      .object({
+        kind: z.literal("unissued-review"),
+        phaseId: id,
+        instruction: z.string().min(1).max(1000),
+      })
+      .strict()
+      .optional(),
     qualityReview: z
-      .enum(["pending", "partial", "accepted-at-reviewed-revision"])
+      .enum([
+        "pending",
+        "partial",
+        "accepted-at-reviewed-revision",
+        "accepted-with-font-substitutions",
+      ])
+      .optional(),
+    fontSubstitutions: z
+      .array(
+        z
+          .object({ chapterId: id, pageId: id, itemId: id, reason: z.string() })
+          .strict(),
+      )
+      .max(5000)
       .optional(),
     retention: z.literal(
       "seven-days; same-profile-and-owner; no-automatic-reexecution",

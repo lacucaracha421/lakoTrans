@@ -7,6 +7,7 @@ import type {
   LetteringMaskStroke,
 } from "../../../shared/generatedLetteringMaskTypes";
 import type { WorkspaceInteractionPreviewStore } from "../lib/workspaceInteractionPreview";
+import { letteringEventPagePoint } from "../lib/letteringPointer";
 type Controls = {
   tool: LetteringTool;
   onUpdate: (patch: Partial<TranslationBlock>) => void;
@@ -40,7 +41,7 @@ export function useLetteringStroke(
   }, [cancel]);
   const update = (event: React.PointerEvent<SVGSVGElement>) => {
     event.stopPropagation();
-    const pagePoint = eventPagePoint(event);
+    const pagePoint = letteringEventPagePoint(event);
     setCursor(pagePoint);
     const current = stroke.current;
     if (!current || current.pointer !== event.pointerId) return;
@@ -59,6 +60,7 @@ export function useLetteringStroke(
   };
   const start = (event: React.PointerEvent<SVGSVGElement>) => {
     if (
+      tool.mode === "move" ||
       event.button !== 0 ||
       (block.generatedLettering?.maskStrokes?.length ?? 0) >= 500
     )
@@ -89,19 +91,6 @@ export function useLetteringStroke(
   return { cursor, setCursor, stroke, cancel, update, start, end };
 }
 
-function eventPagePoint(event: React.PointerEvent<SVGSVGElement>): Point {
-  const rect = event.currentTarget.getBoundingClientRect();
-  return {
-    x: Math.max(
-      0,
-      Math.min(1000, ((event.clientX - rect.left) / rect.width) * 1000),
-    ),
-    y: Math.max(
-      0,
-      Math.min(1000, ((event.clientY - rect.top) / rect.height) * 1000),
-    ),
-  };
-}
 function createLetteringStroke(
   tool: LetteringTool,
   block: TranslationBlock,
@@ -111,7 +100,7 @@ function createLetteringStroke(
   const space = tool.mode === "paint" ? "asset" : tool.space;
   return {
     space,
-    mode: tool.mode === "paint" ? "restore" : tool.mode,
+    mode: tool.mode === "hide" ? "hide" : "restore",
     shape: tool.shape,
     softness: tool.softness,
     points: [],

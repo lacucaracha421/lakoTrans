@@ -26,6 +26,7 @@ import {
 } from "./overlayBlockModel";
 import "./overlayTransforms.css";
 import styles from "./PageArtwork.module.css";
+import { measureRenderedHangulInk } from "../lib/renderedGlyphEvidence";
 
 type ArtworkBlockProps = {
   afterContent?: React.ReactNode;
@@ -63,23 +64,9 @@ export const ArtworkBlock = React.memo(function ArtworkBlock({
   return (
     <div
       className={model.outerClassName}
-      data-layout-evidence={JSON.stringify({
-        blockId: block.id,
-        lines:
-          getActiveGeneratedLettering(block) || model.curveRenderable
-            ? null
-            : (model.layout.lines?.map((line) =>
-                line.runs.map((run) => run.text).join(""),
-              ) ?? null),
-        fontSizePx: model.layout.fontSizePx,
-        innerWidth: model.layout.innerWidth,
-        innerHeight: model.layout.innerHeight,
-        // Generated lettering fills its own image rectangle. The fallback text
-        // layout is not rendered until editing invalidates that image asset.
-        overflow: getActiveGeneratedLettering(block)
-          ? false
-          : model.layout.overflow,
-      })}
+      data-layout-evidence={JSON.stringify(
+        layoutEvidence(block, model, fontCatalog),
+      )}
       style={model.outerStyle}
       onPointerDown={onPointerDown}
     >
@@ -341,4 +328,49 @@ function useArtworkBlockLayout({
       visualSize,
     ],
   );
+}
+
+function layoutEvidence(
+  block: TranslationBlock,
+  model: OverlayBlockRenderModel,
+  fontCatalog: BlockFontCatalog,
+) {
+  return {
+    blockId: block.id,
+    displayText: model.displayText,
+    lines:
+      getActiveGeneratedLettering(block) || model.curveRenderable
+        ? null
+        : (model.layout.lines?.map((line) =>
+            line.runs.map((run) => run.text).join(""),
+          ) ?? null),
+    fontSizePx: model.layout.fontSizePx,
+    innerWidth: model.layout.innerWidth,
+    innerHeight: model.layout.innerHeight,
+    rendered: !model.textVisible
+      ? "hidden"
+      : getActiveGeneratedLettering(block)
+        ? "generated"
+        : "text",
+    direction: model.renderDirection,
+    fontId: block.fontFamily ?? null,
+    rect: model.layout.rect,
+    textScaleX: model.layout.textScaleX,
+    textScaleY: model.layout.textScaleY,
+    contentWidth: model.layout.textContentWidth,
+    hangulInk:
+      getActiveGeneratedLettering(block) || !model.textVisible
+        ? null
+        : measureRenderedHangulInk(
+            block,
+            model.displayText,
+            model.layout.fontSizePx,
+            fontCatalog,
+          ),
+    // Generated lettering fills its own image rectangle. The fallback text
+    // layout is not rendered until editing invalidates that image asset.
+    overflow: getActiveGeneratedLettering(block)
+      ? false
+      : model.layout.overflow,
+  };
 }

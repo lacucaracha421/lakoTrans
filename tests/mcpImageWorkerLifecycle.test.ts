@@ -56,6 +56,46 @@ async function requestPosted(worker: ControlledWorker, count = 1) {
 }
 afterEach(() => vi.useRealTimers());
 
+it.each(["truncated", "zero-width", "oversized"])(
+  "rejects a worker's purported patch success with a %s base header",
+  async (variant) => {
+    const worker = new ControlledWorker();
+    const client = new McpImageWorkerClient(() => worker);
+    const base = Buffer.alloc(variant === "truncated" ? 8 : 24);
+    if (base.length >= 24) {
+      base.writeUInt32BE(variant === "zero-width" ? 0 : 5000, 16);
+      base.writeUInt32BE(5000, 20);
+    }
+    const result = client.run(
+      "lettering",
+      {
+        image: new Uint8Array(4),
+        width: 1,
+        height: 1,
+        letteringPatch: { base, rect: { x: 0, y: 0, w: 1, h: 1 } },
+      },
+      guard,
+    );
+    const rejected = expect(result).rejects.toThrow(
+      /Invalid lettering patch asset/,
+    );
+    await requestPosted(worker);
+    worker.termination.resolve(0);
+    worker.reply({
+      width: 1,
+      height: 1,
+      mask: new Uint8Array(1),
+      bytes: new Uint8Array(4),
+      selectedPixels: 1,
+      protectedPixels: 0,
+      changedPixels: 1,
+    });
+    await rejected;
+    await client.close();
+    expect(worker.terminate).toHaveBeenCalledOnce();
+  },
+);
+
 it("creates no worker before a request, queues one request at a time and reuses its worker", async () => {
   const worker = new ControlledWorker();
   const create = vi.fn(() => worker);

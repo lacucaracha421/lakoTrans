@@ -51,6 +51,9 @@ export function createMcpSoundEffectSession(
         expiresAt: receipt.expiresAt,
         generationCalls: plan.generationCalls,
         failedItems: plan.failedItems,
+        ...(plan.glyphEvidenceIds
+          ? { glyphEvidenceIds: plan.glyphEvidenceIds }
+          : {}),
       };
     },
     lifetime.signal,
@@ -64,7 +67,7 @@ export function createMcpSoundEffectSession(
         ? [
             ...preparation.tools.filter(
               (tool) =>
-                allowImages || tool.name !== "carrot_generate_sound_effects",
+                allowImages || !tool.requiredScopes?.includes("carrot.images"),
             ),
             ...actionTools(batches),
             ...(allowImages

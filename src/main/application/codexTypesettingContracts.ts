@@ -64,6 +64,7 @@ export type TypesettingRepair = {
   reuseBackgroundIds?: string[];
 };
 export type TypesettingLetteringContext = TypesettingRepair & {
+  correctionReferences?: Record<string, TypesettingImage[]>;
   invertColors?: boolean;
   plan: CodexChapterPlan;
   previousPage?: MangaPage;

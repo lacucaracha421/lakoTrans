@@ -152,7 +152,76 @@ function createFixtureBlocks() {
       sourceText: "",
       translatedText: "",
     }),
+    createMovedLetteringFixture(),
   ];
+}
+
+/** Characterizes cut/move after brushes and before outline, warp and page occlusion. */
+function createMovedLetteringFixture() {
+  return createBlock("generated-moved-lettering", {
+    bbox: { x: 850, y: 25, w: 120, h: 150 },
+    opacity: 0,
+    rotationDeg: -17,
+    perspectiveTransform: {
+      version: 1,
+      corners: [
+        { x: 0.04, y: 0.08 },
+        { x: 0.97, y: 0 },
+        { x: 0.92, y: 0.98 },
+        { x: 0.03, y: 0.9 },
+      ],
+    },
+    warpTransform: createWarpFixture("flag", 3),
+    generatedLettering: {
+      version: 1,
+      sourceText: "",
+      translatedText: "텍스트",
+      dataUrl: generatedLayerFixture(),
+      outline: { width: 4, color: "#ffffff" },
+      paintStrokes: [letteringPaintFixture()],
+      maskStrokes: [
+        {
+          space: "asset",
+          mode: "hide",
+          shape: "circle",
+          points: [{ x: 300, y: 300 }],
+          radiusX: 25,
+          radiusY: 25,
+          softness: 0.2,
+        },
+        {
+          space: "asset",
+          mode: "hide",
+          shape: "square",
+          points: [{ x: 600, y: 400 }],
+          radiusX: 15,
+          radiusY: 25,
+          softness: 0,
+        },
+      ],
+      partMoves: [
+        {
+          polygon: [
+            { x: 150, y: 150 },
+            { x: 480, y: 150 },
+            { x: 450, y: 500 },
+            { x: 150, y: 450 },
+          ],
+          offset: { x: 230, y: -80 },
+          paintCount: 1,
+          maskCount: 1,
+        },
+      ],
+      occlusionPolygons: [
+        [
+          { x: 840, y: 100 },
+          { x: 920, y: 100 },
+          { x: 920, y: 115 },
+          { x: 840, y: 115 },
+        ],
+      ],
+    },
+  });
 }
 
 function letteringPaintFixture() {

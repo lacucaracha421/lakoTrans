@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { renderCompositeReview } from "../src/main/application/mcpCompositeWorkflowReviewRunner";
 import { acceptCompositeReport } from "../src/main/application/mcpCompositeWorkflowReviewPolicy";
+import { compositeWorkflowView } from "../src/main/application/mcpCompositeWorkflowProjection";
 import {
   compositeFixture,
   compositePlan,
@@ -294,4 +295,63 @@ it("refuses reconciliation before an exact native attempt has been admitted", as
   ).rejects.toThrow("No exact native attempt");
   expect((await f.service.get(owner, bound.id, guard)).used.admissions).toBe(0);
   expect(f.events).toEqual([]);
+});
+
+it("guides an unissued failed review to fresh evidence without rerunning edits or certifying the failed parent", async () => {
+  const f = compositeFixture();
+  const render = f.native.renderEvidence;
+  f.native.renderEvidence = async () => {
+    throw new Error("Saved page revision changed before rendering");
+  };
+  const old = await f.service.prepare(owner, compositePlan(true), guard);
+  await f.service.run(owner, mutation(old), guard);
+  await expect(
+    f.service.waitForCompletion(owner, old.id, guard),
+  ).rejects.toThrow("Saved page revision");
+  const held = await f.service.get(owner, old.id, guard);
+  const view = compositeWorkflowView(held);
+  expect(view).toMatchObject({
+    status: "held",
+    reviewRecovery: { kind: "unissued-review", phaseId: "review-one" },
+    used: { admissions: 1, pageAttempts: 1 },
+  });
+  await expect(f.service.run(owner, mutation(held), guard)).rejects.toThrow(
+    "not ready",
+  );
+  await expect(
+    f.service.reconcile(owner, mutation(held), guard),
+  ).rejects.toThrow("No exact native attempt");
+  f.native.renderEvidence = render;
+  const fresh = await f.service.prepare(owner, compositePlan(true), guard);
+  await f.service.run(owner, mutation(fresh), guard);
+  const awaiting = await f.service.waitForCompletion(owner, fresh.id, guard);
+  expect(awaiting.status).toBe("awaiting-review");
+  expect(f.events).toEqual(["rendered"]);
+  expect(compositeWorkflowView(awaiting).reviewRecovery).toBeUndefined();
+  expect((await f.service.get(owner, old.id, guard)).used).toEqual(held.used);
+  expect((await f.service.get(owner, old.id, guard)).status).toBe("held");
+  await f.service.close();
+});
+
+it("does not recommend fresh review as a bypass for unknown usage or rejected quality", async () => {
+  const f = compositeFixture();
+  const record = await f.service.prepare(owner, compositePlan(true), guard);
+  record.status = "held";
+  record.stopReason = "interrupted";
+  record.phases[0].status = "held";
+  record.usageUnknown = true;
+  expect(compositeWorkflowView(record).reviewRecovery).toBeUndefined();
+  record.usageUnknown = false;
+  record.stopReason = "review-blocked";
+  expect(compositeWorkflowView(record).reviewRecovery).toBeUndefined();
+  record.stopReason = "budget";
+  expect(compositeWorkflowView(record).reviewRecovery).toBeUndefined();
+  const native = await f.bind(
+    await f.service.prepare(owner, compositePlan(), guard),
+  );
+  native.status = "held";
+  native.stopReason = "interrupted";
+  native.phases[0].status = "held";
+  expect(compositeWorkflowView(native).reviewRecovery).toBeUndefined();
+  await f.service.close();
 });

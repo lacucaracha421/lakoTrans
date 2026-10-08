@@ -12,7 +12,16 @@ export const McpFontSamplesInput = z
       .max(4)
       .refine((ids) => new Set(ids).size === ids.length),
     snapshot: revision,
-    text: z.string().trim().min(1).max(80),
+    text: z.string().trim().min(1).max(2000),
+    context: z
+      .object({
+        chapterId: id,
+        pageId: id,
+        blockId: id,
+        revision: z.string().regex(/^page-v1:[a-f0-9]{16}$/),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 export const McpFontListInput = z
@@ -125,6 +134,8 @@ export const mcpTypographyReadOutputs = {
   carrot_get_font_samples: z
     .object({
       snapshot: revision,
+      evidenceId: z.uuid().optional(),
+      fontFingerprint: z.string().optional(),
       samples: z
         .array(
           z

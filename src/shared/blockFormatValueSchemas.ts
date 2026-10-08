@@ -5,6 +5,7 @@ import {
   letteringOutlineSchema,
 } from "./generatedLetteringMaskSchemas";
 import { z } from "zod";
+import { letteringPartMoveSchema } from "./generatedLetteringPartMove";
 import {
   MAX_FONT_SIZE_PX,
   MAX_FONT_WIDTH_SCALE,
@@ -35,6 +36,7 @@ export const generatedLettering = z
   .object({
     maskStrokes: letteringMaskStrokesSchema.optional(),
     paintStrokes: letteringPaintStrokesSchema.optional(),
+    partMoves: z.array(letteringPartMoveSchema).max(16).optional(),
     outline: letteringOutlineSchema.optional(),
     occlusionPolygons: letteringOcclusionSchema.optional(),
     version: z.literal(1),
@@ -46,4 +48,20 @@ export const generatedLettering = z
     translatedText: z.string().max(20000),
     sourceText: z.string().max(20000),
   })
-  .strict();
+  .strict()
+  .refine((artwork) => {
+    let paintCount = 0,
+      maskCount = 0;
+    return (artwork.partMoves ?? []).every((move) => {
+      const ordered =
+        move.paintCount >= paintCount && move.maskCount >= maskCount;
+      paintCount = move.paintCount;
+      maskCount = move.maskCount;
+      return (
+        ordered &&
+        paintCount <= (artwork.paintStrokes?.length ?? 0) &&
+        maskCount <=
+          (artwork.maskStrokes?.filter((s) => s.space === "asset").length ?? 0)
+      );
+    });
+  }, "Part moves must preserve the order and bounds of their native brush prefixes.");

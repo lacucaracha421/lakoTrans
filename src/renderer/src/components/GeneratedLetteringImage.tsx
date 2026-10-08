@@ -7,6 +7,7 @@ import {
   letteringPaintSvg,
 } from "../../../shared/generatedLetteringMask";
 import type { TranslationBlock } from "../../../shared/textTypes";
+import { letteringMovedSvg } from "../../../shared/generatedLetteringComposition";
 
 export function GeneratedLetteringImage({
   block,
@@ -18,6 +19,13 @@ export function GeneratedLetteringImage({
   nativeSize: { width: number; height: number };
 }): React.JSX.Element {
   const artwork = block.generatedLettering;
+  const moved = React.useMemo(
+    () =>
+      artwork?.partMoves?.length
+        ? `data:image/svg+xml,${encodeURIComponent(letteringMovedSvg(artwork))}`
+        : undefined,
+    [artwork],
+  );
   const mask = React.useMemo(() => {
     const strokes =
       artwork?.maskStrokes?.filter((stroke) => stroke.space === "asset") ?? [];
@@ -34,6 +42,15 @@ export function GeneratedLetteringImage({
     [paintStrokes],
   );
   const width = artwork?.outline?.width ?? 0;
+  if (moved)
+    return (
+      <CorrectedLetteringImage
+        block={block}
+        className={className}
+        nativeSize={nativeSize}
+        moved={moved}
+      />
+    );
   if (paint || width > 0)
     return (
       <CorrectedLetteringImage
@@ -66,24 +83,27 @@ function CorrectedLetteringImage({
   nativeSize,
   mask,
   paint,
+  moved,
 }: {
   block: TranslationBlock;
   className: string;
   nativeSize: { width: number; height: number };
   mask?: string;
   paint?: string;
+  moved?: string;
 }) {
   const id = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const filterId = `lettering-outline-${id}`;
   const artwork = block.generatedLettering;
-  const width = artwork?.outline?.width ?? 0;
+  const outline = artwork?.outline ?? { width: 0, color: "#ffffff" };
+  const width = outline.width;
   return (
     <>
       {width > 0 ? (
         <LetteringOutlineFilter
           id={filterId}
           width={width}
-          color={artwork?.outline?.color ?? "#ffffff"}
+          color={outline.color}
           nativeSize={nativeSize}
         />
       ) : null}
@@ -105,7 +125,7 @@ function CorrectedLetteringImage({
           <img
             alt={block.translatedText}
             draggable={false}
-            src={artwork?.dataUrl}
+            src={moved ?? artwork?.dataUrl}
             className={className}
           />
           {paint ? (

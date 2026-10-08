@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -45,15 +46,24 @@ async function fixture() {
     isDestroyed: () => destroyed,
     executeJavaScript,
   };
-  const webContents: Pick<
-    BrowserWindow["webContents"],
-    "getURL" | "mainFrame"
-  > = {
+  const webContents = Object.assign(new EventEmitter(), {
     getURL: () => currentUrl,
+    isDestroyed: () => destroyed,
     mainFrame: mainFrame as BrowserWindow["webContents"]["mainFrame"],
-  };
+  });
   const window: Partial<BrowserWindow> = {
-    loadURL: vi.fn(async () => {}),
+    loadURL: vi.fn(async () => {
+      if (currentUrl !== url)
+        webContents.emit(
+          "did-redirect-navigation",
+          {},
+          currentUrl,
+          false,
+          true,
+        );
+      webContents.emit("did-navigate", {}, currentUrl);
+      webContents.emit("dom-ready");
+    }),
     isDestroyed: () => destroyed,
     destroy: vi.fn(() => {
       destroyed = true;

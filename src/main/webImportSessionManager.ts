@@ -23,6 +23,7 @@ import {
 } from "../shared/webChapterDiscovery";
 import { discoverChapterLinks } from "./webChapterDiscovery";
 import { throwIfAborted } from "./abortSignal";
+import { WebImportNavigation } from "./webImportNavigation";
 import {
   downloadDiscoveredWebImages,
   type StagedWebImportCandidate,
@@ -50,10 +51,12 @@ type WebImportSession = {
 };
 type ActiveWebImportScan = {
   requestId: string;
+  deadlineAt: number;
   abortController: AbortController;
   window: BrowserWindow | null;
   directory: string | null;
   downloadPromise?: Promise<unknown>;
+  navigation?: WebImportNavigation;
 };
 export type PreparedWebImport = {
   preview: ImportPreviewResult;
@@ -137,8 +140,7 @@ export class WebImportSessionManager {
         active.abortController.signal,
       );
       throwIfAborted(active.abortController.signal);
-      if (page.window.webContents.getURL() !== currentUrl.href)
-        throw new WebImportUrlError("page-unavailable");
+      page.navigation.assertDocument();
       emitProgress(onProgress, input.requestId, "discovering", 1, 1);
       return { status: "ready" as const, result };
     });
@@ -158,6 +160,7 @@ export class WebImportSessionManager {
     await this.cancelScan(request.requestId);
     const active: ActiveWebImportScan = {
       requestId: request.requestId,
+      deadlineAt: Date.now() + WEB_IMPORT_SCAN_TIMEOUT_MS,
       abortController: new AbortController(),
       window: null,
       directory: null,
@@ -191,6 +194,7 @@ export class WebImportSessionManager {
       signal.removeEventListener("abort", onOperationAbort);
       if (this.activeScans.get(request.requestId) === active)
         this.activeScans.delete(request.requestId);
+      active.navigation?.dispose();
       destroyWindow(active.window);
       if (active.directory)
         await rm(active.directory, { recursive: true, force: true });
@@ -293,7 +297,7 @@ export class WebImportSessionManager {
     onProgress: (event: WebImportProgressEvent) => void,
   ) {
     const signal = active.abortController.signal;
-    const deadlineAt = Date.now() + WEB_IMPORT_SCAN_TIMEOUT_MS;
+    const deadlineAt = active.deadlineAt;
     await mkdir(this.root, { recursive: true });
     emitProgress(onProgress, request.requestId, "validating", 0, 1);
     const requestedUrl = await waitForWebImportStep(
@@ -318,6 +322,12 @@ export class WebImportSessionManager {
     configureWebImportSession(scanSession, signal, dnsLookup);
     const window = this.createWindow(scanSession);
     active.window = window;
+    const navigation = new WebImportNavigation(
+      window.webContents,
+      requestedUrl.href,
+      signal,
+    );
+    active.navigation = navigation;
     emitProgress(onProgress, request.requestId, "loading", 0, 1);
     const finalUrl = await loadWebImportPage({
       deadlineAt,
@@ -325,6 +335,7 @@ export class WebImportSessionManager {
       dnsLookup,
       signal,
       window,
+      navigation,
     });
     emitProgress(onProgress, request.requestId, "loading", 1, 1);
     emitProgress(onProgress, request.requestId, "scrolling", 0, 1);
@@ -335,6 +346,7 @@ export class WebImportSessionManager {
     );
     throwIfDeadlineExceeded(deadlineAt);
     throwIfAborted(signal);
+    navigation.assertDocument();
     emitProgress(onProgress, request.requestId, "scrolling", 1, 1);
     return {
       sessionId,
@@ -344,6 +356,7 @@ export class WebImportSessionManager {
       deadlineAt,
       scanSession,
       dnsLookup,
+      navigation,
     };
   }
   private async runScan(
@@ -359,6 +372,7 @@ export class WebImportSessionManager {
       deadlineAt,
       scanSession,
       dnsLookup,
+      navigation,
     } = await this.openPage(request, active, onProgress);
     const signal = active.abortController.signal;
     emitProgress(onProgress, request.requestId, "discovering", 0, 1);
@@ -369,6 +383,7 @@ export class WebImportSessionManager {
     );
     emitProgress(onProgress, request.requestId, "discovering", 1, 1);
     throwIfAborted(signal);
+    navigation.assertDocument();
     emitProgress(
       onProgress,
       request.requestId,
@@ -396,6 +411,7 @@ export class WebImportSessionManager {
     active.downloadPromise = download;
     const downloaded = await download;
     throwIfAborted(signal);
+    navigation.assertDocument();
     const webSession: WebImportSession = {
       id: sessionId,
       directory,
@@ -498,6 +514,7 @@ export function createPreparedWebImportPreview({
 }
 export function createSecureWebImportWindow(
   scanSession: Session,
+  navigationPreload = join(__dirname, "webImportNavigationPreload.js"),
 ): BrowserWindow {
   const window = new BrowserWindow({
     show: false,
@@ -505,6 +522,7 @@ export function createSecureWebImportWindow(
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      preload: navigationPreload,
       session: scanSession,
       webSecurity: true,
       allowRunningInsecureContent: false,
@@ -516,11 +534,6 @@ export function createSecureWebImportWindow(
   window.webContents.on("will-attach-webview", (event) =>
     event.preventDefault(),
   );
-  window.webContents.on("will-navigate", (event, url) => {
-    void isAllowedWebImportRequest(url).then((allowed) => {
-      if (!allowed && !window.isDestroyed()) window.webContents.stop();
-    });
-  });
   window.webContents.on("will-prevent-unload", (event) =>
     event.preventDefault(),
   );
@@ -552,14 +565,20 @@ async function loadWebImportPage({
   requestedUrl,
   signal,
   window,
+  navigation,
 }: {
   deadlineAt: number;
   dnsLookup: WebImportDnsLookup;
   requestedUrl: string;
   signal: AbortSignal;
   window: BrowserWindow;
+  navigation: WebImportNavigation;
 }): Promise<URL> {
-  await waitForWebImportStep(window.loadURL(requestedUrl), deadlineAt, signal);
+  await waitForWebImportStep(
+    navigation.load(() => window.loadURL(requestedUrl)),
+    deadlineAt,
+    signal,
+  );
   return await waitForWebImportStep(
     assertPublicWebImportUrl(window.webContents.getURL(), dnsLookup),
     deadlineAt,

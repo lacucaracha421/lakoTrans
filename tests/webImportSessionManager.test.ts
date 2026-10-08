@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { EventEmitter } from "node:events";
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
@@ -141,15 +142,16 @@ describe("WebImportSessionManager active download cleanup", () => {
               }
             : true,
       };
-      const webContents: Pick<
-        BrowserWindow["webContents"],
-        "getURL" | "mainFrame"
-      > = {
+      const webContents = Object.assign(new EventEmitter(), {
         getURL: () => pageUrl,
+        isDestroyed: () => destroyed,
         mainFrame: mainFrame as BrowserWindow["webContents"]["mainFrame"],
-      };
+      });
       const window: Partial<BrowserWindow> = {
-        loadURL: vi.fn(async () => undefined),
+        loadURL: vi.fn(async () => {
+          webContents.emit("did-navigate", {}, pageUrl);
+          webContents.emit("dom-ready");
+        }),
         isDestroyed: () => destroyed,
         destroy: vi.fn(() => {
           destroyed = true;

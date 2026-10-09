@@ -57,6 +57,9 @@ describe("independent MCP page images", () => {
       if (result[0].type !== "text") throw Error("Expected metadata");
       const metadata = JSON.parse(result[0].text);
       expect(metadata.layout).toEqual(layout);
+      expect(metadata.layoutBoundary).toBe(
+        "text-rectangle-only; balloon-contours-and-artwork-not-verified",
+      );
       expect(metadata.generatedAssets).toHaveLength(
         f.chapter.pages[0].blocks.filter((item) => item.generatedLettering)
           .length,

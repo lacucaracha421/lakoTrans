@@ -106,6 +106,8 @@ function renderMetadata(page: MangaPage, image: Image, source: boolean) {
           layout: image.layout,
           layoutWarnings: inspectMcpLayout(image.layout, page.height),
           layoutUnits: "original-image-pixels-before-block-transforms",
+          layoutBoundary:
+            "text-rectangle-only; balloon-contours-and-artwork-not-verified",
           fontMeasurement:
             "renderer-resolved-em-and-sampled-Hangul-ink-bounds; apply-textScale-and-preview-pixelMapping; perspective-and-warp-require-visual-inspection",
         }

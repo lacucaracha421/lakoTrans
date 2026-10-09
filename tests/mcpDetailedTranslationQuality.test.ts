@@ -93,6 +93,62 @@ it("detects uniformly tiny ink at a stated reading scale even without peer block
     /layout warning/,
   );
 });
+it("requires review of separate paragraphs even when the rectangular layout fits", async () => {
+  const f = detailedQualityFixture();
+  f.layout[0].displayText = "흐흥\n \n제 아름다움을\n새삼 말할 필요는 없겠죠";
+  f.block.translatedText = f.layout[0].displayText;
+  f.layout[0].overflow = false;
+  const before = structuredClone(f.layout);
+  expect(inspectMcpLayout(f.layout)[0].reasons).toContain(
+    "paragraph-gap-needs-balloon-region-check",
+  );
+  expect(f.layout).toEqual(before);
+  await expect(assertDetailedTranslationPage(f.input)).rejects.toThrow(
+    /layout warning/,
+  );
+  f.detail.exceptions = [
+    {
+      blockId: f.block.id,
+      reason:
+        "Actual source and final crop confirm two intentional paragraphs inside a single safe narration panel.",
+    },
+  ];
+  await expect(assertDetailedTranslationPage(f.input)).resolves.toBeUndefined();
+  f.layout[0].displayText = "흐흥\n제 아름다움을\n새삼 말할 필요는 없겠죠";
+  f.block.translatedText = f.layout[0].displayText;
+  f.detail.exceptions = [];
+  expect(inspectMcpLayout(f.layout)).toEqual([]);
+  await expect(assertDetailedTranslationPage(f.input)).resolves.toBeUndefined();
+});
+it("requires contour review for long narrow paragraphs even when rectangular fitting passes", async () => {
+  const f = detailedQualityFixture();
+  f.block.translatedText =
+    "상관의 명령이라\n내키지 않아도\n따를 수밖에 없던\n자들에 대해서는";
+  Object.assign(f.layout[0], {
+    displayText: f.block.translatedText,
+    lines: f.block.translatedText.split("\n"),
+    innerWidth: 255,
+    innerHeight: 320,
+    overflow: false,
+  });
+  expect(inspectMcpLayout(f.layout)).toContainEqual({
+    blockId: f.block.id,
+    reasons: ["multiline-narrow-region-needs-contour-review"],
+  });
+  await expect(assertDetailedTranslationPage(f.input)).rejects.toThrow(
+    /layout warning/i,
+  );
+  f.detail.exceptions = [
+    {
+      blockId: f.block.id,
+      reason:
+        "The current final crop was checked line by line inside the curved contour, including both ends of the lowest line.",
+    },
+  ];
+  await expect(assertDetailedTranslationPage(f.input)).resolves.toBeUndefined();
+  f.layout[0].innerHeight = 200;
+  expect(inspectMcpLayout(f.layout)).toEqual([]);
+});
 it("requires actual generated letters, independent corrected-pixel evidence and separate purpose history", async () => {
   const f = detailedQualityFixture();
   const item = f.detail.inventory[0];

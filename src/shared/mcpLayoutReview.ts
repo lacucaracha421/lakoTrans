@@ -20,7 +20,7 @@ export function inspectMcpLayout(
     const lines = item.lines?.map((line) => line.trim()).filter(Boolean) ?? [];
     const reasons = [
       ...(item.overflow ? ["overflow"] : []),
-      ...lineWarnings(lines),
+      ...lineWarnings(lines, item.displayText),
       ...sizeWarnings(item, lines, median),
       ...(pageHeight &&
       item.hangulInk &&
@@ -37,9 +37,13 @@ export function inspectMcpLayout(
   });
 }
 
-function lineWarnings(lines: string[]) {
-  if (lines.length <= 1) return [];
+function lineWarnings(lines: string[], displayText: string | undefined) {
+  const paragraphs = /\n[\t ]*\n/u.test(displayText ?? "")
+    ? ["paragraph-gap-needs-balloon-region-check"]
+    : [];
+  if (lines.length <= 1) return paragraphs;
   return [
+    ...paragraphs,
     ...(lines.some((line) => /^[\p{P}\p{S}]+$/u.test(line))
       ? ["punctuation-only-line"]
       : []),
@@ -54,6 +58,12 @@ function sizeWarnings(
   median: number | null,
 ) {
   return [
+    ...(item.direction === "horizontal" &&
+    lines.length >= 4 &&
+    item.innerWidth > 0 &&
+    item.innerHeight > item.innerWidth
+      ? ["multiline-narrow-region-needs-contour-review"]
+      : []),
     ...(median &&
     item.fontSizePx * (item.textScaleY ?? 1) < median * 0.72 &&
     lines.join("").length >= 8

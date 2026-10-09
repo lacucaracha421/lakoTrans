@@ -137,6 +137,7 @@ it("registers a read-only complete translation guide and exposes no source paths
     "detailed-default",
     "context",
     "source",
+    "physical-lettering-regions",
     "plan",
     "text-and-sfx",
     "images",

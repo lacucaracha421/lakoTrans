@@ -71,6 +71,7 @@ recent-dialog-paths.json
 /linked-sync-queue.json
 /.linked-sync-queue.json.*.tmp
 /codex/
+/chat/
 /.codex-workspace/
 /.bug-hunter/
 /results/

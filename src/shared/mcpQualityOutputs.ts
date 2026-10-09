@@ -54,6 +54,9 @@ export const mcpRenderedPageEvidenceFields = {
     .literal("original-image-pixels-before-block-transforms")
     .optional(),
   fontMeasurement: z.string().optional(),
+  layoutBoundary: z
+    .literal("text-rectangle-only; balloon-contours-and-artwork-not-verified")
+    .optional(),
   generatedAssets: z
     .array(
       z

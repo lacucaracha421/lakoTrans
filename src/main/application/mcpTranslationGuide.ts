@@ -44,6 +44,17 @@ const steps = [
       "Read each original page once for BOTH meaning and lettering: identify the speaker, expression, visible glyph size/weight, writing direction and the usable space around each phrase. Plan a small chapter-wide font palette for dialogue, thought/narration, shouting, labels and SFX while reading; keep recurring styles consistent instead of inventing a style per block. Source direction describes the original writing, independently of Korean render direction. Inventory all text, including off-bubble writing and SFX; zero detector candidates never means no effects. Enlarge only ambiguous writing. OCR is a draft; do not invent unreadable text.",
   },
   {
+    id: "physical-lettering-regions",
+    tools: [
+      "carrot_get_page_crop",
+      "carrot_create_page_blocks",
+      "carrot_update_page_blocks",
+      "carrot_render_page_preview",
+    ],
+    instruction:
+      "Identify physical lettering regions BEFORE choosing text boxes. Each lobe of a linked balloon is a separate usable region even when the same speaker continues one sentence. Split a short interjection and its following speech into their respective lobes; never span the narrow neck with one rectangular block, empty lines or inflated line spacing. Preserve every original phrase exactly once when splitting blocks through native creation/update tools. Source OCR columns are not Korean layout regions. Use horizontal Korean phrase groups inside the real contour; compare each line's visible ink against curved borders, necks, tails, hair and panel edges. A box inside the page and overflow=false do NOT certify balloon containment. Check returned image width/height and pixelMapping before using crop coordinates; image viewers may downscale further. Prefer a local crop of the full balloon with surrounding art when its contour is unclear, then inspect the final whole page at reading scale. Keep comfortable letter size by choosing natural wording and phrase breaks within each lobe, not by stretching the box over artwork or blindly shrinking. Paragraph-gap warnings require a physical-region check; waive only a genuinely intentional paragraph inside one visibly safe region. A tall/narrow multi-line paragraph is a contour-risk case even without overflow. After its LAST edit, retrieve a final crop containing the whole balloon plus surrounding art and inspect BOTH ends of EVERY line, especially the lowest lines where the contour tapers. The center of a text rectangle is not necessarily the center of usable balloon space. Move or reflow the paragraph into the actual interior; never acknowledge a contour warning based only on a small whole-page preview. This targeted crop check is part of the first final review, not an unnecessary extra pass. Then confirm comfortable size on the whole page. Fix observed defects locally and preserve satisfactory pages.",
+  },
+  {
     id: "plan",
     tools: ["carrot_prepare_composite", "carrot_prepare_workflow"],
     instruction:

@@ -428,6 +428,11 @@ describe("Flux inpainting engine change detection", () => {
       bounds: { x: 20, y: 20, w: 4, h: 4 },
       data: new Uint8Array(4 * 4).fill(1),
     };
+    // A real target has source ink. An empty flat mask correctly stays unchanged.
+    for (let y = 20; y < 24; y++) {
+      for (let x = 20; x < 24; x++)
+        bitmap.fill(0, (y * width + x) * 4, (y * width + x) * 4 + 3);
+    }
     for (let y = 16; y < 32; y += 1) {
       mask.fill(1, y * width + 16, y * width + 32);
     }
@@ -454,7 +459,7 @@ describe("Flux inpainting engine change detection", () => {
     await engine.dispose();
 
     expect(readFileSync(capturePath, "utf8")).toBe("1");
-    expect(bitmap[(20 * width + 20) * 4]).toBe(0);
+    expect(bitmap[(20 * width + 20) * 4]).toBe(180);
     expect(logWarn).not.toHaveBeenCalledWith(
       expect.stringContaining("skipped"),
       expect.anything(),

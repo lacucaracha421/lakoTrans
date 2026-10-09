@@ -14,6 +14,9 @@ import { inpaintPatternPage } from "../inpainting";
 import { acquireInpaintingEngine } from "../inpainting/inpaintingEnginePool";
 import { getAppPaths } from "../appPaths";
 import { getAppSettings } from "../settingsStore";
+import { createProductionBubbleLayoutRunner } from "../bubbleLayout/bubbleLayoutFacade";
+import { runBubbleLayoutMaskPrepass } from "./bubbleLayoutJob";
+import { applyInpaintingLayoutStates } from "../inpainting/inpaintingLayoutState";
 
 type RegionArtworkInput = {
   source: MangaPage;
@@ -30,6 +33,7 @@ const productionDependencies = {
   getAppPaths,
   getAppSettings,
   acquireInpaintingEngine,
+  createBubbleLayoutRunner: createProductionBubbleLayoutRunner,
 };
 
 export async function prepareRegionArtwork(
@@ -177,17 +181,51 @@ async function eraseRegionWithConfiguredEngine(
     signal,
   });
   try {
-    const result = await inpaintPatternPage(page, {
-      blockIds: page.blocks.map((block) => block.id),
+    const blockIds = page.blocks.map((block) => block.id);
+    const prepared =
+      lease.engine.model === "flux-klein"
+        ? await runBubbleLayoutMaskPrepass({
+            page,
+            blockIds,
+            signal,
+            config: { policy: "balanced", overwriteManual: false },
+            runner: dependencies.createBubbleLayoutRunner({
+              dataRoot: appPaths.dataRoot,
+              decodeFallback,
+              directMl: {
+                ...settings.hardware,
+                computeGpuBackend: settings.ocr.gpuBackend,
+              },
+            }),
+          })
+        : undefined;
+    const {
+      page: maskPage = page,
+      restoreLayout,
+      ...maskOptions
+    } = prepared ?? {};
+    const result = await inpaintPatternPage(maskPage, {
+      ...maskOptions,
+      blockIds,
       signal,
       decodeFallback,
       inpaintingEngine: lease.engine,
       preserveExistingInpainting: true,
     });
-    if (page.blocks.some((block) => !result.erasedBlockIds?.includes(block.id)))
-      throw new Error("일부 원문을 지우지 못했습니다.");
-    return result.page;
+    assertRegionBlocksErased(page, result.erasedBlockIds);
+    return restoreLayout
+      ? applyInpaintingLayoutStates(result.page, restoreLayout)
+      : result.page;
   } finally {
     await lease.release();
   }
+}
+
+function assertRegionBlocksErased(
+  page: MangaPage,
+  erasedIds: readonly string[] | undefined,
+): void {
+  const erased = new Set(erasedIds);
+  if (page.blocks.some((block) => !erased.has(block.id)))
+    throw new Error("일부 원문을 지우지 못했습니다.");
 }

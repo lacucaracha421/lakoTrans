@@ -1,4 +1,5 @@
 import React from "react";
+import type { CurrentViewContext } from "../../../shared/chatTypes";
 import type { ChapterSnapshot, MangaPage } from "../../../shared/libraryTypes";
 import type { JobState } from "../../../shared/jobTypes";
 import type { TranslationBlock } from "../../../shared/textTypes";
@@ -18,6 +19,10 @@ import type { AppOperationActivityEvent } from "../../../shared/appOperationType
 import type { StatusLogEntry } from "../hooks/useStatusLog";
 
 export type UnifiedRightRailProps = {
+  chatOpen?: boolean;
+  onOpenChat?: () => void;
+  onCloseChat?: () => void;
+  chatContext?: CurrentViewContext;
   blockReadingSize?: number;
   onBlockReadingSizeChange?: (size: number) => void;
   aiUnavailable?: boolean;
@@ -113,13 +118,12 @@ export function UnifiedRightRail(
           hasSelectedPage={Boolean(props.selectedPage)}
           flowActive={props.flowActive}
           jobActive={props.jobActive}
-          saveStatus={props.saveStatus}
           onOpenExport={props.onOpenExport}
           onOpenPsdExport={props.onOpenPsdExport ?? NOOP}
           onOpenTranslateOptions={props.onOpenTranslateOptions}
+          onOpenChat={props.onOpenChat}
           onOpenAutoInpaintingOptions={props.onOpenAutoInpaintingOptions}
           onRunBubbleLayout={props.onRunBubbleLayout}
-          onRetrySave={props.onRetrySave}
           linkedWorkspaceStatus={props.linkedWorkspaceStatus ?? null}
           linkedWorkspaceViewBusy={props.linkedWorkspaceViewBusy ?? false}
           onViewLinkedResults={props.onViewLinkedResults ?? NOOP}

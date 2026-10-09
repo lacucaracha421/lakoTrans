@@ -1,0 +1,264 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  color: var(--text);
+}
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--sp-1);
+  align-items: center;
+  min-width: 0;
+}
+/* What the next message carries, as one line above the input. */
+.context {
+  margin-bottom: var(--sp-2);
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.author {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.messageContext {
+  color: var(--text-muted);
+}
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: var(--sp-3);
+  scroll-behavior: auto;
+}
+.empty {
+  padding: var(--sp-4) var(--sp-2);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.message {
+  margin-block: var(--sp-3) var(--sp-5);
+  min-width: 0;
+}
+.user {
+  padding: var(--sp-3);
+  background: var(--surface-panel);
+  border-radius: var(--r-md);
+}
+.messageText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  font-size: 13px;
+  margin-top: var(--sp-2);
+}
+.markdown {
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  font-size: 13px;
+}
+.markdown p {
+  margin-block: var(--sp-2);
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-size: 14px;
+}
+.markdown ul,
+.markdown ol {
+  padding-inline-start: var(--sp-5);
+}
+.markdown pre,
+.markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.markdown pre {
+  white-space: pre-wrap;
+}
+.markdown table {
+  border-collapse: collapse;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--surface-border);
+  padding: var(--sp-2);
+}
+.messageContext {
+  display: block;
+  margin-top: var(--sp-1);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.tool {
+  border-block-end: 1px solid var(--surface-border);
+  padding-block: var(--sp-2);
+}
+.tool pre {
+  max-height: 230px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  margin: 0;
+}
+.images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.image {
+  display: block;
+  max-width: 100%;
+}
+.image img {
+  max-width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+}
+.previewImage {
+  width: 100%;
+  height: auto;
+}
+.quality {
+  font-size: 12px;
+  line-height: 1.5;
+  padding-block: var(--sp-2);
+}
+.quality p {
+  margin-block: var(--sp-1);
+}
+.quality ul {
+  padding-inline-start: var(--sp-4);
+  max-height: 150px;
+  overflow-y: auto;
+}
+.composer {
+  flex: none;
+  padding: var(--sp-3);
+  border-top: 1px solid var(--surface-border);
+}
+.composer textarea {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  min-height: 78px;
+  max-height: 180px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.composerActions {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-2);
+}
+.composerModel {
+  flex: 1;
+  min-width: 0;
+}
+.modelControl {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+.modelChip {
+  max-width: 100%;
+  color: var(--text-muted);
+}
+.modelChipText {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modelPopover {
+  position: absolute;
+  inset-block-end: calc(100% + var(--sp-1));
+  inset-inline-start: 0;
+  z-index: var(--layer-popover);
+  display: grid;
+  gap: var(--sp-3);
+  width: min(280px, calc(100vw - 48px));
+  padding: var(--sp-4);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  background: var(--bg-modal);
+  box-shadow: var(--shadow-overlay);
+}
+.modelField {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.modelField > span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.send:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.send:hover:not(:disabled) {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+  color: var(--accent-text);
+}
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-2);
+}
+.attachments > div {
+  display: flex;
+  align-items: center;
+}
+.attachments img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+.state {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-inline: var(--sp-3);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.login,
+.error,
+.question {
+  flex: none;
+  padding: var(--sp-3);
+}
+.login p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 var(--sp-2);
+}
+.error {
+  color: var(--danger-text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.question {
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--surface-border);
+}

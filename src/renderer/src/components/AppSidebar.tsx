@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconMessageCircle,
+  IconPlus,
+  IconSettings,
 } from "@tabler/icons-react";
 import type {
   ChapterSnapshot,
@@ -11,7 +14,7 @@ import type {
 import { useEventCallback } from "../hooks/useEventCallback";
 import { LibraryTree } from "./LibraryTree";
 import { PageList } from "./PageList";
-import { Button } from "./ui/Button";
+import { ActionMenu } from "./ui/ActionMenu";
 import { IconButton } from "./ui/IconButton";
 import { MacAlphaBadge } from "./MacAlphaBadge";
 import {
@@ -22,6 +25,7 @@ import {
 import { useContextRailExpansion } from "./useContextRailExpansion";
 
 type AppSidebarProps = {
+  chatOpen?: boolean;
   commandLabels?: AppCommandLabels;
   currentChapter: ChapterSnapshot | null;
   selectedPageId: string | null;
@@ -40,6 +44,7 @@ type AppSidebarProps = {
   onEditPages?: () => void;
   onOpenBatchImport: () => void;
   onOpenSettings: () => void;
+  onOpenChat?: () => void;
   onOpenLibraryFolder: () => void;
   onOpenShareExport: () => void;
   onOpenShareImport: () => void;
@@ -98,12 +103,14 @@ function LibrarySidebarContent(props: AppSidebarProps): React.JSX.Element {
   return (
     <>
       <SidebarToolbar
+        chatAvailable={!props.currentChapter && !props.chatOpen}
         commandLabels={props.commandLabels}
         jobActive={props.jobActive}
         library={props.library}
         onOpenBatchImport={props.onOpenBatchImport}
         onOpenLibraryFolder={props.onOpenLibraryFolder}
         onOpenSettings={props.onOpenSettings}
+        onOpenChat={props.onOpenChat}
         onOpenShareExport={props.onOpenShareExport}
         onOpenShareImport={props.onOpenShareImport}
         onOpenTranslationSource={props.onOpenTranslationSource}
@@ -194,19 +201,7 @@ function useStableSidebarActions(props: AppSidebarProps) {
 
 const EMPTY_PAGE_IDS: ReadonlySet<string> = new Set();
 
-function SidebarToolbar({
-  commandLabels,
-  jobActive,
-  library,
-  onOpenBatchImport,
-  onOpenLibraryFolder,
-  onOpenSettings,
-  onOpenShareExport,
-  onOpenShareImport,
-  onOpenTranslationSource,
-  settingsBusy,
-  settingsOpen,
-}: Pick<
+type SidebarToolbarProps = Pick<
   AppSidebarProps,
   | "jobActive"
   | "commandLabels"
@@ -214,60 +209,122 @@ function SidebarToolbar({
   | "onOpenBatchImport"
   | "onOpenLibraryFolder"
   | "onOpenSettings"
+  | "onOpenChat"
   | "onOpenShareExport"
   | "onOpenShareImport"
   | "onOpenTranslationSource"
   | "settingsBusy"
   | "settingsOpen"
+> & {
+  /** The right rail's chat tab is unreachable while no chapter is open. */
+  chatAvailable: boolean;
+};
+
+function SidebarToolbar({
+  chatAvailable,
+  commandLabels,
+  jobActive,
+  library,
+  onOpenBatchImport,
+  onOpenLibraryFolder,
+  onOpenSettings,
+  onOpenChat,
+  onOpenShareExport,
+  onOpenShareImport,
+  onOpenTranslationSource,
+  settingsBusy,
+  settingsOpen,
+}: SidebarToolbarProps): React.JSX.Element {
+  const { t } = useTranslation("components");
+  const label = (id: AppCommandId, fallback: string): string =>
+    resolveAppCommandLabel(commandLabels, id, fallback);
+  const settingsLabel = label("open-settings", t("common.settings"));
+  const chatLabel = label("open-chat", t("chat.open"));
+  return (
+    <section className="toolbar">
+      <ActionMenu
+        label={t("sidebar.addSource")}
+        triggerIcon={<IconPlus size={16} aria-hidden="true" />}
+        disabled={jobActive}
+        items={[
+          {
+            label: label("open-translate-source", t("sidebar.translate")),
+            run: onOpenTranslationSource,
+          },
+          {
+            label: label("open-batch", t("sidebar.batchTranslate")),
+            run: onOpenBatchImport,
+          },
+        ]}
+      />
+      <div className="toolbar-icons">
+        {chatAvailable && onOpenChat ? (
+          <IconButton label={chatLabel} onClick={onOpenChat}>
+            <IconMessageCircle size={18} aria-hidden="true" />
+          </IconButton>
+        ) : null}
+        <IconButton
+          label={settingsLabel}
+          onClick={onOpenSettings}
+          disabled={settingsBusy && !settingsOpen}
+        >
+          <IconSettings size={18} aria-hidden="true" />
+        </IconButton>
+        <SidebarMoreMenu
+          commandLabels={commandLabels}
+          jobActive={jobActive}
+          library={library}
+          onOpenLibraryFolder={onOpenLibraryFolder}
+          onOpenShareExport={onOpenShareExport}
+          onOpenShareImport={onOpenShareImport}
+        />
+      </div>
+    </section>
+  );
+}
+
+/** Occasional file actions: library folder and work export/import. */
+function SidebarMoreMenu({
+  commandLabels,
+  jobActive,
+  library,
+  onOpenLibraryFolder,
+  onOpenShareExport,
+  onOpenShareImport,
+}: Pick<
+  SidebarToolbarProps,
+  | "commandLabels"
+  | "jobActive"
+  | "library"
+  | "onOpenLibraryFolder"
+  | "onOpenShareExport"
+  | "onOpenShareImport"
 >): React.JSX.Element {
   const { t } = useTranslation("components");
   const label = (id: AppCommandId, fallback: string): string =>
     resolveAppCommandLabel(commandLabels, id, fallback);
   return (
-    <section className="toolbar">
-      <Button
-        fullWidth
-        size="sm"
-        onClick={onOpenTranslationSource}
-        disabled={jobActive}
-      >
-        {label("open-translate-source", t("sidebar.translate"))}
-      </Button>
-      <Button
-        fullWidth
-        size="sm"
-        onClick={onOpenBatchImport}
-        disabled={jobActive}
-      >
-        {label("open-batch", t("sidebar.batchTranslate"))}
-      </Button>
-      <Button
-        fullWidth
-        size="sm"
-        onClick={onOpenSettings}
-        disabled={settingsBusy && !settingsOpen}
-      >
-        {label("open-settings", t("common.settings"))}
-      </Button>
-      <Button fullWidth size="sm" onClick={onOpenLibraryFolder}>
-        {label("open-library-folder", t("sidebar.libraryFolder"))}
-      </Button>
-      <Button
-        fullWidth
-        size="sm"
-        onClick={onOpenShareExport}
-        disabled={jobActive || library.works.length === 0}
-      >
-        {label("open-share-export", t("sidebar.share"))}
-      </Button>
-      <Button
-        fullWidth
-        size="sm"
-        onClick={onOpenShareImport}
-        disabled={jobActive}
-      >
-        {label("open-share-import", t("sidebar.importWork"))}
-      </Button>
-    </section>
+    <ActionMenu
+      label={t("sidebar.more")}
+      iconOnly
+      align="end"
+      tooltipPlacement="bottom"
+      items={[
+        {
+          label: label("open-library-folder", t("sidebar.libraryFolder")),
+          run: onOpenLibraryFolder,
+        },
+        {
+          label: label("open-share-export", t("sidebar.share")),
+          run: onOpenShareExport,
+          disabled: jobActive || library.works.length === 0,
+        },
+        {
+          label: label("open-share-import", t("sidebar.importWork")),
+          run: onOpenShareImport,
+          disabled: jobActive,
+        },
+      ]}
+    />
   );
 }

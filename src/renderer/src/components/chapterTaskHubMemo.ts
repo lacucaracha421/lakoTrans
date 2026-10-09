@@ -38,7 +38,6 @@ function isSamePageTaskState(
     previous.flowActive === next.flowActive &&
     previous.hasSelectedPage === next.hasSelectedPage &&
     previous.jobActive === next.jobActive &&
-    previous.saveStatus === next.saveStatus &&
     previous.linkedWorkspaceStatus === next.linkedWorkspaceStatus &&
     previous.linkedWorkspaceViewBusy === next.linkedWorkspaceViewBusy
   );
@@ -54,7 +53,7 @@ function isSameRunActions(
     previous.onOpenPsdExport === next.onOpenPsdExport &&
     previous.onViewLinkedResults === next.onViewLinkedResults &&
     previous.onOpenTranslateOptions === next.onOpenTranslateOptions &&
-    previous.onRunBubbleLayout === next.onRunBubbleLayout &&
-    previous.onRetrySave === next.onRetrySave
+    previous.onOpenChat === next.onOpenChat &&
+    previous.onRunBubbleLayout === next.onRunBubbleLayout
   );
 }

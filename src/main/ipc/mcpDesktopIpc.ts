@@ -11,6 +11,8 @@ const MCP_HELP_URLS = {
   codex: "https://learn.chatgpt.com/docs/extend/mcp?surface=cli",
   claude: "https://claude.ai/",
   "claude-code": "https://code.claude.com/docs/en/mcp",
+  opencode: "https://opencode.ai/docs/mcp-servers/",
+  generic: "https://modelcontextprotocol.io/docs/learn/client-concepts",
 } as const;
 
 /** App configuration is available to the trusted main renderer only, never MCP. */

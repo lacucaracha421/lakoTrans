@@ -1,6 +1,6 @@
 # MCP 연결·사용 가이드
 
-당근의 MCP 서버는 실행 중인 앱의 보관함·편집·처리·출력 기능을 외부 AI에 제공합니다. **당근 앱과 Tailscale이 서버 역할**, Codex·ChatGPT·Claude·Claude Code가 작업을 요청하는 클라이언트 역할을 합니다. 앱에서 저장된 결과를 확인하고 직접 수정할 수 있습니다.
+당근의 MCP 서버는 실행 중인 앱의 보관함·편집·처리·출력 기능을 외부 AI에 제공합니다. Codex·ChatGPT·Claude·Claude Code·OpenCode 등에서 작업을 요청하고, 당근 앱에서 결과를 확인하고 수정할 수 있습니다.
 
 [README](../README.md#ai-앱-연결--mcp) · [연결 준비](#1-당근에서-연결-준비) · [클라이언트 등록](#2-ai-클라이언트-등록) · [작업 요청](#3-작업-요청) · [권한](#4-권한과-연결-관리) · [문제 해결](#5-문제-해결)
 
@@ -98,6 +98,34 @@ claude mcp add --transport http --scope user carrot "<복사한 MCP 주소>"
 ```
 
 Claude Code 안에서 **`/mcp` → carrot → Authenticate**를 선택합니다. 브라우저·당근의 코드와 권한을 확인해 승인한 뒤 새 대화에서 사용합니다. [공식 MCP 안내](https://code.claude.com/docs/en/mcp)
+
+### OpenCode
+
+`~/.config/opencode/opencode.json` 또는 `opencode.jsonc`의 기존 설정에 아래 `mcp.carrot` 항목을 추가합니다. 앱 도움말의 **OpenCode → 설정 복사**에는 현재 주소가 채워져 있습니다.
+
+```json
+{
+  "mcp": {
+    "carrot": {
+      "type": "remote",
+      "url": "<복사한 MCP 주소>",
+      "enabled": true,
+      "oauth": {}
+    }
+  }
+}
+```
+
+```sh
+opencode mcp auth carrot
+opencode mcp list
+```
+
+브라우저와 당근 앱의 코드가 같은지 확인하고 당근에서 승인합니다. `carrot connected (OAuth)`가 표시되면 OpenCode에서 요청하세요. [OpenCode MCP 문서](https://opencode.ai/docs/mcp-servers/)
+
+### 기타 MCP 앱
+
+해당 앱의 MCP 설정에서 **서버 주소**에 복사한 주소, **연결 방식**에 HTTP, **인증**에 OAuth를 선택합니다. 연결 후 브라우저와 당근 앱의 코드가 같은지 확인해 승인합니다.
 
 ## 3. 작업 요청
 

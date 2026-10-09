@@ -131,6 +131,7 @@ import type {
   ViewLinkedResultsResult,
 } from "./linkedWorkspaceTypes";
 import type { CodexAccountSnapshot } from "./codexAccountTypes";
+import type { ChatApi } from "./chatTypes";
 import type {
   FinishPageTimingSessionRequest,
   FinishPageTimingSessionResult,
@@ -182,12 +183,19 @@ type McpApi = {
   diagnoseMcp: () => Promise<import("./mcpDesktopTypes").McpDiagnostics>;
   openMcpHelp: (
     page:
-      "tailscale" | "setup" | "chatgpt" | "codex" | "claude" | "claude-code",
+      | "tailscale"
+      | "setup"
+      | "chatgpt"
+      | "codex"
+      | "claude"
+      | "claude-code"
+      | "opencode"
+      | "generic",
   ) => Promise<{ completed: boolean }>;
   copyMcpUrl: () => Promise<{ completed: boolean }>;
 };
 
-export type MangaApi = McpApi & {
+export interface MangaApi extends McpApi, ChatApi {
   discardEnvironmentBackup: (id: string) => Promise<null>;
   getEnvironmentRestoreReceipt: () => Promise<
     import("./environmentBackup").BackupStatus["restored"]
@@ -569,4 +577,4 @@ export type MangaApi = McpApi & {
   onLinkedWorkspaceStatusChanged: (
     callback: (event: LinkedWorkspaceStatusChangedEvent) => void,
   ) => () => void;
-};
+}

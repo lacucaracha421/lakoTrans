@@ -1382,6 +1382,28 @@
         "pct": 70
       }
     },
+    "src/main/inpainting/fluxCropIO.ts": {
+      "lines": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
     "src/main/inpainting/fluxEngine.ts": {
       "lines": {
         "covered": 16,
@@ -18390,6 +18412,50 @@
         "pct": 100
       }
     },
+    "src/main/application/chatRuntimePorts.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/main/application/chatService.ts": {
+      "lines": {
+        "covered": 145,
+        "total": 171,
+        "pct": 84.79
+      },
+      "statements": {
+        "covered": 154,
+        "total": 186,
+        "pct": 82.79
+      },
+      "functions": {
+        "covered": 37,
+        "total": 43,
+        "pct": 86.04
+      },
+      "branches": {
+        "covered": 54,
+        "total": 76,
+        "pct": 71.05
+      }
+    },
     "src/main/application/codexLetteringShapeReview.ts": {
       "lines": {
         "total": 5,
@@ -21712,6 +21778,182 @@
         "pct": 71.91
       }
     },
+    "src/main/chat/chatInstructions.ts": {
+      "lines": {
+        "covered": 6,
+        "total": 7,
+        "pct": 85.71
+      },
+      "statements": {
+        "covered": 6,
+        "total": 7,
+        "pct": 85.71
+      },
+      "functions": {
+        "covered": 3,
+        "total": 4,
+        "pct": 75
+      },
+      "branches": {
+        "covered": 7,
+        "total": 8,
+        "pct": 87.5
+      }
+    },
+    "src/main/chat/chatOperationControl.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 35,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 39,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 7,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 35,
+        "pct": 0
+      }
+    },
+    "src/main/chat/chatReducer.ts": {
+      "lines": {
+        "covered": 42,
+        "total": 63,
+        "pct": 66.66
+      },
+      "statements": {
+        "covered": 47,
+        "total": 72,
+        "pct": 65.27
+      },
+      "functions": {
+        "covered": 7,
+        "total": 10,
+        "pct": 70
+      },
+      "branches": {
+        "covered": 31,
+        "total": 66,
+        "pct": 46.96
+      }
+    },
+    "src/main/chat/chatRepository.ts": {
+      "lines": {
+        "covered": 27,
+        "total": 30,
+        "pct": 90
+      },
+      "statements": {
+        "covered": 27,
+        "total": 31,
+        "pct": 87.09
+      },
+      "functions": {
+        "covered": 10,
+        "total": 14,
+        "pct": 71.42
+      },
+      "branches": {
+        "covered": 7,
+        "total": 8,
+        "pct": 87.5
+      }
+    },
+    "src/main/chat/chatToolObservation.ts": {
+      "lines": {
+        "covered": 31,
+        "total": 34,
+        "pct": 91.17
+      },
+      "statements": {
+        "covered": 33,
+        "total": 37,
+        "pct": 89.18
+      },
+      "functions": {
+        "covered": 9,
+        "total": 9,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 19,
+        "total": 29,
+        "pct": 65.51
+      }
+    },
+    "src/main/chat/codexChatRuntime.ts": {
+      "lines": {
+        "covered": 64,
+        "total": 94,
+        "pct": 68.08
+      },
+      "statements": {
+        "covered": 69,
+        "total": 109,
+        "pct": 63.3
+      },
+      "functions": {
+        "covered": 13,
+        "total": 21,
+        "pct": 61.9
+      },
+      "branches": {
+        "covered": 44,
+        "total": 76,
+        "pct": 57.89
+      }
+    },
+    "src/main/chat/createChatService.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 8,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 8,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 3,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/main/codexAppServerAccounting.ts": {
+      "lines": {
+        "covered": 14,
+        "total": 14,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 15,
+        "total": 15,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 14,
+        "total": 14,
+        "pct": 100
+      }
+    },
     "src/main/codexAppServerBinary.ts": {
       "lines": {
         "total": 34,
@@ -23142,6 +23384,28 @@
         "pct": 100
       }
     },
+    "src/main/inpainting/fluxFlatBackground.ts": {
+      "lines": {
+        "covered": 37,
+        "total": 37,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 51,
+        "total": 52,
+        "pct": 98.07
+      },
+      "functions": {
+        "covered": 7,
+        "total": 7,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 28,
+        "total": 29,
+        "pct": 96.55
+      }
+    },
     "src/main/inpainting/fluxMaskContracts.ts": {
       "lines": {
         "total": 8,
@@ -23624,6 +23888,28 @@
         "total": 0,
         "covered": 0,
         "pct": 100
+      }
+    },
+    "src/main/ipc/chatIpc.ts": {
+      "lines": {
+        "covered": 10,
+        "total": 21,
+        "pct": 47.61
+      },
+      "statements": {
+        "covered": 10,
+        "total": 22,
+        "pct": 45.45
+      },
+      "functions": {
+        "covered": 1,
+        "total": 11,
+        "pct": 9.09
+      },
+      "branches": {
+        "covered": 0,
+        "total": 2,
+        "pct": 0
       }
     },
     "src/main/ipc/codexAccountIpc.ts": {
@@ -27586,6 +27872,28 @@
         "pct": 0
       }
     },
+    "src/main/mcp/mcpEndpointTools.ts": {
+      "lines": {
+        "covered": 16,
+        "total": 18,
+        "pct": 88.88
+      },
+      "statements": {
+        "covered": 19,
+        "total": 23,
+        "pct": 82.6
+      },
+      "functions": {
+        "covered": 7,
+        "total": 8,
+        "pct": 87.5
+      },
+      "branches": {
+        "covered": 12,
+        "total": 14,
+        "pct": 85.71
+      }
+    },
     "src/main/mcp/mcpErasureAdapter.ts": {
       "lines": {
         "covered": 33,
@@ -27650,6 +27958,28 @@
         "covered": 13,
         "total": 14,
         "pct": 92.85
+      }
+    },
+    "src/main/mcp/mcpEventStream.ts": {
+      "lines": {
+        "covered": 20,
+        "total": 20,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 24,
+        "total": 26,
+        "pct": 92.3
+      },
+      "functions": {
+        "covered": 5,
+        "total": 5,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 10,
+        "total": 13,
+        "pct": 76.92
       }
     },
     "src/main/mcp/mcpExchangeSession.ts": {
@@ -28156,6 +28486,28 @@
         "total": 16,
         "covered": 0,
         "pct": 0
+      }
+    },
+    "src/main/mcp/mcpHttpAuthorization.ts": {
+      "lines": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 6,
+        "total": 6,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
       }
     },
     "src/main/mcp/mcpHttpPolicy.ts": {
@@ -29104,6 +29456,28 @@
         "pct": 100
       }
     },
+    "src/main/mcp/mcpLocalHost.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 62,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 66,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 22,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 10,
+        "pct": 0
+      }
+    },
     "src/main/mcp/mcpMemoryRefreshTools.ts": {
       "lines": {
         "covered": 21,
@@ -29366,6 +29740,28 @@
         "covered": 19,
         "total": 30,
         "pct": 63.33
+      }
+    },
+    "src/main/mcp/mcpOtherClientGuidance.ts": {
+      "lines": {
+        "total": 24,
+        "covered": 24,
+        "pct": 100
+      },
+      "statements": {
+        "total": 30,
+        "covered": 30,
+        "pct": 100
+      },
+      "functions": {
+        "total": 6,
+        "covered": 6,
+        "pct": 100
+      },
+      "branches": {
+        "total": 35,
+        "covered": 34,
+        "pct": 97.14
       }
     },
     "src/main/mcp/mcpOutputDeliveryAdapter.ts": {
@@ -36496,6 +36892,28 @@
         "pct": 100
       }
     },
+    "src/renderer/src/api/chatGateway.ts": {
+      "lines": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
     "src/renderer/src/api/codexConnection.ts": {
       "lines": {
         "covered": 23,
@@ -41336,6 +41754,28 @@
         "pct": 100
       }
     },
+    "src/renderer/src/components/settingsModal/McpOpenCodeGuide.tsx": {
+      "lines": {
+        "covered": 3,
+        "total": 3,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 3,
+        "total": 3,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 3,
+        "total": 6,
+        "pct": 50
+      }
+    },
     "src/renderer/src/components/settingsModal/McpSettingsPanel.tsx": {
       "lines": {
         "covered": 15,
@@ -42104,6 +42544,28 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/renderer/src/components/ui/ActionMenu.tsx": {
+      "lines": {
+        "covered": 9,
+        "total": 12,
+        "pct": 75
+      },
+      "statements": {
+        "covered": 9,
+        "total": 13,
+        "pct": 69.23
+      },
+      "functions": {
+        "covered": 4,
+        "total": 5,
+        "pct": 80
+      },
+      "branches": {
+        "covered": 14,
+        "total": 16,
+        "pct": 87.5
       }
     },
     "src/renderer/src/components/ui/FavoriteToggleButton.tsx": {
@@ -42984,6 +43446,226 @@
         "total": 12,
         "covered": 9,
         "pct": 75
+      }
+    },
+    "src/renderer/src/features/chat/ChatComposer.tsx": {
+      "lines": {
+        "covered": 12,
+        "total": 27,
+        "pct": 44.44
+      },
+      "statements": {
+        "covered": 12,
+        "total": 27,
+        "pct": 44.44
+      },
+      "functions": {
+        "covered": 5,
+        "total": 15,
+        "pct": 33.33
+      },
+      "branches": {
+        "covered": 15,
+        "total": 20,
+        "pct": 75
+      }
+    },
+    "src/renderer/src/features/chat/ChatControls.tsx": {
+      "lines": {
+        "covered": 11,
+        "total": 16,
+        "pct": 68.75
+      },
+      "statements": {
+        "covered": 11,
+        "total": 16,
+        "pct": 68.75
+      },
+      "functions": {
+        "covered": 7,
+        "total": 12,
+        "pct": 58.33
+      },
+      "branches": {
+        "covered": 15,
+        "total": 15,
+        "pct": 100
+      }
+    },
+    "src/renderer/src/features/chat/ChatMarkdown.tsx": {
+      "lines": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/renderer/src/features/chat/ChatPanel.tsx": {
+      "lines": {
+        "covered": 12,
+        "total": 14,
+        "pct": 85.71
+      },
+      "statements": {
+        "covered": 12,
+        "total": 14,
+        "pct": 85.71
+      },
+      "functions": {
+        "covered": 4,
+        "total": 6,
+        "pct": 66.66
+      },
+      "branches": {
+        "covered": 12,
+        "total": 18,
+        "pct": 66.66
+      }
+    },
+    "src/renderer/src/features/chat/ChatQualityReceipt.tsx": {
+      "lines": {
+        "covered": 0,
+        "total": 13,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 15,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 4,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 15,
+        "pct": 0
+      }
+    },
+    "src/renderer/src/features/chat/ChatQuestionForm.tsx": {
+      "lines": {
+        "covered": 0,
+        "total": 9,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 9,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 7,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 4,
+        "pct": 0
+      }
+    },
+    "src/renderer/src/features/chat/ChatTranscript.tsx": {
+      "lines": {
+        "covered": 8,
+        "total": 51,
+        "pct": 15.68
+      },
+      "statements": {
+        "covered": 8,
+        "total": 61,
+        "pct": 13.11
+      },
+      "functions": {
+        "covered": 2,
+        "total": 20,
+        "pct": 10
+      },
+      "branches": {
+        "covered": 6,
+        "total": 71,
+        "pct": 8.45
+      }
+    },
+    "src/renderer/src/features/chat/useChat.ts": {
+      "lines": {
+        "covered": 45,
+        "total": 54,
+        "pct": 83.33
+      },
+      "statements": {
+        "covered": 49,
+        "total": 62,
+        "pct": 79.03
+      },
+      "functions": {
+        "covered": 16,
+        "total": 23,
+        "pct": 69.56
+      },
+      "branches": {
+        "covered": 12,
+        "total": 24,
+        "pct": 50
+      }
+    },
+    "src/renderer/src/features/chat/useChatDraft.ts": {
+      "lines": {
+        "covered": 20,
+        "total": 35,
+        "pct": 57.14
+      },
+      "statements": {
+        "covered": 20,
+        "total": 37,
+        "pct": 54.05
+      },
+      "functions": {
+        "covered": 5,
+        "total": 13,
+        "pct": 38.46
+      },
+      "branches": {
+        "covered": 11,
+        "total": 20,
+        "pct": 55
+      }
+    },
+    "src/renderer/src/features/chat/useChatModel.ts": {
+      "lines": {
+        "covered": 11,
+        "total": 16,
+        "pct": 68.75
+      },
+      "statements": {
+        "covered": 12,
+        "total": 21,
+        "pct": 57.14
+      },
+      "functions": {
+        "covered": 5,
+        "total": 10,
+        "pct": 50
+      },
+      "branches": {
+        "covered": 14,
+        "total": 20,
+        "pct": 70
       }
     },
     "src/renderer/src/hooks/appOperationEventScheduler.ts": {
@@ -45120,6 +45802,50 @@
         "pct": 64.51
       }
     },
+    "src/shared/chatSchemas.ts": {
+      "lines": {
+        "covered": 9,
+        "total": 10,
+        "pct": 90
+      },
+      "statements": {
+        "covered": 9,
+        "total": 10,
+        "pct": 90
+      },
+      "functions": {
+        "covered": 0,
+        "total": 1,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 2,
+        "pct": 0
+      }
+    },
+    "src/shared/chatTypes.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
     "src/shared/codexAccountSchemas.ts": {
       "lines": {
         "total": 2,
@@ -46063,6 +46789,28 @@
       "branches": {
         "total": 0,
         "covered": 0,
+        "pct": 100
+      }
+    },
+    "src/shared/ipcChatContracts.ts": {
+      "lines": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
         "pct": 100
       }
     },

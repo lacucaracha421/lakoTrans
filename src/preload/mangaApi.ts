@@ -37,6 +37,8 @@ export function createMangaApi(runtime: MangaApiRuntime): MangaApi {
   const invokeApi = bindInvokeContracts(ipcInvokeContracts, runtime.invoke);
   return {
     ...invokeApi,
+    onChatEvent: (callback) =>
+      subscribeToIpcEvent(ipcEventContracts.chatEvent, callback, runtime),
     getPathForFile: runtime.getPathForFile,
     onPanelState: (callback) =>
       subscribeToIpcEvent(ipcEventContracts.panelState, callback, runtime),

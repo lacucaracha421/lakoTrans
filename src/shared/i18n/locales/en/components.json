@@ -52,6 +52,8 @@
     "noCurrentChapter": "No chapter open",
     "translate": "Add new source",
     "batchTranslate": "Add multiple chapters",
+    "addSource": "Add source",
+    "more": "More",
     "libraryFolder": "Library folder",
     "share": "Export work",
     "importWork": "Import work",
@@ -702,7 +704,7 @@
   "translationOptions": {
     "codexErasure": "Erase with Codex",
     "title": "Run translation",
-    "workspaceAction": "Translation settings…",
+    "workspaceAction": "Standard translation",
     "workspaceUndoWarning": "Re-translated pages replace their existing results.",
     "start": "Start translation",
     "startSelection": "Translate selection",
@@ -3028,5 +3030,76 @@
       "clipboard": "Could not copy the list.",
       "save": "Could not save."
     }
+  },
+  "chat": {
+    "open": "Chat",
+    "translateInChat": "Chat translation",
+    "panelMode": "Right panel",
+    "editor": "Edit",
+    "history": "Conversation history",
+    "new": "New conversation",
+    "compact": "Compact conversation",
+    "model": "Model",
+    "effort": "Reasoning",
+    "modelSettings": "Model and reasoning",
+    "effortChip": "Reasoning {{level}}",
+    "library": "Entire library",
+    "contextBlocks": "Bubbles: {{count}}",
+    "loginHint": "ChatGPT sign-in required.",
+    "login": "Sign in to ChatGPT",
+    "loading": "Loading conversations…",
+    "older": "Show older messages",
+    "openPage": "Open page",
+    "undo": "Check undo",
+    "undoRequest": "Check the recovery record for {{tool}} and undo this change if it is still available. Do not overwrite later edits. Result: {{result}}",
+    "removeImage": "Remove image",
+    "message": "Message",
+    "placeholder": "Enter a request",
+    "attach": "Attach image",
+    "enterHint": "Enter to send · Shift+Enter for a new line",
+    "stop": "Stop",
+    "steer": "Add instruction",
+    "send": "Send",
+    "answer": "Send answer",
+    "roles": {
+      "user": "You",
+      "assistant": "Codex",
+      "status": "Status"
+    },
+    "operation": {
+      "running": "Working…",
+      "completed": "Result",
+      "failed": "Failed"
+    },
+    "state": {
+      "idle": "Ready",
+      "running": "Working…",
+      "compacting": "Compacting conversation…",
+      "needs-input": "Waiting for your answer",
+      "paused": "Paused · send a message to continue",
+      "failed": "Interrupted · send a message to reconnect"
+    },
+    "tools": {
+      "font": "Comparing fonts",
+      "image": "Image work",
+      "library": "Checking library",
+      "sound": "Sound effects",
+      "erase": "Restoring artwork",
+      "review": "Quality review",
+      "edit": "Editing pages",
+      "context": "Reading context",
+      "inspect": "Checking pages"
+    },
+    "quality": {
+      "observation": "Quality at the time of this check",
+      "incomplete": "Review or fixes still required",
+      "accepted-at-current-revisions": "Detailed review passed",
+      "accepted-with-font-substitutions": "Review passed with font substitutions",
+      "chapter": "Whole chapter · later edits require another review",
+      "selection": "Selected pages only",
+      "substitutions": "{{count}} font substitutions"
+    },
+    "redo": "Check reapply",
+    "redoRequest": "Check the retained recovery record and current revision for {{tool}}. Reapply only if still available without overwriting later manual edits. Result: {{result}}"
   }
 }

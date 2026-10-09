@@ -14,8 +14,17 @@ import { applyInpaintingLayoutStates } from "../inpainting/inpaintingLayoutState
 import { applyNaturalTextLayout } from "../../shared/naturalTextLayout";
 import type { PageWorkflowRuntimeContext } from "./pageWorkflowRuntimeTypes";
 
-function workflowBubbleRunner(context: PageWorkflowRuntimeContext) {
-  return createProductionBubbleLayoutRunner({
+const productionRuntime = {
+  acquireInpaintingEngine,
+  acquireCodexInpaintingEngine,
+  createProductionBubbleLayoutRunner,
+};
+
+function workflowBubbleRunner(
+  context: PageWorkflowRuntimeContext,
+  runtime: typeof productionRuntime,
+) {
+  return runtime.createProductionBubbleLayoutRunner({
     dataRoot: context.paths.dataRoot,
     decodeFallback: context.decodeImage,
     directMl: {
@@ -25,10 +34,14 @@ function workflowBubbleRunner(context: PageWorkflowRuntimeContext) {
   });
 }
 
-export function createWorkflowImages(context: PageWorkflowRuntimeContext) {
-  const runner = workflowBubbleRunner(context);
+export function createWorkflowImages(
+  context: PageWorkflowRuntimeContext,
+  runtime = productionRuntime,
+) {
+  const runner = workflowBubbleRunner(context, runtime);
   return {
-    erase: (page: MangaPage) => eraseWorkflowPage(context, page, runner),
+    erase: (page: MangaPage) =>
+      eraseWorkflowPage(context, page, runner, runtime),
     layout: (page: MangaPage) => layoutWorkflowPage(context, page, runner),
   };
 }
@@ -37,16 +50,15 @@ async function eraseWorkflowPage(
   context: PageWorkflowRuntimeContext,
   page: MangaPage,
   runner: ReturnType<typeof workflowBubbleRunner>,
+  runtime: typeof productionRuntime,
 ): Promise<MangaPage> {
   const targets = workflowTargetBlocks(page, "erase", context.plan);
   if (!targets.length) return page;
-  const lease = await acquireWorkflowErasure(context);
+  const lease = await acquireWorkflowErasure(context, runtime);
   try {
     const blockIds = targets.map((block) => block.id);
     const prepass =
-      lease.engine.model === "flux-klein" &&
-      context.plan.bubbleLayout &&
-      context.plan.stages.includes("layout")
+      lease.engine.model === "flux-klein"
         ? await runBubbleLayoutMaskPrepass({
             page,
             blockIds,
@@ -145,15 +157,18 @@ async function layoutWorkflowPage(
   return output;
 }
 
-async function acquireWorkflowErasure(context: PageWorkflowRuntimeContext) {
+async function acquireWorkflowErasure(
+  context: PageWorkflowRuntimeContext,
+  runtime: typeof productionRuntime,
+) {
   const settings = context.settings;
   return context.plan.erasureEngine === "codex"
-    ? await acquireCodexInpaintingEngine(
+    ? await runtime.acquireCodexInpaintingEngine(
         context.paths,
         settings,
         context.signal,
       )
-    : await acquireInpaintingEngine({
+    : await runtime.acquireInpaintingEngine({
         appPaths: context.paths,
         signal: context.signal,
         model: settings.inpainting?.model ?? "flux-klein",

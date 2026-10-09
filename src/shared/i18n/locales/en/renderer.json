@@ -220,6 +220,9 @@
     "shortcutHelp": {
       "label": "Shortcut help",
       "keywords": "shortcut keyboard help"
+    },
+    "chat": {
+      "label": "Chat translation"
     }
   },
   "shortcuts": {

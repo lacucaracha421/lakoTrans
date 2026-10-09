@@ -8,8 +8,24 @@
 | ------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | ChatGPT 웹   | 앱 관리 Tailscale HTTPS + OAuth/DCR + 앱의 코드 확인 | 소스 구현과 실제 계정 로그인·도구 호출·파일 수신을 별도로 확인                           |
 | Codex 앱·CLI | 앱 관리 HTTPS + OAuth/DCR + 앱의 코드 확인           | CLI 0.156.1 실제 로그인·도구 호출을 격리 loopback에서 검증. 공개 Funnel 경유는 별도 확인 |
+| OpenCode     | 앱 관리 HTTPS + OAuth/DCR + 앱의 코드 확인           | 1.18.35 공개 주소 인증·실제 Go 모델 호출 및 격리 편집·복구 검증                          |
 
-앱 관리 OAuth는 ChatGPT 콜백과 Codex 숫자 loopback 콜백(`http://127.0.0.1:<port>/callback[/id]`)을 등록합니다. 등록한 주소·포트의 정확한 일치와 PKCE를 검사합니다. 클라이언트 이름만으로 권한을 부여하지 않습니다.
+앱 관리 OAuth는 HTTPS 복귀 주소와 HTTP loopback(`127.0.0.1`, `localhost`, `[::1]`) 복귀 주소를 등록합니다. HTTP loopback은 명시적인 비특권 포트가 필요하며 재인증 시 포트만 달라질 수 있습니다. 호스트·경로·query는 등록값과 일치해야 하고 HTTPS 주소는 전체가 일치해야 합니다. PKCE와 앱의 코드 승인을 유지하며 승인 화면에 실제 복귀 주소를 표시합니다. 제품별 경로 목록은 사용하지 않습니다.
+
+### 2026-10-09 OpenCode 검증
+
+- OpenCode 1.18.35의 기본 복귀 주소 `/mcp/oauth/callback`으로 실제 브라우저 승인과 OAuth 연결을 완료했다. 사용자 설정은 백업 후 `mcp.carrot`만 추가했고 기존 `opencode-go/deepseek-v4.1-flash`와 에이전트 설정을 보존했다.
+- 공개 서버에서 실제 Go 모델이 읽기 도구 11개를 호출했다. 원본·최종 렌더·한국어 폰트 견본 등 PNG 6개가 OpenCode의 이미지 첨부로 전달됐다.
+- 별도 data root의 원본 한 페이지에서 직접 번역, 6개 블록 생성, 폰트 견본·작품 팔레트, Flux 원문 제거, 서식 저장, 렌더, Undo/Redo를 실행했다. 원본·사용자 작품 파일의 SHA는 유지됐다.
+- **이 시험은 번역 품질 통과가 아니다.** 모델이 최종 v2 검수를 제출하지 않았고, 직접 확인한 렌더에도 말풍선 넘침이 남았다. 서버의 최종 상태는 `incomplete / pending`, 승인 페이지는 0/1이다.
+- 별도 네이티브 재시작 시험에서 동일 인증으로 저장 revision과 작업 기록을 복원했다. 철회 후 HTTP 401과 실제 OpenCode의 접근 실패를 확인했다. 사용자 연결은 철회하지 않았다.
+- 재연결 반복 중 OpenCode가 선택적 GET의 405를 받으면 `tools/list`를 보내기 전에 실패하는 현상을 재현했다. 인증·Origin 검사를 그대로 적용하는 GET 이벤트 스트림을 추가했고, 수정 후 같은 OpenCode에서 재연결 4회 모두 257개 도구 조회에 성공했다. POST 편집·완료 계약은 동일하다. 스트림은 작업 결과를 전송하지 않고, 연결 종료·서버 중지 때 정리하며 heartbeat에서 권한을 다시 확인한다.
+- 임의 loopback 경로, IPv6, HTTPS 웹 복귀 주소의 등록·정확한 주소 바인딩·갱신·철회를 HTTP 통합 시험으로 확인했다. UI는 실제 설정 컴포넌트의 넓은/좁은 화면과 승인 화면을 캡처해 확인했다.
+- 최종 `npm run check`의 27개 검사와 빌드가 통과했다. 테스트는 10,506개 통과, 9개 건너뜀, 실패 0개다. 로그는 `.tmp/opencode-mcp-check-05.log`에 보존했다.
+
+로컬 증거는 `.tmp/opencode-connection-acceptance.json`, `.tmp/mcp-quality-v2-evaluation/opencode-flux-one-01/`, `.tmp/mcp-quality-v2-evaluation/opencode-auth-restart-02/`에 있다. 실패한 첫 재연결 기록도 보존했다. 사용자 연결 안내는 [MCP 사용 가이드](mcp-user-guide.md#opencode)를 따른다.
+
+근거: [OpenCode MCP 설정](https://opencode.ai/docs/mcp-servers/), [OpenCode 1.18.35 OAuth 구현](https://github.com/anomalyco/opencode/blob/v1.18.35/packages/opencode/src/mcp/oauth-provider.ts), [MCP Streamable HTTP의 GET 규칙](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports#listening-for-messages-from-the-server).
 
 ## 최초 Tailscale 준비
 

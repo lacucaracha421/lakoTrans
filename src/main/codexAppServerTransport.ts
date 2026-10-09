@@ -1,3 +1,4 @@
+import { observeCodexTurnAccounting } from "./codexAppServerAccounting";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface, type Interface } from "node:readline";
 import { asRecord, type JsonRecord } from "./codexAppServerProtocol";
@@ -34,6 +35,9 @@ export class CodexAppServerTransport {
   private nextRequestId = 1;
   private closed = false;
   private exitError: Error | null = null;
+  private serverRequestHandler?: (
+    message: JsonRecord,
+  ) => Promise<unknown> | undefined;
 
   constructor(child: ChildProcessWithoutNullStreams, version: string) {
     this.child = child;
@@ -63,6 +67,43 @@ export class CodexAppServerTransport {
 
   get stderrCursor(): number {
     return this.stderrSequence;
+  }
+
+  subscribe(
+    listener: NotificationListener,
+    failed: FailureListener,
+  ): () => void {
+    this.listeners.add(listener);
+    this.failureListeners.add(failed);
+    return () => {
+      this.listeners.delete(listener);
+      this.failureListeners.delete(failed);
+    };
+  }
+
+  handleServerRequests(
+    handler: (message: JsonRecord) => Promise<unknown> | undefined,
+  ): void {
+    this.serverRequestHandler = handler;
+  }
+
+  private dispatchServerRequest(message: JsonRecord): boolean {
+    const response = this.serverRequestHandler?.(message);
+    if (!response) return false;
+    void response
+      .then(
+        (result) => this.writeMessage({ id: message.id, result }),
+        (error: unknown) =>
+          this.writeMessage({
+            id: message.id,
+            error: {
+              code: -32000,
+              message: normalizeError(error).message,
+            },
+          }),
+      )
+      .catch((error: unknown) => this.handleProcessFailure(error));
+    return true;
   }
 
   readTurnDiagnostics(
@@ -152,50 +193,10 @@ export class CodexAppServerTransport {
     };
   }
 
-  observeTurnAccounting(threadId: string): {
-    snapshot: (turnId: string) => {
-      tokenUsage: JsonRecord | null;
-      lastTokenUsage: JsonRecord | null;
-      routedModel: string | null;
-    };
-    dispose: () => void;
-  } {
-    const usageByTurn = new Map<
-      string,
-      { tokenUsage: JsonRecord | null; lastTokenUsage: JsonRecord | null }
-    >();
-    let routedModel: string | null = null;
-    const listener: NotificationListener = (notification) => {
-      const params = asRecord(notification.params);
-      if (params?.threadId !== threadId) return;
-      if (
-        notification.method === "thread/tokenUsage/updated" &&
-        typeof params.turnId === "string"
-      ) {
-        const usage = asRecord(params.tokenUsage);
-        usageByTurn.set(params.turnId, {
-          tokenUsage: asRecord(usage?.total),
-          lastTokenUsage: asRecord(usage?.last),
-        });
-      }
-      if (
-        notification.method === "model/rerouted" &&
-        typeof params.toModel === "string"
-      ) {
-        routedModel = params.toModel;
-      }
-    };
-    this.listeners.add(listener);
-    return {
-      snapshot: (turnId) => ({
-        tokenUsage: usageByTurn.get(turnId)?.tokenUsage ?? null,
-        lastTokenUsage: usageByTurn.get(turnId)?.lastTokenUsage ?? null,
-        routedModel,
-      }),
-      dispose: () => {
-        this.listeners.delete(listener);
-      },
-    };
+  observeTurnAccounting(threadId: string) {
+    return observeCodexTurnAccounting(threadId, (listener) =>
+      this.subscribe(listener, () => undefined),
+    );
   }
 
   waitForNotification(
@@ -282,6 +283,7 @@ export class CodexAppServerTransport {
     }
     if (typeof message.method !== "string") return;
     if (message.id !== undefined) {
+      if (this.dispatchServerRequest(message)) return;
       if (
         this.previews.dispatch(message, (reply) => {
           try {

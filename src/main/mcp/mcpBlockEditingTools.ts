@@ -21,7 +21,7 @@ export function createMcpBlockEditingTools(
       idempotent: true,
       requiredScopes: ["carrot.read", "carrot.edit", "carrot.process"],
       description:
-        "Patch explicit scalar fields and/or display geometry of existing blocks using the app's field editor. Read carrot_get_page_blocks first. renderRect is ORIGINAL IMAGE PIXELS; the app constrains display geometry and returns the actual normalized bbox. Source bbox, image layers, masks and untargeted blocks are preserved. Font-size edits follow the app's manual/auto-fit rules. No OCR, model call, erasure, render or implicit undo. Requires both edit and processing approval; stale or dirty pages fail. Generated lettering is retained, so check rendering after changing its fallback text/style.",
+        "Patch explicit scalar fields and/or display geometry of existing blocks using the app's field editor. Read carrot_get_page_blocks first. renderRect is ORIGINAL IMAGE PIXELS; the app constrains display geometry and returns the actual normalized bbox. Detected balloon geometry is protected: omit renderRect for text/style/size changes. Only intentional, visually verified replacement may set allowDetectedLayoutOverride=true per edit. Source bbox, image layers, masks and untargeted blocks are preserved. Font-size edits follow the app's manual/auto-fit rules. No OCR, model call, erasure, render or implicit undo. Requires both edit and processing approval; stale or dirty pages fail. Generated lettering is retained, so check rendering after changing its fallback text/style.",
       inputSchema: z.toJSONSchema(McpBlockPatchSchema),
       invoke: async (args, context) => {
         const request = McpBlockPatchSchema.safeParse(args);

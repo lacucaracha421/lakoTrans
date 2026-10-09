@@ -91,6 +91,7 @@ export function detailedQualityFixture() {
         innerWidth: 200,
         innerHeight: 80,
         overflow: false,
+        shapeFlow: "contained",
         direction: "horizontal",
         hangulInk: {
           sampleCount: 5,

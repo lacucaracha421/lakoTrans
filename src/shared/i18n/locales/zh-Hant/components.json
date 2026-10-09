@@ -52,6 +52,8 @@
     "noCurrentChapter": "尚未開啟章節",
     "translate": "新增原稿",
     "batchTranslate": "新增多個章節",
+    "addSource": "新增原稿",
+    "more": "更多",
     "libraryFolder": "資料庫資料夾",
     "share": "匯出專案",
     "importWork": "匯入專案",
@@ -702,7 +704,7 @@
   "translationOptions": {
     "codexErasure": "用 Codex 擦除",
     "title": "執行翻譯",
-    "workspaceAction": "翻譯設定…",
+    "workspaceAction": "一般翻譯",
     "workspaceUndoWarning": "重新翻譯的頁面會用新結果取代現有結果。",
     "start": "開始翻譯",
     "startSelection": "翻譯所選範圍",
@@ -3028,5 +3030,76 @@
       "clipboard": "無法複製清單。",
       "save": "無法儲存。"
     }
+  },
+  "chat": {
+    "open": "聊天",
+    "translateInChat": "聊天翻譯",
+    "panelMode": "右側面板",
+    "editor": "編輯",
+    "history": "歷史對話",
+    "new": "新增對話",
+    "compact": "壓縮對話",
+    "model": "模型",
+    "effort": "推理等級",
+    "modelSettings": "模型與推理等級",
+    "effortChip": "推理 {{level}}",
+    "library": "整個書庫",
+    "contextBlocks": "氣泡 {{count}} 個",
+    "loginHint": "需要登入 ChatGPT 帳戶。",
+    "login": "登入 ChatGPT",
+    "loading": "正在載入對話…",
+    "older": "查看較早的訊息",
+    "openPage": "開啟頁面",
+    "undo": "檢查是否可復原",
+    "undoRequest": "請檢查 {{tool}} 的復原記錄，只在仍可復原時撤銷這次變更，不要覆蓋後續編輯。結果：{{result}}",
+    "removeImage": "移除圖片",
+    "message": "訊息",
+    "placeholder": "輸入請求",
+    "attach": "新增圖片",
+    "enterHint": "Enter 傳送 · Shift+Enter 換行",
+    "stop": "停止",
+    "steer": "追加指示",
+    "send": "傳送",
+    "answer": "傳送回答",
+    "roles": {
+      "user": "我",
+      "assistant": "Codex",
+      "status": "進度"
+    },
+    "operation": {
+      "running": "處理中…",
+      "completed": "結果",
+      "failed": "失敗"
+    },
+    "state": {
+      "idle": "就緒",
+      "running": "處理中…",
+      "compacting": "正在壓縮對話…",
+      "needs-input": "等待回答",
+      "paused": "已暫停 · 傳送訊息以繼續",
+      "failed": "連線中斷 · 傳送訊息以重新連線"
+    },
+    "tools": {
+      "font": "比較字型",
+      "image": "處理圖片",
+      "library": "查看書庫",
+      "sound": "處理音效",
+      "erase": "修復原畫",
+      "review": "品質檢查",
+      "edit": "編輯頁面",
+      "context": "查看上下文",
+      "inspect": "檢查頁面"
+    },
+    "quality": {
+      "observation": "本次檢查時的品質記錄",
+      "incomplete": "仍需檢查或修正",
+      "accepted-at-current-revisions": "通過精細檢查",
+      "accepted-with-font-substitutions": "通過檢查，含字型替代",
+      "chapter": "整話 · 後續編輯需要重新檢查",
+      "selection": "僅選定頁面",
+      "substitutions": "{{count}} 項字型替代"
+    },
+    "redo": "檢查能否重新套用",
+    "redoRequest": "請檢查 {{tool}} 的復原記錄和目前修訂，只在不會覆蓋後續手動編輯且仍可復原時重新套用。結果：{{result}}"
   }
 }

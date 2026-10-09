@@ -130,10 +130,11 @@ describe("MCP uses the existing app erasure job", () => {
     expect(f.harness.acquireEngine).not.toHaveBeenCalled();
     expect(f.harness.runtime.savePages).not.toHaveBeenCalled();
   });
-  it("runs local page-pattern removal and preserves text and history with no Codex or layout", async () => {
+  it("prepares local FLUX masks without committing layout or invoking Codex", async () => {
     const f = fixture();
     const codex = vi.fn();
-    const layout = vi.fn();
+    const runPage = vi.fn(async () => ({ patches: [] }));
+    const layout = vi.fn(() => ({ runPage }));
     f.harness.runtime.acquireCodexEngine = codex;
     f.harness.runtime.createBubbleLayoutRunner = layout;
     const before = structuredClone(f.page.blocks);
@@ -153,7 +154,13 @@ describe("MCP uses the existing app erasure job", () => {
     expect(f.harness.inpaintPatternPage).toHaveBeenCalledTimes(1);
     expect(f.harness.releaseEngine).toHaveBeenCalledTimes(1);
     expect(codex).not.toHaveBeenCalled();
-    expect(layout).not.toHaveBeenCalled();
+    expect(layout).toHaveBeenCalledOnce();
+    expect(runPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceEraseMask: true,
+        includeTypographySegmentation: true,
+      }),
+    );
     expect(f.chapters.get("chapter")?.pages[0].blocks).toEqual(before);
     expect(f.editing.assertClean).toHaveBeenCalled();
     expect(f.app.jobs.current).toBeNull();

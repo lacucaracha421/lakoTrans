@@ -85,30 +85,25 @@ it("requires explicit OAuth opt-in, HTTPS and separate credentials", () => {
 });
 
 for (const callback of [
-  "https://evil.example/",
-  "https://chatgpt.com.evil.example/connector/oauth/a",
   "https://chatgpt.com@evil.example/connector/oauth/a",
   "http://chatgpt.com/connector/oauth/a",
-  "https://chatgpt.com/connector/oauth/a?next=evil",
   "https://chatgpt.com/connector/oauth/a#fragment",
+  "https://client.example/callback#",
   "https://chatgpt.com/connector/oauth/../evil",
-  "https://chatgpt.com/anything",
   "file:///etc/passwd",
   "http://localhost.evil.example:43123/callback",
   "http://localhost:80/callback",
-  "https://localhost:43123/callback",
-  "https://claude.ai/api/mcp/other",
-  "https://claude.ai/api/mcp/auth_callback?next=evil",
-  "https://claude.ai.evil.example/api/mcp/auth_callback",
   "http://claude.ai/api/mcp/auth_callback",
   "http://127.0.0.1.evil.example:43123/callback",
   "http://127.1:43123/callback",
   "http://2130706433:43123/callback",
   "http://127.0.0.1:80/callback",
-  "http://127.0.0.1:43123/other",
-  "http://127.0.0.1:43123/callback?next=evil",
   "http://127.0.0.1:43123/callback/../other",
   "http://user@127.0.0.1:43123/callback",
+  "https://*.example/callback",
+  "http://[::2]:19876/mcp/oauth/callback",
+  "http://[::1]/callback",
+  "http://[::1]:1023/callback",
 ]) {
   it(`rejects untrusted callback ${callback}`, () =>
     assert.throws(() => readMcpOAuthRedirect(callback)));

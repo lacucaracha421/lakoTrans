@@ -28,6 +28,7 @@ const status = z
           id: z.string(),
           clientName: z.string(),
           code: z.string(),
+          redirectUri: z.string().url().max(2048).optional(),
           scope: z.string(),
           expiresAt: z.number(),
         })
@@ -120,7 +121,16 @@ export const mcpIpcContracts = {
       .strict(),
   }),
   openMcpHelp: defineIpcContract<
-    ["tailscale" | "setup" | "chatgpt" | "codex" | "claude" | "claude-code"],
+    [
+      | "tailscale"
+      | "setup"
+      | "chatgpt"
+      | "codex"
+      | "claude"
+      | "claude-code"
+      | "opencode"
+      | "generic",
+    ],
     { completed: boolean }
   >({
     apiKey: "openMcpHelp",
@@ -133,6 +143,8 @@ export const mcpIpcContracts = {
         "codex",
         "claude",
         "claude-code",
+        "opencode",
+        "generic",
       ]),
     ]),
     result: z.object({ completed: z.boolean() }).strict(),

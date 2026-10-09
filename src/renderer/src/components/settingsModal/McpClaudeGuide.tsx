@@ -16,10 +16,12 @@ export function McpCommandCopy({
   commands,
   busy,
   run,
+  label = "명령 복사",
 }: {
   commands: string | null;
   busy: boolean;
   run: RunAction;
+  label?: string;
 }) {
   const [copied, setCopied] = React.useState(false);
   if (!commands)
@@ -43,7 +45,7 @@ export function McpCommandCopy({
           })
         }
       >
-        {copied ? "복사됨" : "명령 복사"}
+        {copied ? "복사됨" : label}
       </Button>
     </div>
   );

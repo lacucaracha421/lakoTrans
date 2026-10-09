@@ -62,7 +62,7 @@ const productionStartRuntime: CodexAppServerClientStartRuntime = {
 export class CodexAppServerClient {
   private releaseAbort?: () => void;
   private constructor(
-    private readonly transport: CodexAppServerTransport,
+    readonly connection: CodexAppServerTransport,
     private readonly capability: CodexAppServerCapability,
     private readonly workspace: Workspace,
   ) {}
@@ -72,11 +72,13 @@ export class CodexAppServerClient {
       paths,
       appVersion,
       capability = "isolated",
+      chatConnection,
       signal,
     }: {
       paths: AppPaths;
       appVersion: string;
       capability?: CodexAppServerCapability;
+      chatConnection?: { url: string; token: string };
       signal?: AbortSignal;
     },
     runtime: CodexAppServerClientStartRuntime = productionStartRuntime,
@@ -90,8 +92,11 @@ export class CodexAppServerClient {
     try {
       child = runtime.spawnAppServer(
         binary.executablePath,
-        buildCodexAppServerArguments(capability),
-        { cwd: workspace.path, env: buildCodexEnvironment(codexHomeDir) },
+        buildCodexAppServerArguments(capability, chatConnection),
+        {
+          cwd: workspace.path,
+          env: buildCodexEnvironment(codexHomeDir, chatConnection),
+        },
       );
     } catch (error) {
       await workspace.remove();
@@ -122,23 +127,23 @@ export class CodexAppServerClient {
   }
 
   get version(): string {
-    return this.transport.version;
+    return this.connection.version;
   }
 
   get process(): ChildProcessWithoutNullStreams {
-    return this.transport.process;
+    return this.connection.process;
   }
 
   async readAccount(
     refreshToken = false,
   ): Promise<CodexAppServerAccountResult> {
-    const raw = await this.transport.request("account/read", { refreshToken });
+    const raw = await this.connection.request("account/read", { refreshToken });
     return parseAccountResult(raw);
   }
 
   async startChatGptLogin(): Promise<CodexChatGptLogin> {
     const raw = asRecord(
-      await this.transport.request("account/login/start", {
+      await this.connection.request("account/login/start", {
         type: "chatgpt",
         useHostedLoginSuccessPage: true,
         appBrand: "codex",
@@ -157,7 +162,7 @@ export class CodexAppServerClient {
   }
 
   async waitForLogin(loginId: string, signal?: AbortSignal): Promise<void> {
-    const notification = await this.transport.waitForNotification(
+    const notification = await this.connection.waitForNotification(
       (candidate) => {
         if (candidate.method !== "account/login/completed") return false;
         const params = asRecord(candidate.params);
@@ -172,7 +177,7 @@ export class CodexAppServerClient {
   }
 
   async cancelLogin(loginId: string): Promise<void> {
-    await this.transport
+    await this.connection
       .request("account/login/cancel", { loginId })
       .catch((_error) => {
         // error-policy-allow: login cancellation is best-effort after the primary login failure.
@@ -180,7 +185,7 @@ export class CodexAppServerClient {
   }
 
   async logout(): Promise<void> {
-    await this.transport.request("account/logout");
+    await this.connection.request("account/logout");
   }
 
   async listModels(): Promise<CodexAppServerModel[]> {
@@ -188,7 +193,7 @@ export class CodexAppServerClient {
     let cursor: string | null = null;
     do {
       const page = asRecord(
-        await this.transport.request("model/list", {
+        await this.connection.request("model/list", {
           cursor,
           limit: 100,
           includeHidden: false,
@@ -214,7 +219,7 @@ export class CodexAppServerClient {
     if (input.previewTool && this.capability !== "typesetting-preview")
       throw new Error("Preview tools require the typesetting capability.");
     const thread = asRecord(
-      await this.transport.request(
+      await this.connection.request(
         "thread/start",
         buildThreadStart(input, this.capability),
       ),
@@ -224,7 +229,7 @@ export class CodexAppServerClient {
       throw new Error("Codex App Server가 스레드 ID를 반환하지 않았습니다.");
     }
     const disposePreview = input.previewTool
-      ? this.transport.previews.register(
+      ? this.connection.previews.register(
           threadId,
           input.previewTool,
           input.signal,
@@ -237,7 +242,7 @@ export class CodexAppServerClient {
         : result;
     } finally {
       disposePreview?.();
-      const cleanup = this.transport
+      const cleanup = this.connection
         .request("thread/delete", { threadId }, 5_000)
         .catch((_error) => {
           // error-policy-allow: ephemeral thread cleanup must not replace the turn result or failure.
@@ -248,16 +253,16 @@ export class CodexAppServerClient {
 
   async dispose(force = false): Promise<void> {
     this.releaseAbort?.();
-    await this.transport.dispose(force);
+    await this.connection.dispose(force);
     await this.workspace
-      .removeAfterExit(this.transport.process)
+      .removeAfterExit(this.connection.process)
       .catch((error: unknown) =>
         console.error("Codex temporary workspace cleanup failed", error),
       );
   }
 
   private async initialize(appVersion: string): Promise<void> {
-    await this.transport.request("initialize", {
+    await this.connection.request("initialize", {
       clientInfo: {
         name: "carrot_manga_translator",
         title: "Carrot Manga Translator",
@@ -268,7 +273,7 @@ export class CodexAppServerClient {
         requestAttestation: false,
       },
     });
-    this.transport.notify("initialized");
+    this.connection.notify("initialized");
   }
 
   private async runTurnInThread(
@@ -276,13 +281,13 @@ export class CodexAppServerClient {
     threadId: string,
   ): Promise<CodexAppServerTurnResult> {
     input.signal?.throwIfAborted();
-    const webSearches = this.transport.observeWebSearches(threadId);
-    const accounting = this.transport.observeTurnAccounting(threadId);
-    const stderrSince = this.transport.stderrCursor;
+    const webSearches = this.connection.observeWebSearches(threadId);
+    const accounting = this.connection.observeTurnAccounting(threadId);
+    const stderrSince = this.connection.stderrCursor;
     let turnId: string | null = null;
     try {
       const started = asRecord(
-        await this.transport.request("turn/start", {
+        await this.connection.request("turn/start", {
           threadId,
           input: input.input.map((item) =>
             item.type === "text" ? { ...item, text_elements: [] } : item,
@@ -302,7 +307,7 @@ export class CodexAppServerClient {
         input.signal,
       ).catch((error: unknown) => {
         if (input.signal?.aborted) {
-          void this.transport
+          void this.connection
             .request("turn/interrupt", { threadId, turnId }, 5_000)
             .catch((_error) => {
               // error-policy-allow: cancellation does not wait for the remote interrupt acknowledgement.
@@ -336,7 +341,7 @@ export class CodexAppServerClient {
       if (this.capability !== "image-generation") throw error;
       input.signal?.throwIfAborted();
       throw await captureCodexImageFailure(
-        this.transport,
+        this.connection,
         error,
         threadId,
         turnId,
@@ -354,7 +359,7 @@ export class CodexAppServerClient {
     turnId: string,
     signal?: AbortSignal,
   ): Promise<JsonRecord> {
-    return this.transport.waitForNotification(
+    return this.connection.waitForNotification(
       (notification) => {
         if (
           this.capability === "image-generation" &&

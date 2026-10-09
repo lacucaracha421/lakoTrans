@@ -14,6 +14,15 @@ it("accepts current native receipts and independent horizontal Korean compositio
   expect(f.block.sourceDirection).toBe("vertical");
   await expect(assertDetailedTranslationPage(f.input)).resolves.toBeUndefined();
 });
+it("keeps manual placement available when native shape flow is unverified", async () => {
+  const f = detailedQualityFixture();
+  f.layout[0].shapeFlow = "unverified";
+  delete f.block.bubbleLayout;
+  f.block.autoFitText = false;
+  const before = structuredClone(f.page);
+  await expect(assertDetailedTranslationPage(f.input)).resolves.toBeUndefined();
+  expect(f.page).toEqual(before);
+});
 it.each([
   "missing-source",
   "wrong-source",

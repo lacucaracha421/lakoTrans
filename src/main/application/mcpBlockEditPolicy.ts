@@ -2,7 +2,8 @@ import type { ChapterSnapshot, MangaPage } from "../../shared/libraryTypes";
 import type { TranslationBlock } from "../../shared/textTypes";
 import type { ConditionalBatchWritableField } from "../../shared/conditionalBatchRules";
 import { createConditionalBatchPreview } from "../../shared/conditionalBatchEngine";
-import { normalizeRenderBboxTo1000 } from "../../shared/geometry";
+import { bboxToPixels, normalizeRenderBboxTo1000 } from "../../shared/geometry";
+import { isGeneratedBubbleLayout } from "../../shared/bubbleLayout";
 import { constrainEditableRenderBbox } from "../../shared/editableRenderGeometry";
 import {
   MIN_RENDER_BBOX_COORDINATE,
@@ -39,7 +40,13 @@ export function applyMcpBlockPatch(
     const edit = byId.get(block.id);
     if (!edit) return block;
     let next = applyFields(chapter, page, block, edit.fields);
-    if (edit.renderRect) next = applyRenderRect(page, next, edit.renderRect);
+    if (edit.renderRect)
+      next = applyRenderRect(
+        page,
+        next,
+        edit.renderRect,
+        edit.allowDetectedLayoutOverride,
+      );
     if (hashStableValue(block) === hashStableValue(next)) return block;
     changedBlockIds.push(block.id);
     if (block.generatedLettering)
@@ -78,7 +85,10 @@ function applyRenderRect(
   page: MangaPage,
   block: TranslationBlock,
   rect: NonNullable<McpBlockPatch["edits"][number]["renderRect"]>,
+  allowDetectedLayoutOverride = false,
 ): TranslationBlock {
+  if (preservesDetectedRect(page, block, rect, allowDetectedLayoutOverride))
+    return block;
   const normalized = {
     x: (rect.x / page.width) * 1000,
     y: (rect.y / page.height) * 1000,
@@ -105,6 +115,40 @@ function applyRenderRect(
     ),
     renderBboxSpace: "normalized_1000",
   };
+}
+function preservesDetectedRect(
+  page: MangaPage,
+  block: TranslationBlock,
+  rect: NonNullable<McpBlockPatch["edits"][number]["renderRect"]>,
+  allowDetectedLayoutOverride: boolean,
+) {
+  if (
+    isGeneratedBubbleLayout(block.bubbleLayout) &&
+    !allowDetectedLayoutOverride
+  ) {
+    const current = bboxToPixels(
+      normalizeRenderBboxTo1000(
+        block.renderBbox ?? block.bbox,
+        page,
+        block.renderBbox ? block.renderBboxSpace : block.bboxSpace,
+      ),
+      page.width,
+      page.height,
+    );
+    // Integer MCP rectangles may round a fractional detector result. Preserve
+    // the exact region on round trips instead of rescaling its shape spans.
+    if (
+      (["x", "y", "w", "h"] as const).every(
+        (key) => Math.abs(current[key] - rect[key]) <= 1,
+      )
+    )
+      return true;
+    throw new McpEditError(
+      "invalid_edit",
+      `Block ${block.id} has detected balloon geometry. Omit renderRect when changing font, size, wrapping or alignment; keep the detected contour. Re-run lettering layout if detection is wrong. Only an intentional, visually verified geometry replacement may set allowDetectedLayoutOverride=true.`,
+    );
+  }
+  return false;
 }
 export function applyMcpReadingOrder(
   page: MangaPage,

@@ -427,7 +427,7 @@ it("does not trust forwarded host or origin headers", async () => {
   });
 });
 
-it("rejects malformed, oversized bodies, token URLs and unsupported streaming", async () => {
+it("rejects malformed, oversized bodies, token URLs and session deletion", async () => {
   await withServer(async ({ url }) => {
     const headers = {
       Authorization: `Bearer ${TOKEN}`,
@@ -449,7 +449,9 @@ it("rejects malformed, oversized bodies, token URLs and unsupported streaming", 
       413,
     );
     assert.equal((await post(`${url}?token=${TOKEN}`)).status, 404);
-    assert.equal((await fetch(url, { headers })).status, 405);
+    const stream = await fetch(url, { headers });
+    assert.equal(stream.status, 200);
+    await stream.body?.cancel();
     assert.equal((await fetch(url, { method: "DELETE", headers })).status, 405);
   });
 });

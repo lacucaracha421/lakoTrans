@@ -52,6 +52,8 @@
     "noCurrentChapter": "未打开章节",
     "translate": "添加新原稿",
     "batchTranslate": "添加多个章节",
+    "addSource": "添加原稿",
+    "more": "更多",
     "libraryFolder": "资料库文件夹",
     "share": "导出项目",
     "importWork": "导入项目",
@@ -702,7 +704,7 @@
   "translationOptions": {
     "codexErasure": "用 Codex 擦除",
     "title": "运行翻译",
-    "workspaceAction": "翻译设置…",
+    "workspaceAction": "普通翻译",
     "workspaceUndoWarning": "重新翻译的页面会用新结果替换现有结果。",
     "start": "开始翻译",
     "startSelection": "翻译所选范围",
@@ -3028,5 +3030,76 @@
       "clipboard": "无法复制列表。",
       "save": "无法保存。"
     }
+  },
+  "chat": {
+    "open": "聊天",
+    "translateInChat": "聊天翻译",
+    "panelMode": "右侧面板",
+    "editor": "编辑",
+    "history": "历史对话",
+    "new": "新建对话",
+    "compact": "压缩对话",
+    "model": "模型",
+    "effort": "推理级别",
+    "modelSettings": "模型与推理级别",
+    "effortChip": "推理 {{level}}",
+    "library": "整个书库",
+    "contextBlocks": "气泡 {{count}} 个",
+    "loginHint": "需要登录 ChatGPT 账户。",
+    "login": "登录 ChatGPT",
+    "loading": "正在加载对话…",
+    "older": "查看更早的消息",
+    "openPage": "打开页面",
+    "undo": "检查是否可撤销",
+    "undoRequest": "请检查 {{tool}} 的恢复记录，只在仍可恢复时撤销这次更改，不要覆盖后续编辑。结果：{{result}}",
+    "removeImage": "移除图片",
+    "message": "消息",
+    "placeholder": "输入请求",
+    "attach": "添加图片",
+    "enterHint": "Enter 发送 · Shift+Enter 换行",
+    "stop": "停止",
+    "steer": "追加指示",
+    "send": "发送",
+    "answer": "发送回答",
+    "roles": {
+      "user": "我",
+      "assistant": "Codex",
+      "status": "进度"
+    },
+    "operation": {
+      "running": "处理中…",
+      "completed": "结果",
+      "failed": "失败"
+    },
+    "state": {
+      "idle": "就绪",
+      "running": "处理中…",
+      "compacting": "正在压缩对话…",
+      "needs-input": "等待回答",
+      "paused": "已暂停 · 发送消息以继续",
+      "failed": "连接中断 · 发送消息以重新连接"
+    },
+    "tools": {
+      "font": "比较字体",
+      "image": "处理图片",
+      "library": "查看书库",
+      "sound": "处理音效",
+      "erase": "修复原画",
+      "review": "质量检查",
+      "edit": "编辑页面",
+      "context": "查看上下文",
+      "inspect": "检查页面"
+    },
+    "quality": {
+      "observation": "本次检查时的质量记录",
+      "incomplete": "仍需检查或修正",
+      "accepted-at-current-revisions": "通过精细检查",
+      "accepted-with-font-substitutions": "通过检查，含字体替代",
+      "chapter": "整话 · 后续编辑需要重新检查",
+      "selection": "仅选定页面",
+      "substitutions": "{{count}} 项字体替代"
+    },
+    "redo": "检查能否重新应用",
+    "redoRequest": "请检查 {{tool}} 的恢复记录和当前修订，只在不会覆盖后续手动编辑且仍可恢复时重新应用。结果：{{result}}"
   }
 }

@@ -343,11 +343,7 @@ async function preparePatternMaskPage({
   typographySegmentation?: KoharuTypographySegmentation;
 }> {
   const engineModel = state.inpaintingEngineLease?.engine.model;
-  if (
-    engineModel !== "flux-klein" ||
-    !state.bubbleLayoutPostprocess ||
-    !state.bubbleLayoutRunner
-  ) {
+  if (engineModel !== "flux-klein" || !state.bubbleLayoutRunner) {
     return { page };
   }
   const previouslyErasedBlockIds = resolvePreviouslyErasedBlockIds(
@@ -368,7 +364,10 @@ async function preparePatternMaskPage({
   const prepared = await runBubbleLayoutMaskPrepass({
     blockId: target.blockId,
     ...(retryBlockIds ? { blockIds: retryBlockIds } : {}),
-    config: state.bubbleLayoutPostprocess,
+    config: state.bubbleLayoutPostprocess ?? {
+      policy: "balanced",
+      overwriteManual: false,
+    },
     page: prepassPage,
     runner: state.bubbleLayoutRunner,
     signal,

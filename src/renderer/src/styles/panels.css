@@ -1,7 +1,15 @@
 .toolbar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--sp-2);
+  min-width: 0;
+}
+
+.toolbar-icons {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
 }
 
 .run-panel,
@@ -40,25 +48,10 @@
 
 .run-translation-action-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: var(--sp-2);
   min-width: 0;
-}
-
-.run-panel-translation-warning-icon {
-  color: var(--text-muted);
-}
-
-.run-panel-translation-warning > .control-tooltip-bubble {
-  max-width: min(280px, calc(100vw - 48px));
-  white-space: normal;
-  text-align: left;
-}
-
-.run-panel-translation-warning:hover > .control-tooltip-bubble,
-.run-panel-translation-warning:has(:focus-visible) > .control-tooltip-bubble {
-  transition-delay: 80ms;
 }
 
 .chapter-task-header {

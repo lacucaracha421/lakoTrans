@@ -124,6 +124,8 @@
 }
 .clientTabs {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 3px;
   padding: 3px;
   width: fit-content;

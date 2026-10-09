@@ -28,19 +28,8 @@ export function oauthEqual(left: string, right: string): boolean {
     Buffer.from(oauthDigest(right)),
   );
 }
-/** Hosted AI-app callbacks accepted by DCR, compared as exact strings. */
-const CLAUDE_CALLBACKS: ReadonlySet<string> = new Set([
-  "https://claude.ai/api/mcp/auth_callback",
-  "https://claude.com/api/mcp/auth_callback",
-]);
-/** Origins a consent form may hand the browser back to. */
-export const MCP_HOSTED_CALLBACK_ORIGINS = [
-  "https://chatgpt.com",
-  "https://claude.ai",
-  "https://claude.com",
-] as const;
-/** DCR accepts ChatGPT and Claude's hosted callbacks plus the loopback callback
- * shapes Codex and Claude Code listen on. Each registration stores exact URIs.
+/** Registration accepts HTTPS web clients and HTTP loopback native clients.
+ * A callback is a return address, not proof of the client's brand or identity.
  * Never fetch a caller-supplied client_uri, logo_uri or metadata URL. */
 export function readMcpOAuthRedirect(value: unknown): string {
   const text = oauthText(value);
@@ -52,29 +41,26 @@ export function readMcpOAuthRedirect(value: unknown): string {
   }
   if (
     !isSupportedMcpCallback(url) ||
-    [url.username, url.password, url.search, url.hash].some(Boolean) ||
+    [url.username, url.password, url.hash].some(Boolean) ||
+    text.includes("#") ||
+    url.hostname.includes("*") ||
     url.href !== text
   )
     throw new McpOAuthError(
       "invalid_redirect_uri",
-      "Use an exact ChatGPT or Claude callback, or a loopback HTTP callback on 127.0.0.1 or localhost with an explicit unprivileged port.",
+      "Use an exact HTTPS callback, or HTTP on 127.0.0.1, localhost or [::1] with an explicit unprivileged port. Credentials, fragments, wildcards and noncanonical URLs are not accepted.",
     );
   return text;
 }
 function isSupportedMcpCallback(url: URL): boolean {
-  const chatGpt =
-    url.origin === "https://chatgpt.com" &&
-    (/^\/connector\/oauth\/[A-Za-z0-9_-]{1,200}$/.test(url.pathname) ||
-      url.pathname === "/connector_platform_oauth_redirect");
-  return chatGpt || CLAUDE_CALLBACKS.has(url.href) || isLoopbackCallback(url);
+  return url.protocol === "https:" || isLoopbackCallback(url);
 }
-/** Codex listens on 127.0.0.1; Claude Code registers `localhost`. */
+/** Native clients choose their own path; no product-specific allowlist. */
 function isLoopbackCallback(url: URL): boolean {
   return (
     url.protocol === "http:" &&
-    (url.hostname === "127.0.0.1" || url.hostname === "localhost") &&
-    Number(url.port) >= 1024 &&
-    /^\/callback(?:\/[A-Za-z0-9_-]{1,200})?$/.test(url.pathname)
+    ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
+    Number(url.port) >= 1024
   );
 }
 /** Hosted callbacks must match a registered URI exactly. A loopback callback
@@ -97,7 +83,8 @@ export function matchesMcpOAuthRedirect(
     return (
       isLoopbackCallback(known) &&
       known.hostname === url.hostname &&
-      known.pathname === url.pathname
+      known.pathname === url.pathname &&
+      known.search === url.search
     );
   });
 }

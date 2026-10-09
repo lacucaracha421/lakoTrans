@@ -52,6 +52,8 @@
     "noCurrentChapter": "현재 화 없음",
     "translate": "새 원본 추가",
     "batchTranslate": "여러 화 추가",
+    "addSource": "원본 추가",
+    "more": "더 보기",
     "libraryFolder": "보관함 폴더",
     "share": "작업 내보내기",
     "importWork": "작업 가져오기",
@@ -702,7 +704,7 @@
   "translationOptions": {
     "codexErasure": "Codex가 지우기",
     "title": "번역 실행",
-    "workspaceAction": "번역 설정…",
+    "workspaceAction": "일반 번역",
     "workspaceUndoWarning": "다시 번역한 페이지의 기존 결과는 새 결과로 바뀝니다.",
     "start": "번역 시작",
     "startSelection": "선택 범위 번역",
@@ -3028,5 +3030,76 @@
       "clipboard": "목록을 복사하지 못했습니다.",
       "save": "저장하지 못했습니다."
     }
+  },
+  "chat": {
+    "open": "채팅",
+    "translateInChat": "채팅으로 번역",
+    "panelMode": "오른쪽 패널",
+    "editor": "편집",
+    "history": "이전 대화",
+    "new": "새 대화",
+    "compact": "대화 압축",
+    "model": "모델",
+    "effort": "추론 수준",
+    "modelSettings": "모델·추론 수준",
+    "effortChip": "추론 {{level}}",
+    "library": "전체 보관함",
+    "contextBlocks": "말풍선 {{count}}개",
+    "loginHint": "ChatGPT 계정 로그인이 필요합니다.",
+    "login": "ChatGPT 로그인",
+    "loading": "대화를 불러오는 중…",
+    "older": "이전 메시지 보기",
+    "openPage": "페이지 열기",
+    "undo": "되돌리기 확인",
+    "undoRequest": "{{tool}}의 복구 기록을 확인하고 아직 되돌릴 수 있다면 이 변경을 되돌려줘. 이후 수동 편집은 덮어쓰지 마. 결과: {{result}}",
+    "removeImage": "이미지 제거",
+    "message": "메시지",
+    "placeholder": "요청 입력",
+    "attach": "이미지 첨부",
+    "enterHint": "Enter 전송 · Shift+Enter 줄바꿈",
+    "stop": "중지",
+    "steer": "추가 지시",
+    "send": "보내기",
+    "answer": "답변 보내기",
+    "roles": {
+      "user": "나",
+      "assistant": "Codex",
+      "status": "진행 상황"
+    },
+    "operation": {
+      "running": "작업 중…",
+      "completed": "작업 결과",
+      "failed": "실패"
+    },
+    "state": {
+      "idle": "대기 중",
+      "running": "작업 중…",
+      "compacting": "대화 압축 중…",
+      "needs-input": "답변을 기다리고 있습니다",
+      "paused": "일시 중지 · 메시지를 보내 이어가기",
+      "failed": "연결 중단 · 메시지를 보내 다시 연결"
+    },
+    "tools": {
+      "font": "폰트 비교",
+      "image": "이미지 작업",
+      "library": "보관함 확인",
+      "sound": "효과음 작업",
+      "erase": "원화 복원",
+      "review": "품질 검수",
+      "edit": "페이지 편집",
+      "context": "문맥 확인",
+      "inspect": "페이지 확인"
+    },
+    "quality": {
+      "observation": "이 기록을 확인한 시점의 검수",
+      "incomplete": "미검수·해결할 항목 있음",
+      "accepted-at-current-revisions": "정밀 검수 통과",
+      "accepted-with-font-substitutions": "정밀 검수 통과 · 폰트 대체 포함",
+      "chapter": "화 전체 기준 · 이후 편집 시 재검수 필요",
+      "selection": "선택한 페이지만 검수한 기록",
+      "substitutions": "폰트 대체 {{count}}건"
+    },
+    "redo": "다시 적용 확인",
+    "redoRequest": "{{tool}}의 복구 기록과 현재 revision을 확인하고, 다시 적용할 수 있다면 적용해줘. 이후 수동 편집은 덮어쓰지 마. 결과: {{result}}"
   }
 }

@@ -35,9 +35,9 @@ import {
   type PanelSessionValue,
 } from "../src/renderer/src/panels/panelSession";
 import {
+  makeRightRailProps,
   makeBlock,
   makeChapter,
-  makePage,
 } from "./unifiedInpaintingUiFixtures";
 
 class ResizeObserverStub {
@@ -591,6 +591,69 @@ describe("unified workspace toolbar", () => {
 });
 
 describe("unified right rail", () => {
+  it("opens global chat without a chapter and retains its panel while switching modes", () => {
+    const onOpenChat = vi.fn(),
+      onCloseChat = vi.fn();
+    const props = makeRightRailProps({
+      currentChapter: null,
+      selectedPage: null,
+      chatOpen: true,
+      onOpenChat,
+      onCloseChat,
+      chatPanel: <span>보존할 대화 초안</span>,
+    });
+    const view = renderRightRail(props);
+    const draft = screen.getByText("보존할 대화 초안");
+    expect(
+      document.querySelector(".right-rail")?.classList.contains("is-open"),
+    ).toBe(true);
+    expect(
+      document
+        .querySelector(".right-rail")
+        ?.classList.contains("is-context-expanded"),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("tab", { name: "편집" }));
+    expect(onCloseChat).toHaveBeenCalledOnce();
+    expect(
+      screen.getAllByRole("tablist", { name: "오른쪽 패널" }),
+    ).toHaveLength(1);
+    view.rerender(
+      <AppRightRail
+        {...props}
+        {...{ currentChapter: makeChapter(), chatOpen: false }}
+      />,
+    );
+    expect(screen.getByText("보존할 대화 초안")).toBe(draft);
+    expect(draft.closest('[role="tabpanel"]')?.hasAttribute("hidden")).toBe(
+      true,
+    );
+    expect(
+      screen.getByRole("tab", { name: "편집" }).closest(".right-rail")
+        ?.textContent,
+    ).toContain("1화");
+    fireEvent.click(screen.getByRole("tab", { name: "채팅" }));
+    expect(onOpenChat).toHaveBeenCalledOnce();
+    view.rerender(
+      <AppRightRail
+        {...props}
+        onOpenChat={undefined}
+        onCloseChat={undefined}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "편집" }));
+    fireEvent.click(screen.getByRole("tab", { name: "채팅" }));
+    expect(screen.getByText("보존할 대화 초안")).toBe(draft);
+  });
+
+  it("hands the chat panel the header slot for its conversation controls", () => {
+    const chatPanel = vi.fn((slot: HTMLElement | null) => (
+      <span>{slot ? "슬롯 연결됨" : "슬롯 대기"}</span>
+    ));
+    renderRightRail(makeRightRailProps({ chatOpen: true, chatPanel }));
+    expect(screen.getByText("슬롯 연결됨")).toBeTruthy();
+    expect(chatPanel).toHaveBeenLastCalledWith(expect.any(HTMLDivElement));
+  });
+
   it("keeps the rail hidden until a chapter is opened", () => {
     const view = renderRightRail(
       makeRightRailProps({ currentChapter: null, selectedPage: null }),
@@ -738,13 +801,13 @@ describe("unified right rail", () => {
   });
 
   it("opens the page-selection erase dialog directly", () => {
-    const props = makeRightRailProps();
+    const props = makeRightRailProps({ onOpenChat: vi.fn() });
     renderRightRail(props);
 
     expect(
       (
         screen.getByRole("button", {
-          name: "번역 설정…",
+          name: "일반 번역",
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false);
@@ -754,18 +817,21 @@ describe("unified right rail", () => {
       }),
     ).toBeNull();
     expect(
-      screen.getByRole("button", {
+      screen.queryByRole("button", {
         name: "다시 번역한 페이지의 기존 결과는 새 결과로 바뀝니다.",
       }),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(
       document.querySelectorAll(".run-panel-translation-warning-icon"),
-    ).toHaveLength(1);
+    ).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "채팅으로 번역" }));
+    expect(props.onOpenChat).toHaveBeenCalledOnce();
+    expect(screen.getAllByText("1화")).toHaveLength(1);
     expect(
       Array.from(document.querySelectorAll(".run-panel button")).filter(
         (button) => button.className.includes("_primary_"),
       ),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(screen.getByRole("heading", { name: "페이지 작업" })).not.toBeNull();
     expect(screen.queryByRole("button", { name: "페이지 작업" })).toBeNull();
     expect(
@@ -1084,11 +1150,15 @@ describe("persistent library sidebar", () => {
     expect(screen.getByRole("heading", { name: "보관함" })).not.toBeNull();
     expect(screen.getByText("page-1.png")).not.toBeNull();
     expect(screen.queryByText("인페인팅 나가기")).toBeNull();
+    const addSource = screen.getByRole("button", { name: "원본 추가" });
+    expect(addSource.className.includes("_primary_")).toBe(false);
+    fireEvent.click(addSource);
     expect(
-      screen
-        .getByRole("button", { name: "새 원본 추가" })
-        .className.includes("_secondary_"),
-    ).toBe(true);
+      screen.getAllByRole("menuitem").map((item) => item.textContent),
+    ).toEqual(["새 원본 추가", "여러 화 추가"]);
+    expect(screen.queryByRole("button", { name: "채팅" })).toBeNull();
+    fireEvent.click(addSource);
+    expect(screen.queryByRole("menu")).toBeNull();
 
     const sidebar = document.querySelector(".sidebar");
     fireEvent.click(screen.getByRole("button", { name: "탐색 패널 열기" }));
@@ -1210,73 +1280,6 @@ function RightRailTestProviders({
       </PanelSessionContext.Provider>
     </FontsContext.Provider>
   );
-}
-
-function makeRightRailProps(
-  overrides: Partial<RightRailProps> = {},
-): RightRailProps {
-  return {
-    blockReadingDirection: "rtl",
-    brushColor: "#ffffff",
-    brushRadius: 28,
-    canRedo: true,
-    canUndo: true,
-    canRunBubbleLayout: false,
-    compareAvailable: true,
-    completionSoundMuted: true,
-    completionSoundVolume: 0.55,
-    currentChapter: makeChapter(),
-    editorDisabled: false,
-    flowActive: false,
-    jobActive: false,
-    jobState: {
-      id: "",
-      kind: "inpainting",
-      progressText: "대기",
-      status: "idle",
-    },
-    maskStrokeCount: 0,
-    onBrushColorChange: vi.fn(),
-    onBrushRadiusChange: vi.fn(),
-    onCancelJob: vi.fn(),
-    onClearStatusLines: vi.fn(),
-    onCompletionSoundChange: vi.fn(),
-    onClearPatternMask: vi.fn(),
-    onOpenExport: vi.fn(),
-    onOpenErrorReport: vi.fn(),
-    onReviewResults: vi.fn(),
-    onRetryPage: vi.fn(),
-    onOpenStyleGuide: vi.fn(),
-    onOpenTextView: vi.fn(),
-    onOpenTranslateOptions: vi.fn(),
-    onPeekToggle: vi.fn(),
-    onRedo: vi.fn(),
-    onResetPage: vi.fn(),
-    onRunDrawnPattern: vi.fn(),
-    onRunBubbleLayout: vi.fn(),
-    onRetrySave: vi.fn(),
-    onOpenAutoInpaintingOptions: vi.fn(),
-    onOpenBlockEditor: vi.fn(),
-    onSelectBlock: vi.fn(),
-    onToggleBlocks: vi.fn(),
-    onToggleChrome: vi.fn(),
-    onUndo: vi.fn(),
-    onUpdateBlock: vi.fn(),
-    peeking: false,
-    progressSnapshot: null,
-    selectedBlock: null,
-    selectedBlockId: null,
-    selectedPage: makePage(),
-    resetAvailable: true,
-    showBlockChrome: true,
-    showProgressBar: false,
-    showTextBlocks: true,
-    stageTool: "select",
-    statusLines: [],
-    rightRailMode: "block-editor",
-    saveStatus: "idle",
-    ...overrides,
-  };
 }
 
 it("disables generated erasure offline while leaving manual mask editing available", () => {

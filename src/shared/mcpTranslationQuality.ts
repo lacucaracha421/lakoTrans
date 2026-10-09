@@ -48,6 +48,8 @@ export const McpTranslationQualityAssessmentSchema = z
     generatedGlyphs: optionalCheck,
     soundEffectsFound: z.number().int().nonnegative().max(1000),
     soundEffectsCompleted: z.number().int().nonnegative().max(1000),
+    soundEffectScope: z.enum(["translate", "preserve-original"]).optional(),
+    soundEffectsPreserved: z.number().int().nonnegative().max(1000).optional(),
     unresolved: z.array(z.string().trim().min(1).max(500)).max(100),
     imageHistory: z.array(imageHistory).max(100).default([]),
     detailed: McpDetailedPageAssessmentSchema.optional(),
@@ -56,6 +58,17 @@ export const McpTranslationQualityAssessmentSchema = z
   .refine((value) => value.soundEffectsCompleted <= value.soundEffectsFound, {
     message: "Completed effects cannot exceed visually found effects.",
   })
+  .refine(
+    (value) =>
+      (value.soundEffectsPreserved ?? 0) + value.soundEffectsCompleted <=
+        value.soundEffectsFound &&
+      (!(value.soundEffectsPreserved ?? 0) ||
+        value.soundEffectScope === "preserve-original"),
+    {
+      message:
+        "Preserved effects require preserve-original scope and cannot also be counted as translated.",
+    },
+  )
   .refine(
     (value) =>
       new Set(
@@ -176,7 +189,8 @@ export function translationQualityPassed(
       quality.typography,
       quality.generatedGlyphs,
     ].every((value) => value === "passed" || value === "not-applicable") &&
-    quality.soundEffectsFound === quality.soundEffectsCompleted &&
+    quality.soundEffectsFound ===
+      quality.soundEffectsCompleted + (quality.soundEffectsPreserved ?? 0) &&
     !quality.unresolved.length &&
     quality.imageHistory.every(
       (item) =>

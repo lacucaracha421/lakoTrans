@@ -1,0 +1,30 @@
+.actionMenu {
+  position: relative;
+  min-width: 0;
+}
+.actionMenuSurface {
+  position: absolute;
+  inset-block-start: calc(100% + var(--sp-1));
+  inset-inline-start: 0;
+  z-index: var(--layer-popover);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  width: max-content;
+  max-width: min(320px, calc(100vw - 96px));
+  max-height: min(360px, calc(100vh - 160px));
+  overflow: auto;
+  padding: var(--sp-2);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  background: var(--bg-modal);
+  box-shadow: var(--shadow-overlay);
+}
+.actionMenu[data-align="end"] .actionMenuSurface {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+.actionMenuSurface > button {
+  justify-content: flex-start;
+  text-align: start;
+}

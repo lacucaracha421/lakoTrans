@@ -8,6 +8,8 @@ export type TabDefinition<T extends string> = {
   panelId: string;
   /** Visual heading shown before the first tab of each run of equal groups. */
   group?: string;
+  /** Icon-only tab; `label` becomes its accessible name and tooltip. */
+  icon?: React.ReactNode;
 };
 
 /**
@@ -65,6 +67,8 @@ export function Tabs<T extends string>({
               type="button"
               role="tab"
               id={item.id}
+              aria-label={item.icon ? item.label : undefined}
+              title={item.icon ? item.label : undefined}
               aria-selected={selected}
               aria-controls={item.panelId}
               tabIndex={selected ? 0 : -1}
@@ -74,7 +78,7 @@ export function Tabs<T extends string>({
               onClick={() => onChange(item.value)}
               onKeyDown={(event) => roving.handleKeyDown(index, event)}
             >
-              {item.label}
+              {item.icon ?? item.label}
             </button>
           </React.Fragment>
         );

@@ -1,4 +1,5 @@
 import { registerMcpDesktopIpc } from "./mcpDesktopIpc";
+import { registerChatIpc } from "./chatIpc";
 import { registerEnvironmentBackupIpc } from "./environmentBackupIpc";
 import type { IpcContext } from "./context";
 import { registerPageWorkflowIpc } from "./pageWorkflowIpc";
@@ -73,6 +74,7 @@ export function createImportRuntimeResources({
 
 export function registerIpc(context: IpcContext): void {
   registerMcpDesktopIpc(context);
+  registerChatIpc(context);
   registerEnvironmentBackupIpc(context);
   registerPageWorkflowIpc(context);
   registerAppOperationIpc(context);

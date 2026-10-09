@@ -28,6 +28,7 @@ type UseAppSessionCommandControllerArgs = {
   setShowBlockChrome: Dispatch<SetStateAction<boolean>>;
   setShowTextBlocks: Dispatch<SetStateAction<boolean>>;
   openTranslateOptions: () => void;
+  openChat?: () => void;
   setTranslationSourceOpen: Dispatch<SetStateAction<boolean>>;
   setAddPagesChapter: Dispatch<SetStateAction<ChapterSnapshot | null>>;
 };
@@ -55,6 +56,7 @@ export function useAppSessionCommandController({
   setShowBlockChrome,
   setShowTextBlocks,
   openTranslateOptions,
+  openChat,
   setTranslationSourceOpen,
   setAddPagesChapter,
 }: UseAppSessionCommandControllerArgs): AppCommandRegistry {
@@ -82,6 +84,7 @@ export function useAppSessionCommandController({
     toggleBlockChrome: () => setShowBlockChrome((visible) => !visible),
     toggleTextBlocks: () => setShowTextBlocks((visible) => !visible),
     openTranslateOptions,
+    openChat,
     openTranslationSource: () => {
       setAddPagesChapter(null);
       setTranslationSourceOpen(true);

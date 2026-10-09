@@ -24,6 +24,8 @@ export function useAppSessionUiState() {
   const [showBlockChrome, setShowBlockChrome] = useState(true);
   const [showTextBlocks, setShowTextBlocks] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const openChat = useCallback(() => setChatOpen(true), []);
   const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [blockLibraryOpen, setBlockLibraryOpen] = useState(false);
@@ -83,6 +85,9 @@ export function useAppSessionUiState() {
     conditionalBatchInitialFind: batchInitialFind,
     conditionalBatchInitialReplace: batchInitialReplace,
     commandPaletteOpen,
+    chatOpen,
+    setChatOpen,
+    openChat,
     editorFloating,
     ...editorTextTab,
     rightRailMode,

@@ -1,51 +1,34 @@
-import { app } from "electron";
-import type { ReviewedLinkedOutputPort } from "./linkedWorkspace/linkedWorkspaceReviewedOutputTypes";
-import type { McpLibraryChangedEvent } from "../shared/mcpEditingTypes";
-import { randomUUID } from "node:crypto";
-import { createMcpServerInfoTool } from "./mcp/mcpServerInfoTool";
-import type { InpaintingJobContext } from "./jobs/inpaintingJobTypes";
-import { createMcpPageEditScope } from "./mcp/mcpPageEditScope";
-import { createMcpPageOperationSession } from "./mcp/mcpPageOperationSession";
 import type { McpPreferences } from "../shared/mcpDesktopTypes";
 import {
   McpDesktopService,
   type McpDesktopLease,
 } from "./application/mcpDesktopService";
-import { McpEditorGuard } from "./application/mcpEditorGuard";
-import { McpEditError } from "./application/mcpEditPolicy";
 import { McpSecureStore } from "./mcp/mcpSecureStore";
 import { McpDesktopAuthorization } from "./mcp/mcpDesktopAuthorization";
 import {
   startMcpHttpServer,
   type McpRequestDiagnostic,
 } from "./mcp/mcpHttpServer";
-import { createMcpAppTools } from "./mcp/mcpAppTools";
 import {
   prepareTailscale,
   openTailscale,
   McpTailscaleSetupError,
 } from "./mcp/mcpTailscale";
 import { diagnoseMcpEndpoint } from "./mcp/mcpDiagnostics";
+import { McpLocalHost, type McpLocalEditing } from "./mcp/mcpLocalHost";
+import { mcpEndpointTools } from "./mcp/mcpEndpointTools";
 
-type EditingPorts = {
-  notifyLibraryChanged?: (event: McpLibraryChangedEvent) => void;
-  processing: () => InpaintingJobContext;
-  outputSync?: () => ReviewedLinkedOutputPort;
-  requestProbe: (id: number) => void;
-  isBusy: () => boolean;
-  notifySaved: (chapterId: string, pageId: string) => void;
-};
 export function createMcpDesktopRuntime(
   dataRoot: string,
   reportError: (error: unknown) => void,
-  editing: EditingPorts,
+  editing: McpLocalEditing,
   reportRequest: (diagnostic: McpRequestDiagnostic) => void,
 ) {
   const store = new McpSecureStore(dataRoot);
   const authorization = new McpDesktopAuthorization(store);
-  const guard = new McpEditorGuard(editing.isBusy, editing.requestProbe);
-  return new McpDesktopService({
-    reportEditorState: (state) => guard.report(state),
+  const host = new McpLocalHost(store, editing, reportError);
+  const service = new McpDesktopService({
+    reportEditorState: (state) => host.guard.report(state),
     preferences: () => store.preferences(),
     savePreferences: (value) => store.savePreferences(value),
     savedStatus: () => authorization.status(),
@@ -53,8 +36,7 @@ export function createMcpDesktopRuntime(
     open: (preferences, signal, failed) =>
       openDesktop({
         authorization,
-        guard,
-        editing,
+        host,
         reportError,
         reportRequest,
         preferences,
@@ -81,43 +63,70 @@ export function createMcpDesktopRuntime(
     setupUrl: (error) =>
       error instanceof McpTailscaleSetupError ? error.setupUrl : null,
   });
+  const dispose = service.dispose.bind(service);
+  return Object.assign(service, {
+    connectChat: host.connect.bind(host),
+    dispose: async () => {
+      try {
+        await dispose();
+      } finally {
+        await host.dispose();
+      }
+    },
+  });
 }
+
 type DesktopOptions = {
   reportRequest: (diagnostic: McpRequestDiagnostic) => void;
   authorization: McpDesktopAuthorization;
-  guard: McpEditorGuard;
-  editing: EditingPorts;
+  host: McpLocalHost;
   reportError: (error: unknown) => void;
   preferences: McpPreferences;
   signal: AbortSignal;
   failed: () => void;
 };
+
 async function openDesktop(options: DesktopOptions): Promise<McpDesktopLease> {
-  const { preferences, signal, failed } = options;
   const target = await prepareTailscale();
-  signal.throwIfAborted();
-  const auth = await options.authorization.open(target.origin, preferences);
-  const scope = new AbortController();
-  const { server, pageOperations } = await openPageServer(
-    options,
-    auth,
+  options.signal.throwIfAborted();
+  const auth = await options.authorization.open(
     target.origin,
-    scope,
+    options.preferences,
   );
-  const stopAccepting = () => {
-    scope.abort();
-    pageOperations.stop();
-    server.stopAccepting();
-  };
+  let server: Awaited<ReturnType<typeof startMcpHttpServer>> | undefined;
   try {
-    const tunnel = await openTailscale(target, 38475, signal, () => {
+    const host = await options.host.ready();
+    options.signal.throwIfAborted();
+    server = await startMcpHttpServer({
+      config: {
+        port: 38475,
+        token: auth.localToken,
+        publicOrigin: target.origin,
+      },
+      tools: mcpEndpointTools(
+        filterTools(host.tools, options.preferences),
+        host.origin,
+        target.origin,
+      ),
+      reportError: options.reportError,
+      reportRequest: options.reportRequest,
+      enforceScopes: true,
+      oauthHttp: auth.http,
+      artifacts: host.pageOperations.artifacts,
+    });
+    const listener = server;
+    const stopAccepting = () => listener.stopAccepting();
+    const tunnel = await openTailscale(target, 38475, options.signal, () => {
       stopAccepting();
-      failed();
+      options.failed();
     });
     return {
       url: `${target.origin}/mcp`,
       stopAccepting,
-      close: () => closeOwnedConnection(server, tunnel, pageOperations),
+      close: async () => {
+        await tunnel.close();
+        await listener.close();
+      },
       connections: () => auth.provider.connections(),
       pairingStatus: () => auth.pairing.status(),
       resolvePairing: (id, approve) => auth.pairing.resolve(id, approve),
@@ -126,9 +135,8 @@ async function openDesktop(options: DesktopOptions): Promise<McpDesktopLease> {
     };
   } catch (error) {
     try {
-      pageOperations.stop();
-      await pageOperations.close();
-      await server.close();
+      if (server) await server.close();
+      else await auth.http.close();
     } catch (cleanup) {
       throw new AggregateError(
         [error, cleanup],
@@ -139,109 +147,20 @@ async function openDesktop(options: DesktopOptions): Promise<McpDesktopLease> {
     throw error;
   }
 }
-/** Keep the stopped listener bound until the owned public route is gone.
- * If tunnel shutdown fails, another local service must not inherit the public port. */
-async function closeOwnedConnection(
-  server: { close: () => Promise<void> },
-  tunnel: { close: () => Promise<void> },
-  pageOperations: { close: () => Promise<void> },
-): Promise<void> {
-  await tunnel.close();
-  try {
-    await pageOperations.close();
-  } finally {
-    await server.close();
-  }
-}
 
-async function openPageServer(
-  options: DesktopOptions,
-  auth: Awaited<ReturnType<McpDesktopAuthorization["open"]>>,
-  origin: string,
-  scope: AbortController,
+function filterTools(
+  tools: Awaited<ReturnType<McpLocalHost["ready"]>>["tools"],
+  preferences: McpPreferences,
 ) {
-  const editor = createDesktopEditor(options, scope);
-  const pageOperations = createMcpPageOperationSession({
-    origin,
-    jobPersistence: auth.jobPersistence,
-    retentionCodec: auth.retentionCodec,
-    preferences: options.preferences,
-    app: options.editing.processing(),
-    outputSync: options.editing.outputSync?.(),
-    editing: editor,
-    reportError: options.reportError,
-  });
-  try {
-    await pageOperations.ready();
-    const server = await startMcpHttpServer({
-      config: { port: 38475, token: auth.localToken, publicOrigin: origin },
-      tools: createMcpAppTools({
-        ...editor,
-        assertWritable: editor.assertClean,
-        withPageEdit: createMcpPageEditScope(
-          options.editing.processing(),
-          undefined,
-          scope.signal,
-        ),
-        preferences: options.preferences,
-        wrapTool: pageOperations.wrapTool,
-        bindNativeTools: pageOperations.bindNativeTools,
-        readTranslationCompletion: pageOperations.readTranslationCompletion,
-        lifetime: scope.signal,
-        additionalTools: [
-          ...pageOperations.tools,
-          createMcpServerInfoTool({
-            ...auth.identity,
-            runtimeId: randomUUID(),
-            startedAt: Date.now(),
-            appVersion: app.getVersion(),
-            resource: `${origin}/mcp`,
-            mode: app.isPackaged ? "installed" : "development",
-          }),
-        ],
-      }),
-      reportError: options.reportError,
-      enforceScopes: true,
-      reportRequest: options.reportRequest,
-      oauthHttp: auth.http,
-      artifacts: pageOperations.artifacts,
-    });
-    return { server, pageOperations };
-  } catch (error) {
-    try {
-      await pageOperations.close();
-      await auth.http.close();
-    } catch (cleanup) {
-      throw new AggregateError(
-        [error, cleanup],
-        "MCP listener startup cleanup failed.",
-        { cause: cleanup },
-      );
-    }
-    throw error;
-  }
-}
-
-/** Trusted editor ports share the active MCP lifetime, not caller-supplied state. */
-function createDesktopEditor(options: DesktopOptions, scope: AbortController) {
-  return {
-    assertChapterClosed: async (chapterId: string) => {
-      scope.signal.throwIfAborted();
-      await options.guard.assertChapterClosed(chapterId);
-      scope.signal.throwIfAborted();
-    },
-    notifySaved: options.editing.notifySaved,
-    notifyLibraryChanged: options.editing.notifyLibraryChanged,
-    assertClean: (chapterId: string, pageId: string) =>
-      options.guard.assertClean(chapterId, pageId),
-    assertWritable: async (chapterId: string, pageId: string) => {
-      if (scope.signal.aborted)
-        throw new McpEditError(
-          "editor_busy",
-          "MCP is stopping. Retry after the user turns it on.",
-        );
-      await options.guard.assertWritable(chapterId, pageId);
-      scope.signal.throwIfAborted();
-    },
-  };
+  const scopes = [
+    "carrot.read",
+    ...(preferences.allowImages ? ["carrot.images"] : []),
+    ...(preferences.allowEditing ? ["carrot.edit"] : []),
+    ...(preferences.allowProcessing ? ["carrot.process"] : []),
+  ];
+  return tools.filter((tool) =>
+    (tool.requiredScopes ?? ["carrot.read"]).every((scope) =>
+      scopes.includes(scope),
+    ),
+  );
 }

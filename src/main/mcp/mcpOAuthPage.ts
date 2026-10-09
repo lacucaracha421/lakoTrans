@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 type Consent = {
   transaction: string;
   clientName: string;
+  redirectUri?: string;
   scope: string;
   resource: string;
 };
@@ -74,7 +75,7 @@ export function mcpOAuthConsentPage(consent: Consent): string {
   return `${mcpPageStart("당근 MCP 연결 승인")}
 <h1>AI 앱 연결 승인</h1>
 <p class="lead">이 연결은 <strong>현재 실행한 시험용 앱의 보관함 전체를 읽을 수 있습니다.</strong> 이미지 전송을 켰다면 원본 축소 이미지도 요청할 수 있습니다. 번역 실행이나 수정 권한은 없습니다.</p>
-<dl class="facts"><div><dt>요청 클라이언트</dt><dd>${escapeMcpHtml(consent.clientName)}</dd></div><div><dt>연결할 서버</dt><dd class="mono">${escapeMcpHtml(consent.resource)}</dd></div><div><dt>권한</dt><dd>${mcpScopeList(consent.scope.split(/\s+/).filter(Boolean))}</dd></div></dl>
+<dl class="facts"><div><dt>클라이언트가 표시한 이름</dt><dd>${escapeMcpHtml(consent.clientName)}</dd></div>${consent.redirectUri ? `<div><dt>승인 후 돌아갈 주소</dt><dd class="mono">${escapeMcpHtml(consent.redirectUri)}</dd></div>` : ""}<div><dt>연결할 서버</dt><dd class="mono">${escapeMcpHtml(consent.resource)}</dd></div><div><dt>권한</dt><dd>${mcpScopeList(consent.scope.split(/\s+/).filter(Boolean))}</dd></div></dl>
 <form method="post" action="/oauth/approve" class="approve">
 <input type="hidden" name="transaction" value="${escapeMcpHtml(consent.transaction)}">
 <label for="password">로컬 연결 암호</label>

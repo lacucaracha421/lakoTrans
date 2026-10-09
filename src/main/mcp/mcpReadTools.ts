@@ -39,6 +39,7 @@ export type McpTool = {
       assertScopes?: (scopes: readonly string[]) => void;
       assertJobAuthorized?: (scopes?: readonly string[]) => void;
       visibleToolNames?: readonly string[];
+      clientName?: string;
     },
   ) => Promise<McpToolContent[]>;
 };

@@ -123,7 +123,7 @@ describe("workspace chrome CSS", () => {
 
     const dividedGroups = rule(
       shellCss,
-      ".right-rail > .page-block-list-panel,",
+      ':is(.right-rail, .right-rail > [role="tabpanel"]) > .page-block-list-panel,',
     );
     expect(dividedGroups).toContain(
       "border-top: 1px solid var(--surface-border)",
@@ -157,7 +157,7 @@ describe("workspace chrome CSS", () => {
 
     const dockedEditor = rule(
       shellCss,
-      ".right-rail > .editor-panel,\n.right-rail > .page-block-list-panel {",
+      ':is(.right-rail, .right-rail > [role="tabpanel"]) > .editor-panel,\n:is(.right-rail, .right-rail > [role="tabpanel"]) > .page-block-list-panel {',
     );
     expect(dockedEditor).toContain("flex: 1 1 0");
     expect(dockedEditor).toContain("min-height: 0");

@@ -38,7 +38,7 @@ function McpServerSection({ status, error, busy, run }: Props) {
   return (
     <Section
       title="AI 연결"
-      description="Codex·ChatGPT·Claude에서 보관함을 조회하고 번역·편집합니다."
+      description="MCP를 지원하는 AI 앱에서 보관함을 조회하고 번역·편집합니다."
       density="compact"
       bodyClassName={styles.body}
       actions={<McpServerActions status={status} busy={busy} run={run} />}
@@ -103,7 +103,7 @@ function McpConnections({
       {connections.length === 0 && status.pending.length === 0 && (
         <p className={styles.note}>
           {status.state === "online"
-            ? "아직 연결된 앱이 없습니다. 위 연결 방법에서 Codex·ChatGPT·Claude 중 하나를 선택하세요."
+            ? "아직 연결된 앱이 없습니다. 위 연결 방법에서 사용할 AI 앱을 선택하세요."
             : "연결된 앱이 없습니다. MCP를 켜고 사용할 AI 앱을 연결하세요."}
         </p>
       )}
@@ -357,6 +357,12 @@ function McpPairingRequestView({
         </strong>
       </div>
       <p className={styles.note}>브라우저의 코드와 일치할 때만 승인하세요.</p>
+      {request.redirectUri && (
+        <p className={styles.note}>
+          승인 후 돌아갈 주소:{" "}
+          <span className={styles.address}>{request.redirectUri}</span>
+        </p>
+      )}
       <p className={styles.note}>
         요청 권한: {describeMcpScopes(request.scope)}
       </p>

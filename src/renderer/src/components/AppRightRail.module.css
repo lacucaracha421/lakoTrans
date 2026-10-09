@@ -1,0 +1,63 @@
+.chatRail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+/* One header row: the mode tabs, then the active mode's own controls. */
+.header {
+  display: grid;
+  flex: none;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.headerSlot {
+  min-width: 0;
+}
+.headerSlot[hidden] {
+  display: none;
+}
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+.tab {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab[aria-selected="true"] {
+  background: var(--selected-surface);
+  color: var(--selected-text);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.chatBody {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.editor {
+  display: contents;
+}
+.editor[hidden],
+.chatBody[hidden] {
+  display: none;
+}

@@ -90,6 +90,12 @@ main IPC/job ──> application service ──> pure policy ──> port
 
 Codex 전체 위임 경로는 제품에서 제거했다. 일반 OCR·번역·용어/스토리 기억이 텍스트를 확정한 뒤 `codexImageEditing` composition root가 선택한 영역의 제거·ImageGen·실제 렌더러 미리보기만 연결한다. 텍스트 엔진과 이미지 작업용 Codex 모델·추론 강도는 독립적이다. `wholePagePipeline`의 영역 후처리, `soundEffectTranslationJobRunner`의 번역 후 이미지 작업, `AppSessionView`의 가리기 검토, `SettingsModalView`의 이미지 설정 연결에만 각각 26/16/26/17의 import 상한 사유를 기록한다. 일반 모듈 상한은 유지한다. `runCodexTypesetting`은 기존 오프라인 검증용 계약으로만 남는다.
 
+2026-10-09 글로벌 채팅은 위 일반 번역 파이프라인과 별도의 사용자 진입점이다.
+`application/ChatService`의 지속 대화가 `chat/CodexChatRuntime`과 기존 native MCP를
+사용하며 번역/편집/검수 엔진을 복제하지 않는다. 전역 저장, 내부/외부 MCP 공용
+authority와 composition 예산의 변경 근거는
+[글로벌 채팅 인계](global-chat-translation-20261009.md)에 기록한다.
+
 부분 강조에는 기존 `richTextMarkup`의 안전한 문법을 그대로 사용한다. 식자 직렬화,
 이미지 문자 생성의 실제 문구, 독립 재판독의 기대 문구, literal 폰트 견본이 같은 parser/serializer를
 직접 사용하고, master의 조건부 일괄 식자도 같은 문법을 소비하므로 병합 후 이 공개 문법 모듈의 fan-in만 28로 명시한다. 문법을 복제하거나

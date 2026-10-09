@@ -118,7 +118,7 @@ const steps = [
     id: "detailed-completion",
     tools: ["carrot_render_page_preview", "carrot_submit_composite_review"],
     instruction:
-      "Use complete-translation-v2. Record quality.detailed with full-page sourceEvidenceId, unique inventory entries (sourceRect ORIGINAL pixels, role, saved block, treatment, restoration, reason), selected fontEvidence specimen IDs, current paletteRevision and layoutReviewed=true. Link each generated item to fresh glyphEvidenceId. Inventory every source writing, including no-detector SFX. Call render_page_preview includeLayout=true; its actual em size, sampled Hangul ink bounds, lines, text scales and crop mapping are measurements, not stored nominal sizes. At normal reading scale review tiny text even if overflow=false. Resolve isolated endings/particles, punctuation-only lines, awkward name splits, sparse large balloons and art collisions. Rephrase without changing meaning, reflow, choose the usable bubble area and adjust spacing before shrinking. Never expand through faces or panel borders. Record intentional exceptions by block and reason; unresolved misspellings, clipping and omissions cannot be accepted. Submit current retrieved composite renders; stale fonts/palette/page or missing source/specimen/glyph receipts block acceptance. Quick mode is explicitly uncertified. After all chunks, call carrot_get_translation_guide once for the entire requested chapter. Its completion must cover every page at current revisions; a saved/exported page or the last completed chunk cannot stand in for a missing review. Resolve only pending/stale pages and disclose any incomplete scope. Missing completion evidence is not acceptance. Server receipts prove observable work, not aesthetic or professional quality.",
+      "Use complete-translation-v2. Record quality.detailed with full-page sourceEvidenceId, unique inventory entries (sourceRect ORIGINAL pixels, role, saved block, treatment, restoration, reason), selected fontEvidence specimen IDs, current paletteRevision and layoutReviewed=true. Link each generated item to fresh glyphEvidenceId. Inventory every source writing, including no-detector SFX. Call render_page_preview includeLayout=true; its actual em size, sampled Hangul ink bounds, lines, text scales and crop mapping are measurements, not stored nominal sizes. At normal reading scale review tiny text even if overflow=false. Resolve isolated endings/particles, punctuation-only lines, awkward name splits, sparse large balloons and art collisions. Rephrase without changing meaning, reflow, choose the usable bubble area and adjust spacing before shrinking. Never expand through faces or panel borders. Record intentional exceptions by block and reason; unresolved misspellings, clipping and omissions cannot be accepted. shapeFlow reports whether native shape slots were used, not whether the true balloon was correctly detected. Treat it as an observation, never a mandate to use detected geometry. User-requested manual placement, sizes and writing directions take precedence over default composition guidance; preserve them and report their actual review status. Submit current retrieved composite renders; stale fonts/palette/page or missing source/specimen/glyph receipts block acceptance. Quick mode is explicitly uncertified. After all chunks, call carrot_get_translation_guide once for the entire requested chapter. Its completion must cover every page at current revisions; a saved/exported page or the last completed chunk cannot stand in for a missing review. Resolve only pending/stale pages and disclose any incomplete scope. Missing completion evidence is not acceptance. Server receipts prove observable work, not aesthetic or professional quality.",
   },
   {
     id: "review",
@@ -168,6 +168,8 @@ export async function getTranslationGuide(
     input.imageCapabilities ?? {},
   );
   const required = [...new Set(steps.flatMap((step) => step.tools))];
+  const soundEffectScope = input.soundEffectScope ?? "translate";
+  const quality = scopedQualityGuide(input.mode, soundEffectScope);
   return {
     chapterId: chapter.id,
     workId: chapter.workId,
@@ -175,19 +177,61 @@ export async function getTranslationGuide(
     previousChapterId,
     context: contextSummary(saved),
     pages: pages.map(guidePage),
-    ...qualityGuide(input.mode),
+    ...quality,
+    soundEffectScope,
     maxReviewPasses: 3 as const,
     imageRoute: availableImageRoute(capabilities, available),
     capabilityOrigin:
       "mcp-tools-server-observed; image-capabilities-host-reported" as const,
     availableTools: required.filter((name) => available.has(name)),
     missingTools: required.filter((name) => !available.has(name)),
-    steps: (input.mode === "quick" ? quickSteps() : steps).map((step) => ({
-      ...step,
+    steps: guideSteps(input.mode).map((step) => ({
+      ...scopeGuideStep(step, soundEffectScope),
       tools: step.tools.filter((name) => available.has(name)),
     })),
     modelStarted: false as const,
     qualityVerified: false as const,
+  };
+}
+
+function guideSteps(mode: "detailed" | "quick" | undefined) {
+  return mode === "quick" ? quickSteps() : steps;
+}
+
+function scopedQualityGuide(
+  mode: z.infer<typeof McpTranslationGuideInputSchema>["mode"],
+  scope: "translate" | "preserve-original",
+) {
+  const quality = qualityGuide(mode);
+  if (scope === "preserve-original")
+    quality.completionCriteria[mode === "quick" ? 0 : 1] =
+      "Dialogue, thoughts, narration and labels translated and typeset. SFX intentionally preserved unchanged, listed separately from translated effects.";
+  return quality;
+}
+
+function scopeGuideStep(
+  step: (typeof steps)[number],
+  scope: "translate" | "preserve-original",
+) {
+  if (scope === "translate") return step;
+  const instructions: Record<string, string> = {
+    source:
+      "Read original dialogue, thoughts, narration and labels with chapter context. Identify SFX only to preserve their original pixels and location. Do not transcribe, translate, erase, generate, restyle or create blocks for SFX unless the user explicitly asks to include them. Source inventory still records each preserved SFX as role=sound, outcome=intentional-original, restoration=not-needed, reason=excluded by the requested/default SFX scope. Do not omit spoken dialogue merely because it is short or emphatic.",
+    "text-and-sfx":
+      "Translate dialogue, thoughts, narration and labels. Preserve tone and meaning; split linked balloon lobes into separate blocks. Leave SFX and their artwork unchanged. Do not create SFX translation/erasure jobs or replace them with another provider. The soundEffectScope returned by this guide defines the requested scope; preserve-original takes precedence over generic all-SFX instructions.",
+    images:
+      "Use the configured image engine only for erasing the translated ordinary text. Restrict source masks to those letters and preserve nearby SFX, balloon contours, narration frames and artwork. Do not generate effect lettering for preserve-original scope.",
+  };
+  return {
+    ...step,
+    instruction:
+      instructions[step.id] ??
+      (step.id === "generated-hangul-repair"
+        ? "No SFX generation or glyph repair is requested."
+        : step.instruction) +
+        (step.id === "detailed-completion"
+          ? " SFX scope is preserve-original: intentionally retain effects; do not perform effect generation or translation. In final quality use soundEffectScope=preserve-original, soundEffectsCompleted=0, soundEffectsPreserved equal to the preserved sound inventory count, and soundEffectsFound equal to that same count. soundEffectCoverage=passed means preservation was checked, not translation completed."
+          : ""),
   };
 }
 

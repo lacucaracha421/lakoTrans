@@ -101,6 +101,41 @@ it("requires a final render review for quality plans while retaining manual work
     }).success,
   ).toBe(false);
 });
+it("requires v2 inventory for preserved SFX without ignoring ordinary omissions", async () => {
+  const f = await awaitingQuality();
+  try {
+    const assessment = f.report.assessments[0];
+    Object.assign(assessment.quality, {
+      soundEffectScope: "preserve-original",
+      soundEffectsCompleted: 0,
+      soundEffectsPreserved: 1,
+    });
+    expect(() => assertTranslationQualityReport(f.awaiting, f.report)).toThrow(
+      /v2 inventory/,
+    );
+    f.awaiting.plan.qualityPolicy = "complete-translation-v2";
+    const evidence = f.awaiting.phases
+      .flatMap((phase) => phase.evidence ?? [])
+      .find((item) => item.id === assessment.evidenceId);
+    if (!evidence?.savedQuality) throw Error("Missing saved quality");
+    evidence.savedQuality.pendingSoundEffects = 1;
+    expect(() => assertTranslationQualityReport(f.awaiting, f.report)).toThrow(
+      /Unresolved/,
+    );
+    const detail = detailedQualityFixture().input.assessment.quality?.detailed;
+    if (!detail) throw Error("Missing inventory fixture");
+    Object.assign(assessment.quality, { detailed: detail });
+    expect(() =>
+      assertTranslationQualityReport(f.awaiting, f.report),
+    ).not.toThrow();
+    evidence.savedQuality.untranslated = 1;
+    expect(() => assertTranslationQualityReport(f.awaiting, f.report)).toThrow(
+      /Unresolved/,
+    );
+  } finally {
+    await f.service.close();
+  }
+});
 it("requires per-page quality and accepts fresh complete review with replay-safe receipts", async () => {
   const f = await awaitingQuality();
   try {

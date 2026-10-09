@@ -29,6 +29,7 @@ const activityTestDefaults: Partial<MangaApi> = {
     restored: null,
   }),
   onJobEvent: () => () => undefined,
+  onChatEvent: () => () => undefined,
   onAppOperationActivity: () => () => undefined,
   onAppActivities: () => () => undefined,
   onMcpPageChanged: () => () => undefined,

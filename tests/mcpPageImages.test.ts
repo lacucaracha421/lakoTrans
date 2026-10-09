@@ -26,6 +26,98 @@ function fixture() {
   };
 }
 describe("independent MCP page images", () => {
+  it.each([undefined, { x: 20, y: 30, w: 100, h: 100 }])(
+    "separates cleaned inspection from final lettering evidence (%j)",
+    async (crop) => {
+      const f = fixture();
+      const content = await invokeMcpTool(f.tools[0], {
+        chapterId: "chapter",
+        pageId: "page",
+        omitText: true,
+        ...(crop ? { crop } : {}),
+      });
+      const metadata = mcpToolResult(f.tools[0], content).structuredContent;
+      expect(metadata).toMatchObject({
+        kind: crop ? "cleaned-crop" : "cleaned-page",
+      });
+      expect(metadata).not.toHaveProperty("generatedAssets");
+      expect(metadata).not.toHaveProperty("layout");
+      expect(f.render).toHaveBeenCalledWith(f.chapter.pages[0], {
+        includeLayout: false,
+        crop,
+        omitText: true,
+      });
+      expect(f.crop).not.toHaveBeenCalled();
+      await expect(
+        invokeMcpTool(f.tools[0], {
+          chapterId: "chapter",
+          pageId: "page",
+          omitText: true,
+          includeLayout: true,
+        }),
+      ).rejects.toThrow(/cannot certify/);
+      await expect(
+        invokeMcpTool(f.tools[0], {
+          chapterId: "chapter",
+          pageId: "page",
+          omitText: "true",
+        }),
+      ).rejects.toThrow();
+    },
+  );
+  it("adds other-client line diagnostics without altering image pixels or the common renderer evidence", async () => {
+    const f = fixture();
+    const evidence = detailedQualityFixture().input.evidence.layout?.[0];
+    if (!evidence) throw new Error("Missing layout fixture");
+    const layout = [
+      {
+        ...evidence,
+        rendered: "text" as const,
+        direction: "horizontal" as const,
+        displayText: "그리고 반역자들의 동조자를 색출해",
+        lines: ["그리고 반", "역자들의 동조자를 색출해"],
+        overflow: false,
+      },
+    ];
+    f.render.mockResolvedValue({
+      data: "APPROVED_PNG",
+      width: 200,
+      height: 100,
+      layout,
+    } as Awaited<ReturnType<typeof f.render>>);
+    const read = async (clientName: string) => {
+      const content = await f.tools[0].invoke(
+        { chapterId: "chapter", pageId: "page", includeLayout: true },
+        { assertAuthorized: () => {}, clientName },
+      );
+      return {
+        content,
+        metadata: mcpToolResult(f.tools[0], content).structuredContent,
+      };
+    };
+    const common = await read("ChatGPT");
+    expect(await read("Claude Code")).toEqual(common);
+    const other = await read("OpenCode");
+    expect(other.content[1]).toEqual(common.content[1]);
+    expect(other.metadata).toMatchObject({
+      layoutWarnings: expect.arrayContaining([
+        expect.objectContaining({
+          reasons: [expect.stringContaining("korean-word-split-across-lines")],
+        }),
+      ]),
+    });
+    expect(other.metadata).toMatchObject({ layout });
+    const readImage = f.service.read.bind(f.service);
+    vi.spyOn(f.service, "read").mockImplementationOnce(async (...args) => {
+      const result = await readImage(...args);
+      delete result.layoutWarnings;
+      return result;
+    });
+    const withoutCommonWarnings = await read("OpenCode");
+    expect(withoutCommonWarnings.metadata).toEqual(other.metadata);
+    expect(withoutCommonWarnings.content[1]).toEqual(other.content[1]);
+    expect(f.crop).not.toHaveBeenCalled();
+  });
   it.each([
     { includeLayout: true },
     { includeLayout: false, crop: { x: 20, y: 30, w: 100, h: 100 } },

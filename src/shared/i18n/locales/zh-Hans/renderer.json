@@ -220,6 +220,9 @@
     "shortcutHelp": {
       "label": "快捷键帮助",
       "keywords": "shortcut help 快捷键 帮助"
+    },
+    "chat": {
+      "label": "聊天翻译"
     }
   },
   "shortcuts": {

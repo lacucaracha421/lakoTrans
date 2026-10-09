@@ -1,4 +1,5 @@
 import type { McpDesktopControl } from "../../shared/mcpDesktopTypes";
+import type { ChatService } from "../application/chatService";
 import type { BrowserWindow } from "electron";
 import type { AppOperationRegistry } from "../appOperationRegistry";
 import type { AppPaths } from "../appPaths";
@@ -22,6 +23,7 @@ export type PanelWindowPort = Pick<
 >;
 
 export type IpcContext = {
+  chat?: ChatService;
   mcpDesktop?: McpDesktopControl;
   appPaths: AppPaths;
   jobs: ActiveJobStore;

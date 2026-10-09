@@ -97,6 +97,7 @@ function useSessionCommands(
     setShowBlockChrome: chapter.uiState.setShowBlockChrome,
     setShowTextBlocks: chapter.uiState.setShowTextBlocks,
     openTranslateOptions: chapter.uiState.openTranslateOptions,
+    openChat: chapter.uiState.openChat,
     setTranslationSourceOpen: chapter.importShareModal.setTranslationSourceOpen,
     setAddPagesChapter: chapter.importShareModal.setAddPagesChapter,
   });

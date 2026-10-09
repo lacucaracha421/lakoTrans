@@ -14,6 +14,7 @@ describe("i18n key usage", () => {
       function components(t: TFunction<"components">) { t("manualRedaction.preparationHint"); }
       function renderer(t: TFunction<"renderer">) { t("missing.key"); }
       function view() { t("statusDock.open"); }
+      function feature() { const { t } = useTranslation("components"); t("chat.open"); }
     `;
     const scopes = typedTranslatorScopes(source);
     const at = (key: string) =>
@@ -25,6 +26,13 @@ describe("i18n key usage", () => {
     expect(at("manualRedaction.preparationHint")).toBe("components");
     expect(at("missing.key")).toBe("renderer");
     expect(at("statusDock.open")).toBe("components");
+    expect(
+      literalTranslatorNamespace(
+        scopes,
+        source.indexOf('t("chat.open")'),
+        "renderer",
+      ),
+    ).toBe("components");
     expect(
       catalogKeys(at("manualRedaction.preparationHint"), "ko").has(
         "manualRedaction.preparationHint",
@@ -118,7 +126,8 @@ function expectMissingKeys(
 type TranslatorScope = { start: number; end: number; namespace?: Namespace };
 
 function typedTranslatorScopes(source: string): TranslatorScope[] {
-  if (!source.includes("TFunction")) return [];
+  if (!source.includes("TFunction") && !source.includes("useTranslation"))
+    return [];
   const file = ts.createSourceFile(
     "source.tsx",
     source,
@@ -133,8 +142,9 @@ function typedTranslatorScopes(source: string): TranslatorScope[] {
         (parameter) =>
           ts.isIdentifier(parameter.name) && parameter.name.text === "t",
       );
-      if (translator) {
-        const type = translator.type;
+      const hook = hookTranslatorNamespace(node, file);
+      if (translator || hook) {
+        const type = translator?.type;
         const argument =
           type &&
           ts.isTypeReferenceNode(type) &&
@@ -146,7 +156,7 @@ function typedTranslatorScopes(source: string): TranslatorScope[] {
           ts.isLiteralTypeNode(argument) &&
           ts.isStringLiteral(argument.literal)
             ? argument.literal.text
-            : undefined;
+            : hook;
         scopes.push({
           start: node.getStart(file),
           end: node.end,
@@ -161,6 +171,36 @@ function typedTranslatorScopes(source: string): TranslatorScope[] {
   };
   visit(file);
   return scopes.sort((a, b) => a.end - a.start - (b.end - b.start));
+}
+
+function hookTranslatorNamespace(
+  node: ts.SignatureDeclaration,
+  file: ts.SourceFile,
+) {
+  if (!("body" in node) || !node.body || !ts.isBlock(node.body as ts.Node))
+    return;
+  for (const statement of (node.body as ts.Block).statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    for (const declaration of statement.declarationList.declarations) {
+      const call = declaration.initializer;
+      if (
+        !ts.isObjectBindingPattern(declaration.name) ||
+        !call ||
+        !ts.isCallExpression(call)
+      )
+        continue;
+      const argument = call.arguments[0];
+      if (
+        call.expression.getText(file) === "useTranslation" &&
+        argument &&
+        ts.isStringLiteral(argument) &&
+        declaration.name.elements.some(
+          (element) => element.name.getText(file) === "t",
+        )
+      )
+        return argument.text;
+    }
+  }
 }
 
 function literalTranslatorNamespace(

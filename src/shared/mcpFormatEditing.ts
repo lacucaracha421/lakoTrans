@@ -157,6 +157,8 @@ export const McpFormatEditSchema = z
     blockId: McpBlockPatchSchema.shape.edits.element.shape.blockId,
     fields: McpFormatFieldsSchema.optional(),
     renderRect: McpBlockPatchSchema.shape.edits.element.shape.renderRect,
+    allowDetectedLayoutOverride:
+      McpBlockPatchSchema.shape.edits.element.shape.allowDetectedLayoutOverride,
     reason: z.string().trim().min(1).max(500),
   })
   .strict()

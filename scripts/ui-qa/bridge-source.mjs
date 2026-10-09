@@ -1,3 +1,5 @@
+import { chatBridgeSource } from "./chat-bridge.mjs";
+
 const bridgeTemplate = `(() => {
   const runtimeErrors = [];
   const stringifyReason = (value) => {
@@ -111,7 +113,9 @@ const bridgeTemplate = `(() => {
     schemes: conditionalBatchSchemes,
     sequences: conditionalBatchSequences,
   });
+  __CHAT_BRIDGE__
   const implementations = {
+    ...chatApi,
     getEnvironmentRestoreReceipt: async () => null,
     previewEnvironmentBackup: async () => ({ id: "11111111-1111-4111-8111-111111111111", createdAt: "2026-09-24T10:30:00.000Z", appVersion: "2.8.0", works: 12, pages: 842, bytes: 900000000, recoveryPath: "D:/CarrotData/.environment-backup/recovery/11111111-1111-4111-8111-111111111111", connections: ["E:/Manga/Originals"] }),
     discardEnvironmentBackup: async () => null,
@@ -258,8 +262,7 @@ const bridgeTemplate = `(() => {
 
 /** @param {"stable" | "mac-alpha"} buildChannel */
 export function qaBridgeSource(buildChannel) {
-  return bridgeTemplate.replace(
-    '"__BUILD_CHANNEL__"',
-    JSON.stringify(buildChannel),
-  );
+  return bridgeTemplate
+    .replace("__CHAT_BRIDGE__", chatBridgeSource)
+    .replace('"__BUILD_CHANNEL__"', JSON.stringify(buildChannel));
 }

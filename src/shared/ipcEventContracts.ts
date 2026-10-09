@@ -25,9 +25,16 @@ import { MAX_ID_LIST_LENGTH, uuid } from "./ipcSchemaPrimitives";
 import type { AppOperationActivityEvent } from "./appOperationTypes";
 import { AppOperationActivityEventSchema } from "./ipcAppOperationContracts";
 import { AppActivityStateSchema } from "./ipcAppActivityContracts";
+import { ChatEventSchema } from "./chatSchemas";
+import type { ChatEvent } from "./chatTypes";
 import type { AppActivityState } from "./appActivityTypes";
 
 export const ipcEventContracts = {
+  chatEvent: defineIpcEventContract<ChatEvent>({
+    eventKey: "chatEvent",
+    channel: "chat:event",
+    payload: ChatEventSchema,
+  }),
   appActivities: defineIpcEventContract<AppActivityState>({
     eventKey: "appActivities",
     channel: "app-activity:changed",

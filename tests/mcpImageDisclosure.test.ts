@@ -328,3 +328,26 @@ it("returns actual layout and final-render crops, failing closed when inspection
     await f.close();
   }
 });
+it("previews the actual cleaned layer without hiding residual pixels behind translated lettering", async () => {
+  const f = await fixture();
+  try {
+    const before = structuredClone(f.page);
+    const result = await f.adapter.renderMcpSavedPage(
+      f.page,
+      { omitText: true },
+      f.openRenderer,
+    );
+    expect(result).not.toHaveProperty("layout");
+    expect(f.renderPage).toHaveBeenCalledWith(
+      expect.objectContaining({ blocks: [] }),
+      expect.anything(),
+    );
+    expect(f.page).toEqual(before);
+    delete f.page.inpaintedImagePath;
+    await expect(
+      f.adapter.renderMcpSavedPage(f.page, { omitText: true }, f.openRenderer),
+    ).rejects.toThrow();
+  } finally {
+    await f.close();
+  }
+});

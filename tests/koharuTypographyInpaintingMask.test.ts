@@ -14,6 +14,23 @@ import type { MangaPage } from "../src/shared/libraryTypes";
 import type { TranslationBlock } from "../src/shared/textTypes";
 
 describe("Koharu typography inpainting masks", () => {
+  it("does not substitute neighboring ink for an undetected selected effect", () => {
+    const page = { ...makePage(), width: 200, height: 200 };
+    const result = buildKoharuTypographyCompositeMask({
+      block: page.blocks[0] as TranslationBlock,
+      featherPx: 8,
+      height: 200,
+      width: 200,
+      page,
+      segmentation: {
+        imageWidth: 200,
+        imageHeight: 200,
+        detections: [makeFilledDetection("text", 0, [40, 30, 60, 49])],
+      },
+      sourceRect: { x: 20, y: 50, w: 100, h: 100 },
+    });
+    expect(result).toBeNull();
+  });
   it("does not claim a distant SFX when one detector instance spans both blocks", () => {
     const page = { ...makePage(), width: 200, height: 200 };
     const detection = makeFilledDetection("onomatopoeia", 1, [20, 40, 170, 80]);

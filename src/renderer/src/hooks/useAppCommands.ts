@@ -21,6 +21,7 @@ type UseAppCommandsOptions = {
   translationUnavailable?: boolean;
   runAnalysis: (runMode: "pending" | "all") => void;
   openTranslateOptions: () => void;
+  openChat?: () => void;
   runCurrentPageInpainting: () => void;
   cancelJob: () => void;
   openImportPreview: (mode: "zip-folder") => Promise<void>;
@@ -64,6 +65,7 @@ export function useAppCommands(
         openShortcutHelp: options.openShortcutHelp,
         openTextView: options.openTextView,
         openTranslateOptions: options.openTranslateOptions,
+        openChat: options.openChat,
         openTranslationSource: options.openTranslationSource,
         openAddChapterPages: options.openAddChapterPages,
         openPageEditor: options.openPageEditor,
@@ -91,6 +93,7 @@ export function useAppCommands(
       options.openShortcutHelp,
       options.openTextView,
       options.openTranslateOptions,
+      options.openChat,
       options.openTranslationSource,
       options.openAddChapterPages,
       options.openPageEditor,
@@ -135,6 +138,7 @@ function buildAppCommandRegistry(
 type TranslationCommandId =
   | "translate-region"
   | "open-translate-options"
+  | "open-chat"
   | "translate-pending"
   | "translate-all";
 
@@ -143,6 +147,7 @@ function buildTranslationCommands({
   currentChapter,
   translationUnavailable,
   openTranslateOptions,
+  openChat,
   runAnalysis,
   t,
 }: LocalizedCommandOptions): Pick<AppCommandMap, TranslationCommandId> {
@@ -155,6 +160,12 @@ function buildTranslationCommands({
       keywords: t("commands.translate.keywords"),
       paletteVisible: Boolean(currentChapter),
       run: openTranslateOptions,
+    },
+    "open-chat": {
+      id: "open-chat",
+      label: t("commands.chat.label"),
+      paletteVisible: true,
+      run: () => openChat?.(),
     },
     "translate-region": {
       id: "translate-region",

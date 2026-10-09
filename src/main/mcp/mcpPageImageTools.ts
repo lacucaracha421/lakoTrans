@@ -7,6 +7,7 @@ import {
   McpInvalidParams,
 } from "./mcpArguments";
 import { textContent, type McpTool } from "./mcpReadTools";
+import { otherClientLayoutWarnings } from "./mcpOtherClientGuidance";
 
 const pixelRect = z
   .object({
@@ -46,27 +47,40 @@ export function createMcpPageImageTools(
             }
           : {
               includeLayout: { type: "boolean", default: false },
+              omitText: {
+                type: "boolean",
+                default: false,
+                description:
+                  "Inspect erasure without translated text or generated lettering overlays. Requires a saved cleaned image; cannot combine with includeLayout=true. Then review the final composite separately.",
+              },
               crop: z.toJSONSchema(pixelRect),
             }),
       },
       required: ["chapterId", "pageId", ...(crop ? ["rect"] : [])],
       additionalProperties: false,
     },
-    invoke: async (args) => {
+    invoke: async (args, context) => {
       allowArguments(args, [
         "chapterId",
         "pageId",
-        ...(crop ? ["rect"] : ["includeLayout", "crop"]),
+        ...(crop ? ["rect"] : ["includeLayout", "crop", "omitText"]),
       ]);
       const rect = readRect(args, crop);
       const { imageData, ...metadata } = await service.read(
         readIdentifier(args.chapterId, "chapterId"),
         readIdentifier(args.pageId, "pageId"),
         crop ? rect?.data : undefined,
-        crop || (args.includeLayout === undefined && args.crop === undefined)
-          ? undefined
-          : { includeLayout: args.includeLayout === true, crop: rect?.data },
+        crop ? undefined : readRenderOptions(args, rect?.data),
       );
+      const warnings = otherClientLayoutWarnings(
+        context?.clientName,
+        metadata.layout,
+      );
+      if (warnings.length)
+        metadata.layoutWarnings = [
+          ...(metadata.layoutWarnings ?? []),
+          ...warnings,
+        ];
       return [
         ...textContent(metadata),
         { type: "image", data: imageData, mimeType: "image/png" },
@@ -75,23 +89,31 @@ export function createMcpPageImageTools(
   }));
 }
 
+function readRenderOptions(
+  args: Record<string, unknown>,
+  crop: z.infer<typeof pixelRect> | undefined,
+) {
+  for (const key of ["includeLayout", "omitText"])
+    if (args[key] !== undefined && typeof args[key] !== "boolean")
+      throw new McpInvalidParams([
+        { code: "invalid_type", path: [key], expected: "boolean" },
+      ]);
+  if (args.includeLayout === undefined && args.omitText === undefined && !crop)
+    return undefined;
+  return {
+    includeLayout: args.includeLayout === true,
+    crop,
+    ...(args.omitText === undefined
+      ? {}
+      : { omitText: args.omitText === true }),
+  };
+}
+
 function readRect(args: Record<string, unknown>, crop: boolean) {
   const rect =
     crop || args.crop !== undefined
       ? pixelRect.safeParse(crop ? args.rect : args.crop)
       : undefined;
-  if (
-    !crop &&
-    args.includeLayout !== undefined &&
-    typeof args.includeLayout !== "boolean"
-  )
-    throw new McpInvalidParams([
-      {
-        code: "invalid_type",
-        path: ["includeLayout"],
-        expected: "boolean",
-      },
-    ]);
   if (rect && !rect.success)
     throw new McpInvalidParams(
       rect.error.issues.map((issue) => ({

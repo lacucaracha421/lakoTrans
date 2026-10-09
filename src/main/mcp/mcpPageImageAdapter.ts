@@ -55,7 +55,7 @@ export async function renderMcpSavedPage(
   const bytes = await renderMcpPageImage(
     page,
     undefined,
-    { format: "png", omitText: false },
+    { format: "png", omitText: options?.omitText ?? false },
     25_000,
     openRenderer,
     options?.includeLayout

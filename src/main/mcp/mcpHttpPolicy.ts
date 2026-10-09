@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 import type { McpConfiguration } from "./mcpConfiguration";
+import { MCP_PROTOCOL_VERSIONS } from "./mcpProtocolEnvelope";
 
 export class McpHttpError extends Error {
   readonly status: number;
@@ -63,6 +64,17 @@ export function validateMcpPost(request: IncomingMessage): void {
     throw new McpHttpError(415, "Content encoding is not supported.");
 }
 
+export function validateMcpGet(request: IncomingMessage): void {
+  if (!accepts(request.headers.accept ?? "", "text/event-stream"))
+    throw new McpHttpError(406, "Accept must include text/event-stream.");
+  const version = singleHeader(request, "mcp-protocol-version", false);
+  if (
+    version !== undefined &&
+    !MCP_PROTOCOL_VERSIONS.some((item) => item === version)
+  )
+    throw new McpHttpError(400, "Unsupported MCP protocol version.");
+}
+
 function singleHeader(
   request: IncomingMessage,
   name: string,
@@ -83,4 +95,14 @@ function accepts(value: string, mimeType: string): boolean {
     );
     return quality === undefined || Number(quality.trim().slice(2)) > 0;
   });
+}
+
+export function validateMcpEndpoint(
+  request: Pick<import("node:http").IncomingMessage, "url" | "method">,
+  response: Pick<import("node:http").ServerResponse, "setHeader">,
+) {
+  if (request.url !== "/mcp") throw new McpHttpError(404, "Not found.");
+  if (request.method === "POST" || request.method === "GET") return;
+  response.setHeader("Allow", "GET, POST");
+  throw new McpHttpError(405, "Use GET for events or POST for messages.");
 }

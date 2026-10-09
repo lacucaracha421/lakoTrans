@@ -92,6 +92,8 @@
     "onnxruntime-node": "1.30.0",
     "onnxruntime-web": "1.30.0",
     "pngjs": "^7.0.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
     "tar": "^7.5.22",
     "yaml": "^2.9.1",
     "yauzl": "^3.4.0",

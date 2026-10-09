@@ -37,7 +37,7 @@ export class McpOAuthClients {
     )
       throw new McpOAuthError(
         "invalid_client_metadata",
-        "One to four ChatGPT, Claude or loopback callbacks are required.",
+        "One to four HTTPS or HTTP loopback callbacks are required.",
       );
     const redirects = input.redirect_uris.map(readMcpOAuthRedirect);
     const method = readAuthMethod(input.token_endpoint_auth_method);
@@ -45,7 +45,7 @@ export class McpOAuthClients {
     checkList(input.response_types, ["code"]);
     const name =
       input.client_name === undefined
-        ? "ChatGPT"
+        ? "MCP client"
         : oauthText(input.client_name, 120);
     const secret =
       method === "none" ? undefined : randomBytes(32).toString("base64url");

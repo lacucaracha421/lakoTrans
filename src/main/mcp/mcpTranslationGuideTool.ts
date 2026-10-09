@@ -9,6 +9,11 @@ import { textContent, type McpTool } from "./mcpReadTools";
 import { compositeFingerprint } from "../application/mcpCompositeWorkflowPolicy";
 import type { McpTranslationCompletionReader } from "../application/mcpTranslationCompletion";
 import { authorizeMcpComposite } from "./mcpCompositeAuthorization";
+import {
+  OTHER_CLIENT_TRANSLATION_GUIDANCE,
+  usesOtherClientGuidance,
+  otherClientTranslationSteps,
+} from "./mcpOtherClientGuidance";
 
 export function createTranslationGuideTool(
   library: McpLibraryReadPort,
@@ -18,7 +23,7 @@ export function createTranslationGuideTool(
   return {
     name: "carrot_get_translation_guide",
     description:
-      "START HERE for 'translate this chapter', '번역해줘' or a polished complete translation. Also call once AFTER all chunk reviews with the full chapter selection: completion lists current accepted and missing/stale pages across this connection's retained v2 composites. Only a whole-chapter accepted status supports detailed chapter completion; saving/exporting or completing the last chunk does not. Aim for one well-planned pass: read original expression, choose a consistent font palette and source-scale sizes, batch text/style/placement, then inspect final pages. Correct specific remaining defects only. Includes ALL text/SFX and real rendered review. Host generation AND PNG byte delivery must be checked. Read-only; no models, edits, quota or queue started.",
+      "START HERE for 'translate this chapter', '번역해줘' or a polished complete translation. Also call once AFTER all chunk reviews with the full chapter selection: completion lists current accepted and missing/stale pages across this connection's retained v2 composites. Only a whole-chapter accepted status supports detailed chapter completion; saving/exporting or completing the last chunk does not. Aim for one well-planned pass: read original expression, choose a consistent font palette and source-scale sizes, batch text/style/placement, then inspect final pages. Correct specific remaining defects only. Includes all requested text and real rendered review. Follow returned soundEffectScope; other clients preserve SFX by default. Host generation AND PNG byte delivery must be checked. Read-only; no models, edits, quota or queue started.",
     inputSchema: z.toJSONSchema(McpTranslationGuideInputSchema),
     requiredScopes: ["carrot.read"],
     readOnly: true,
@@ -27,7 +32,10 @@ export function createTranslationGuideTool(
       const guard = context?.assertAuthorized ?? (() => {});
       const result = await getTranslationGuide(
         library,
-        input,
+        {
+          ...input,
+          soundEffectScope: resolveSoundEffectScope(input, context?.clientName),
+        },
         context?.visibleToolNames ?? toolNames,
         guard,
       );
@@ -43,6 +51,15 @@ export function createTranslationGuideTool(
       return textContent(
         McpTranslationGuideOutputSchema.parse({
           ...result,
+          ...(usesOtherClientGuidance(context?.clientName)
+            ? {
+                steps: otherClientTranslationSteps(result.steps),
+                clientGuidance: {
+                  profile: "other",
+                  instruction: OTHER_CLIENT_TRANSLATION_GUIDANCE,
+                },
+              }
+            : {}),
           ...(completion ? { completion } : {}),
           workTypography: {
             revision: profile ? compositeFingerprint(profile) : null,
@@ -52,6 +69,17 @@ export function createTranslationGuideTool(
       );
     },
   };
+}
+
+function resolveSoundEffectScope(
+  input: z.infer<typeof McpTranslationGuideInputSchema>,
+  clientName: string | undefined,
+) {
+  // A client profile chooses defaults; an explicit task scope takes precedence.
+  return (
+    input.soundEffectScope ??
+    (usesOtherClientGuidance(clientName) ? "preserve-original" : "translate")
+  );
 }
 
 function readGuideCompletion(

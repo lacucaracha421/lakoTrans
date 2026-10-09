@@ -18,7 +18,8 @@ import {
 } from "./bubbleLayoutConstraintMask";
 import {
   isPatternInpaintingBlockEligible,
-  protectUnselectedPatternText,
+  acceptsPatternBubbleConstraint,
+  protectUnselectedFluxPlan,
 } from "./patternBlockEligibility";
 import { buildPatternTextMask } from "./patternTextMask";
 import { extendSharedBubbleMaskWithDetectedText } from "./sharedBubbleTextBridge";
@@ -188,13 +189,7 @@ function mergeFluxRegionMask(
     sourceRect: bboxToPixelRect(block.bbox, options.page),
     width: options.width,
   });
-  if (bubbleMask && plan.constraint) {
-    plan.compositeMask = protectUnselectedPatternText(
-      plan.compositeMask,
-      options,
-    );
-    plan.constraint = protectUnselectedPatternText(plan.constraint, options);
-  }
+  protectUnselectedFluxPlan(plan, options);
   const { compositeMask, featherPx: compositeFeatherPx, modelMask } = plan;
   context.usesKoharuTypographyComposite ||= plan.usesTypographySegmentation;
   const bounds = modelMask.bounds;
@@ -249,6 +244,11 @@ function resolveFluxBubbleConstraint(
       ))
     : null;
   if (bubbleMask) validateWindowMask(bubbleMask, options.width, options.height);
+  if (
+    bubbleMask &&
+    !acceptsPatternBubbleConstraint(block, options.page, bubbleMask)
+  )
+    return null;
   return bubbleMask;
 }
 

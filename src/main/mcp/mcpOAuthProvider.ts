@@ -152,6 +152,7 @@ export class McpOAuthProvider {
       scope,
       resource: this.resource,
       redirectOrigin: new URL(redirect).origin,
+      redirectUri: redirect,
     };
   }
   approve(input: Record<string, unknown>, cookie: string) {

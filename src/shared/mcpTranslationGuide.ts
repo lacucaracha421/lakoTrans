@@ -62,6 +62,7 @@ export const McpTranslationGuideInputSchema = z
       .optional(),
     imageCapabilities: McpImageRouteInputSchema.optional(),
     mode: z.enum(["detailed", "quick"]).optional(),
+    soundEffectScope: z.enum(["translate", "preserve-original"]).optional(),
   })
   .strict();
 export const McpTranslationGuideOutputSchema = z
@@ -98,12 +99,17 @@ export const McpTranslationGuideOutputSchema = z
       .max(50),
     qualityPolicy: McpTranslationQualityPolicySchema.nullable(),
     mode: z.enum(["detailed", "quick"]),
+    soundEffectScope: z.enum(["translate", "preserve-original"]),
     recommendedChunkPages: z.literal(5),
     completion: McpTranslationCompletionSchema.optional(),
     workTypography: z
       .object({ revision: z.string().nullable(), profile: z.unknown() })
       .optional(),
     requiredEvidence: z.array(z.string()),
+    clientGuidance: z
+      .object({ profile: z.literal("other"), instruction: z.string() })
+      .strict()
+      .optional(),
     maxReviewPasses: z.literal(3),
     imageRoute: z
       .object({

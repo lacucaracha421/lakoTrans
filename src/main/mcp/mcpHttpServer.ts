@@ -8,15 +8,21 @@ import {
 } from "node:http";
 import type { McpConfiguration } from "./mcpConfiguration";
 import {
-  authorizeMcpRequest,
   McpHttpError,
   validateMcpHost,
   validateMcpPost,
+  validateMcpEndpoint,
 } from "./mcpHttpPolicy";
 import { handleMcpMessage, type McpHttpReply } from "./mcpProtocol";
 import type { McpTool } from "./mcpReadTools";
 import { readMcpBody } from "./mcpRequestBody";
 import { McpOAuthHttp } from "./mcpOAuthHttp";
+import { openMcpEventStream } from "./mcpEventStream";
+import {
+  mcpOAuthAuthorization,
+  authorizeMcpHttpRequest,
+  type McpHttpAuthorization,
+} from "./mcpHttpAuthorization";
 
 export type McpHttpServer = {
   url: string;
@@ -45,7 +51,8 @@ type ServerOptions = {
   reportRequest?: (diagnostic: McpRequestDiagnostic) => void;
   oauthHttp?: McpOAuthHttp;
   enforceScopes?: boolean;
-  artifacts?: McpArtifactStore;
+  artifacts?: McpArtifactStore | (() => McpArtifactStore | undefined);
+  authorization?: McpHttpAuthorization;
 };
 
 export async function startMcpHttpServer(
@@ -111,16 +118,10 @@ function createRequestHandler(
   config: McpConfiguration,
   oauth?: McpOAuthHttp,
 ) {
-  let accepting = true;
-  let active = 0;
-  async function authorize(request: IncomingMessage): Promise<void> {
-    await oauth?.ready();
-    authorizeMcpRequest(
-      request,
-      config,
-      oauth && ((header) => oauth.scopeFor(header) !== undefined),
-    );
-  }
+  const state = { accepting: true, active: 0 };
+  const streams = new Set<ServerResponse>();
+  const authorize = (request: IncomingMessage) =>
+    authorizeMcpHttpRequest(request, config, oauth, options.authorization);
   async function serve(
     request: IncomingMessage,
     response: ServerResponse,
@@ -130,10 +131,11 @@ function createRequestHandler(
     let deadline: ReturnType<typeof setTimeout> | undefined;
     try {
       validateMcpHost(request, config);
-      if (!accepting) throw new McpHttpError(503, "MCP server is stopping.");
-      if (active >= 8)
+      if (!state.accepting)
+        throw new McpHttpError(503, "MCP server is stopping.");
+      if (state.active >= 8)
         throw new McpHttpError(429, "Too many concurrent requests.");
-      active++;
+      state.active++;
       counted = true;
       deadline = setTimeout(() => {
         sendFailure(
@@ -143,22 +145,25 @@ function createRequestHandler(
         );
       }, 30_000);
       deadline.unref();
-      if (await handleMcpArtifact(options.artifacts, request, response)) return;
+      if (await handleMcpArtifact(resolveArtifacts(options), request, response))
+        return;
       if (await oauth?.handle(request, response)) return;
       await authorize(request);
       trace.authorized = true;
-      if (request.url !== "/mcp") throw new McpHttpError(404, "Not found.");
-      if (request.method !== "POST") {
-        response.setHeader("Allow", "POST");
-        throw new McpHttpError(
-          405,
-          "SSE and session deletion are not offered.",
-        );
-      }
+      validateMcpEndpoint(request, response);
+      if (
+        openMcpEventStream(request, response, {
+          streams,
+          authorize,
+          reportError: options.reportError,
+        })
+      )
+        return;
       validateMcpPost(request);
       const body = await readMcpBody(request, 8 * 1024 * 1024);
       traceRpcRequest(trace, body);
-      if (!accepting) throw new McpHttpError(503, "MCP server is stopping.");
+      if (!state.accepting)
+        throw new McpHttpError(503, "MCP server is stopping.");
       await authorize(request);
       const reply = await handleMcpMessage(
         body,
@@ -173,13 +178,14 @@ function createRequestHandler(
       sendFailure(response, error, oauth);
     } finally {
       clearTimeout(deadline);
-      if (counted) active--;
+      if (counted) state.active--;
     }
   }
   return {
     serve,
     stopAccepting: () => {
-      accepting = false;
+      state.accepting = false;
+      for (const response of streams) response.end();
       oauth?.stop();
     },
   };
@@ -318,7 +324,9 @@ function visibleTools(
   oauth?: McpOAuthHttp,
 ) {
   if (!options.enforceScopes) return options.tools;
-  const scope = oauth?.scopeFor(request.headers.authorization ?? "") ?? "";
+  const authorization = options.authorization ?? mcpOAuthAuthorization(oauth);
+  const scope =
+    authorization.scopeFor(request.headers.authorization ?? "") ?? "";
   const scopes = scope.split(" ");
   const visible = options.tools.filter((tool) =>
     (tool.requiredScopes ?? ["carrot.read"]).every((needed) =>
@@ -334,7 +342,9 @@ function visibleTools(
           "The request ended before the operation could commit. Inspect the page before retrying.",
         );
       const current =
-        oauth?.scopeFor(request.headers.authorization ?? "")?.split(" ") ?? [];
+        authorization
+          .scopeFor(request.headers.authorization ?? "")
+          ?.split(" ") ?? [];
       if (
         !(tool.requiredScopes ?? ["carrot.read"]).every((needed) =>
           current.includes(needed),
@@ -349,20 +359,18 @@ function visibleTools(
       ...tool,
       invoke: async (args: Record<string, unknown>) => {
         assertAuthorized();
-        const principalId = oauth?.provider.connectionIdFor(
-          request.headers.authorization ?? "",
-        );
+        const header = request.headers.authorization ?? "";
+        const principalId = authorization.principalFor(header);
         const required = tool.requiredScopes ?? ["carrot.read"];
         const assertScopes = (needed: readonly string[]) =>
-          assertGranted(
-            needed,
-            oauth?.scopeFor(request.headers.authorization ?? ""),
-          );
+          assertGranted(needed, authorization.scopeFor(header));
         const assertJobAuthorized = (needed: readonly string[] = required) => {
           assertGranted(needed, scope);
           assertGranted(
             needed,
-            principalId ? oauth?.scopeForConnection(principalId) : undefined,
+            principalId
+              ? authorization.scopeForPrincipal(principalId)
+              : undefined,
           );
         };
         const result = await tool.invoke(args, {
@@ -371,6 +379,7 @@ function visibleTools(
           assertScopes,
           assertJobAuthorized,
           visibleToolNames,
+          clientName: authorization.clientNameFor?.(header),
         });
         assertAuthorized();
         return result;
@@ -388,4 +397,10 @@ function assertGranted(
       "access_denied",
       "The operation's approved permissions are unavailable or revoked.",
     );
+}
+
+function resolveArtifacts(options: ServerOptions) {
+  return typeof options.artifacts === "function"
+    ? options.artifacts()
+    : options.artifacts;
 }

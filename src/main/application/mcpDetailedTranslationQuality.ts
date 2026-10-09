@@ -34,7 +34,11 @@ export async function assertDetailedTranslationPage(input: Input) {
       "Detailed completion requires source inventory, actual layout and font/glyph receipts.",
     );
   await assertSource(input, detail);
-  assertInventory(input.page, detail);
+  assertInventory(
+    input.page,
+    detail,
+    input.assessment.quality?.soundEffectScope,
+  );
   const fonts = new Set<string>();
   for (const block of input.page.blocks) {
     const items = detail.inventory.filter((item) => item.blockId === block.id);
@@ -70,6 +74,13 @@ function assertLayout(
   }
 }
 function assertSoundCount(input: Input, detail: Detail) {
+  const preserved = detail.inventory.filter(
+    (item) => item.role === "sound" && item.outcome === "intentional-original",
+  ).length;
+  if (preserved !== (input.assessment.quality?.soundEffectsPreserved ?? 0))
+    fail(
+      "Preserved SFX must match the original-preservation inventory and must not count as translated.",
+    );
   if (
     detail.inventory.filter((item) => item.role === "sound").length !==
     input.assessment.quality?.soundEffectsFound
@@ -95,13 +106,18 @@ async function assertSource(input: Input, detail: Detail) {
   )
     fail("Work palette changed; refresh its evidence and final review.");
 }
-function assertInventory(page: MangaPage, detail: Detail) {
+function assertInventory(
+  page: MangaPage,
+  detail: Detail,
+  soundEffectScope?: "translate" | "preserve-original",
+) {
   if (
     new Set(detail.inventory.map((item) => item.itemId)).size !==
     detail.inventory.length
   )
     fail("Inventory item IDs must be distinct.");
-  for (const item of detail.inventory) assertInventoryItem(page, item);
+  for (const item of detail.inventory)
+    assertInventoryItem(page, item, soundEffectScope);
   if (
     detail.exceptions.some(
       (item) => !page.blocks.some((block) => block.id === item.blockId),
@@ -109,7 +125,11 @@ function assertInventory(page: MangaPage, detail: Detail) {
   )
     fail("Layout exceptions must identify current saved blocks.");
 }
-function assertInventoryItem(page: MangaPage, item: Item) {
+function assertInventoryItem(
+  page: MangaPage,
+  item: Item,
+  soundEffectScope?: "translate" | "preserve-original",
+) {
   if (
     item.sourceRect.x + item.sourceRect.w > page.width ||
     item.sourceRect.y + item.sourceRect.h > page.height ||
@@ -121,7 +141,18 @@ function assertInventoryItem(page: MangaPage, item: Item) {
     fail("Translated source items must link to saved blocks.");
   if (item.blockId && !page.blocks.some((block) => block.id === item.blockId))
     fail("Inventory points to a missing block.");
-  if (item.role === "sound" && item.outcome === "intentional-original")
+  assertPreservedSound(item, soundEffectScope);
+}
+function assertPreservedSound(
+  item: Item,
+  soundEffectScope?: "translate" | "preserve-original",
+) {
+  if (
+    item.role === "sound" &&
+    item.outcome === "intentional-original" &&
+    (soundEffectScope !== "preserve-original" ||
+      item.restoration !== "not-needed")
+  )
     fail("SFX cannot silently remain untranslated in detailed mode.");
 }
 async function assertGlyph(input: Input, block: Block, item: Item) {

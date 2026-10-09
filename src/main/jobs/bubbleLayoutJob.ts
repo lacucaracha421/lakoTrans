@@ -54,7 +54,8 @@ export async function prepareBubbleLayoutJob({
     appSettings,
     completionWorkflow,
   );
-  if (!config) {
+  const needsFluxMask = needsFluxMaskPrepass(request, appSettings);
+  if (!config && (!needsFluxMask || !runtime.createBubbleLayoutRunner)) {
     return { appSettings, config: null, runner: null };
   }
   if (!runtime.createBubbleLayoutRunner) {
@@ -75,6 +76,18 @@ export async function prepareBubbleLayoutJob({
       },
     }),
   };
+}
+
+function needsFluxMaskPrepass(
+  request: StartInpaintingRequest,
+  settings: AppSettings,
+): boolean {
+  return (
+    request.mode !== "page-pattern-drawn" &&
+    request.mode !== "page-bubble-layout" &&
+    !("engine" in request && request.engine === "codex") &&
+    (settings.inpainting?.model ?? "flux-klein") === "flux-klein"
+  );
 }
 
 function resolveJobBubbleLayoutConfig(

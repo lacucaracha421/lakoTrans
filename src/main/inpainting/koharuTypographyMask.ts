@@ -164,7 +164,10 @@ function boxesAssociate(
 ): boolean {
   const detectionRect = boxToRect(box);
   if (!detectionRect) return false;
-  const intersection = intersectionArea(detectionRect, associationRect);
+  // Context padding can contain another word. It must not turn that neighbor
+  // into the entire erase core when the selected lettering was not detected.
+  // Connected balloons retain their explicit owned-region association above.
+  const intersection = intersectionArea(detectionRect, sourceRect);
   if (intersection <= 0) return false;
   const detectionCenter = {
     x: detectionRect.x + detectionRect.w / 2,

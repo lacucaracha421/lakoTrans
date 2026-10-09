@@ -4,7 +4,6 @@ import type { McpPairingBroker } from "./mcpPairingBroker";
 import { mcpPairingPage } from "./mcpPairingPage";
 import { McpOAuthProvider } from "./mcpOAuthProvider";
 import {
-  MCP_HOSTED_CALLBACK_ORIGINS,
   McpOAuthError,
   oauthRecord,
   uniqueOAuthParams,
@@ -219,6 +218,7 @@ export class McpOAuthHttp {
       "Set-Cookie",
       `${COOKIE}=; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`,
     );
+    secureResponse(response, new URL(redirect).origin);
     response.writeHead(303, { Location: redirect });
     response.end();
   }
@@ -273,7 +273,10 @@ async function readForm(request: IncomingMessage): Promise<string> {
   }
 }
 
-function secureResponse(response: ServerResponse): void {
+function secureResponse(
+  response: ServerResponse,
+  redirectOrigin?: string,
+): void {
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("Pragma", "no-cache");
   response.setHeader("X-Content-Type-Options", "nosniff");
@@ -282,7 +285,7 @@ function secureResponse(response: ServerResponse): void {
   // The only cross-origin form navigation is the strictly validated OAuth callback.
   response.setHeader(
     "Content-Security-Policy",
-    `default-src 'none'; form-action 'self' ${MCP_HOSTED_CALLBACK_ORIGINS.join(" ")}; frame-ancestors 'none'; base-uri 'none'`,
+    `default-src 'none'; form-action 'self'${redirectOrigin ? ` ${redirectOrigin}` : ""}; frame-ancestors 'none'; base-uri 'none'`,
   );
 }
 

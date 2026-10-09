@@ -16,6 +16,7 @@ type Image = {
 export type McpRenderedPageOptions = {
   includeLayout?: boolean;
   crop?: PixelRect;
+  omitText?: boolean;
 };
 type Ports = {
   openChapter: (id: string) => Promise<ChapterSnapshot>;
@@ -33,8 +34,7 @@ export class McpPageImageService {
     options?: McpRenderedPageOptions,
   ) {
     const page = await this.load(chapterId, pageId);
-    if (rect) assertCrop(page, rect);
-    if (options?.crop) assertCrop(page, options.crop);
+    assertImageRequest(page, rect, options);
     const revision = createPageRevision(page);
     const image = rect
       ? await this.ports.crop(page, rect)
@@ -51,26 +51,18 @@ export class McpPageImageService {
       chapterId,
       pageId,
       revision,
-      kind: imageKind(rect, area),
+      kind: imageKind(rect, area, options?.omitText),
       sourceWidth: page.width,
       sourceHeight: page.height,
       crop: area ?? null,
-      ...renderMetadata(page, image, Boolean(rect)),
+      ...renderMetadata(
+        page,
+        image,
+        Boolean(rect) || options?.omitText === true,
+      ),
       width: image.width,
       height: image.height,
-      pixelMapping: area
-        ? {
-            originX: area.x,
-            originY: area.y,
-            scaleX: area.w / image.width,
-            scaleY: area.h / image.height,
-          }
-        : {
-            originX: 0,
-            originY: 0,
-            scaleX: page.width / image.width,
-            scaleY: page.height / image.height,
-          },
+      pixelMapping: imagePixelMapping(page, image, area),
       imageData: image.data,
     };
   }
@@ -81,6 +73,30 @@ export class McpPageImageService {
     if (!page) throw new McpEditError("not_found", "Page not found.");
     return page;
   }
+}
+
+function assertImageRequest(
+  page: MangaPage,
+  rect?: PixelRect,
+  options?: McpRenderedPageOptions,
+): void {
+  if (options?.omitText && options.includeLayout)
+    throw new McpEditError(
+      "invalid_edit",
+      "Cleaned previews omit lettering and cannot certify its layout. Request the final composite separately.",
+    );
+  if (rect) assertCrop(page, rect);
+  if (options?.crop) assertCrop(page, options.crop);
+}
+
+function imagePixelMapping(page: MangaPage, image: Image, area?: PixelRect) {
+  const rect = area ?? { x: 0, y: 0, w: page.width, h: page.height };
+  return {
+    originX: rect.x,
+    originY: rect.y,
+    scaleX: rect.w / image.width,
+    scaleY: rect.h / image.height,
+  };
 }
 
 function assertCrop(page: MangaPage, rect: PixelRect): void {
@@ -128,6 +144,11 @@ function renderMetadata(page: MangaPage, image: Image, source: boolean) {
   };
 }
 
-function imageKind(source: PixelRect | undefined, area: PixelRect | undefined) {
+function imageKind(
+  source: PixelRect | undefined,
+  area: PixelRect | undefined,
+  omitText = false,
+) {
+  if (!source && omitText) return area ? "cleaned-crop" : "cleaned-page";
   return source ? "source-crop" : area ? "rendered-crop" : "rendered-page";
 }

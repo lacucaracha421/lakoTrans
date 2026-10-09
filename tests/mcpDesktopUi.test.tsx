@@ -379,6 +379,63 @@ it("shows Claude connector screenshots and a separate Claude Code tab", async ()
   );
 });
 
+it("copies OpenCode-only settings and explains generic HTTP OAuth without a shared config format", async () => {
+  const copy = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+  const openMcpHelp = vi.fn(async () => ({ completed: true }));
+  window.mangaApi = createTestMangaGatewayStub({ openMcpHelp });
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: copy },
+  });
+  show();
+  fireEvent.click(screen.getByRole("button", { name: "연결 방법 및 도움말" }));
+  fireEvent.click(screen.getByRole("tab", { name: "OpenCode" }));
+  fireEvent.click(screen.getByRole("button", { name: "설정 복사" }));
+  await waitFor(() => expect(copy).toHaveBeenCalledOnce());
+  expect(JSON.parse(copy.mock.calls[0][0])).toEqual({
+    mcp: {
+      carrot: {
+        type: "remote",
+        url: status().url,
+        enabled: true,
+        oauth: {},
+      },
+    },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "인증 명령 복사" }));
+  await waitFor(() =>
+    expect(copy).toHaveBeenCalledWith(
+      "opencode mcp auth carrot\nopencode mcp list",
+    ),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "OpenCode 연결 문서" }));
+  await waitFor(() => expect(openMcpHelp).toHaveBeenCalledWith("opencode"));
+  fireEvent.click(screen.getByRole("tab", { name: "기타 MCP 앱" }));
+  expect(screen.getByText("OAuth")).toBeTruthy();
+  expect(screen.getByText("HTTP (Streamable HTTP)")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "설정 복사" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "MCP 연결 문서" }));
+  await waitFor(() => expect(openMcpHelp).toHaveBeenCalledWith("generic"));
+});
+
+it("shows the actual OAuth callback next to the unverified client name", () => {
+  const current = status();
+  const redirectUri = "http://127.0.0.1:19876/mcp/oauth/callback";
+  current.pending = [
+    {
+      id: "pending",
+      clientName: "OpenCode",
+      redirectUri,
+      code: "123456",
+      scope: "carrot.read",
+      expiresAt: Date.now() + 300_000,
+    },
+  ];
+  show(current);
+  expect(screen.getByText(redirectUri)).toBeTruthy();
+  expect(screen.getByText("요청 앱이 표시한 이름: OpenCode")).toBeTruthy();
+});
+
 it("shows all first-use options checked and receives requests online without an enrollment button", () => {
   const current = { ...status(), preferences: { ...DEFAULT_MCP_PREFERENCES } };
   const view = show(current);
@@ -387,7 +444,7 @@ it("shows all first-use options checked and receives requests online without an 
   expect(options.every((option) => option.checked)).toBe(true);
   expect(screen.queryByRole("button", { name: /새 연결 허용/ })).toBeNull();
   expect(
-    screen.getByText(/Codex·ChatGPT·Claude 중 하나를 선택하세요/),
+    screen.getByText(/위 연결 방법에서 사용할 AI 앱을 선택하세요/),
   ).toBeTruthy();
   view.unmount();
   show({ ...current, state: "off" });

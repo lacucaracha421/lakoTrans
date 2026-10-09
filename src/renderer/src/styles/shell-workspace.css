@@ -216,12 +216,13 @@
    of drawing a second card-shaped surface inside it. */
 .sidebar > .library-panel,
 .sidebar > .page-list,
-.right-rail > .run-panel,
-.right-rail > .editor-panel,
-.right-rail > .inpainting-panel,
-.right-rail > .inpainting-area-translate-panel,
-.right-rail > .inpainting-exit-panel,
-.right-rail > .page-block-list-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .run-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .editor-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .inpainting-area-translate-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-exit-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .page-block-list-panel {
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -235,50 +236,57 @@
 
 /* The rail is a fixed viewport, not a second scroll owner. Context panels
    receive the remaining height and keep scrolling inside their own body. */
-.right-rail > .run-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .run-panel {
   flex: 0 0 auto;
 }
 
-.right-rail > .editor-panel,
-.right-rail > .page-block-list-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .editor-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .page-block-list-panel {
   flex: 1 1 0;
   min-height: 0;
   max-height: none;
 }
 
-.right-rail > .inpainting-panel,
-.right-rail > .inpainting-area-translate-panel,
-.right-rail > .inpainting-exit-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .inpainting-area-translate-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-exit-panel {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-.right-rail > .page-block-list-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .page-block-list-panel,
 .sidebar > .page-list,
-.right-rail > .editor-panel,
-.right-rail > .inpainting-panel,
-.right-rail > .inpainting-area-translate-panel,
-.right-rail > .inpainting-exit-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .editor-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .inpainting-area-translate-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-exit-panel {
   padding-top: var(--sp-6);
   border-top: 1px solid var(--surface-border);
 }
 
-.right-rail > .run-panel,
-.right-rail > .editor-panel,
-.right-rail > .inpainting-panel,
-.right-rail > .inpainting-area-translate-panel,
-.right-rail > .inpainting-exit-panel {
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .run-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .editor-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .inpainting-area-translate-panel,
+:is(.right-rail, .right-rail > [role="tabpanel"]) > .inpainting-exit-panel {
   padding-inline: 0;
 }
 
-.right-rail > .page-block-list-panel > .page-block-list-panel-header {
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .page-block-list-panel
+  > .page-block-list-panel-header {
   padding: 0 0 var(--sp-4);
   background: transparent;
 }
 
-.right-rail > .page-block-list-panel > .page-block-list-scroll {
+:is(.right-rail, .right-rail > [role="tabpanel"])
+  > .page-block-list-panel
+  > .page-block-list-scroll {
   padding: var(--sp-3) 0 0;
 }
 

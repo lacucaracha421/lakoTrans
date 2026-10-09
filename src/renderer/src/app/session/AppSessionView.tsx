@@ -32,6 +32,7 @@ import {
   type PanelSessionValue,
 } from "../../panels/panelSession";
 import { useStablePanelSessionValue } from "../../panels/useStablePanelSessionValue";
+import { ChatPanel } from "../../features/chat/ChatPanel";
 import {
   isAppModalSubtreeActive,
   isFloatingOverlaySubtreeActive,
@@ -121,7 +122,17 @@ export function AppSessionView({
             workspaceViewControls={workspaceView.controls}
           />
         </div>
-        <AppRightRail {...rightRailProps} />
+        <AppRightRail
+          {...rightRailProps}
+          chatPanel={(headerSlot) => (
+            <ChatPanel
+              enabled={Boolean(rightRailProps.chatOpen)}
+              context={rightRailProps.chatContext}
+              onPage={rightRailProps.onChatPage}
+              headerSlot={headerSlot}
+            />
+          )}
+        />
         <MemoizedAppModals {...modalsProps} />
       </main>
       <MemoizedSessionFloatingOverlays

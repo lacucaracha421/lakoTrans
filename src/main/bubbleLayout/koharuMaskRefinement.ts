@@ -44,7 +44,9 @@ export function refineKoharuBubbleMask(input: {
   const promptCoverage = measurePromptCoverage(input.promptBoxes, crop, raw);
   if (promptCoverage < 0.12) return null;
 
-  const insetPx = resolveKoharuSafeInsetPx(input);
+  // Translated font/outline sizes describe typesetting, not the original ink.
+  // Keep a pixel at the detected boundary without cutting off edge furigana.
+  const insetPx = input.sourceEraseMask ? 1 : resolveKoharuSafeInsetPx(input);
   const safeMask = erodeBinaryMask(raw, crop.width, crop.height, insetPx);
   const regions = extractPromptedMaskRegions({
     mask: safeMask,

@@ -26,7 +26,10 @@ import {
 } from "./overlayBlockModel";
 import "./overlayTransforms.css";
 import styles from "./PageArtwork.module.css";
-import { measureRenderedHangulInk } from "../lib/renderedGlyphEvidence";
+import {
+  measureRenderedHangulInk,
+  observeRenderedShapeFlow,
+} from "../lib/renderedGlyphEvidence";
 
 type ArtworkBlockProps = {
   afterContent?: React.ReactNode;
@@ -358,6 +361,7 @@ function layoutEvidence(
     textScaleX: model.layout.textScaleX,
     textScaleY: model.layout.textScaleY,
     contentWidth: model.layout.textContentWidth,
+    shapeFlow: shapeFlowEvidence(block, model),
     hangulInk:
       getActiveGeneratedLettering(block) || !model.textVisible
         ? null
@@ -373,4 +377,13 @@ function layoutEvidence(
       ? false
       : model.layout.overflow,
   };
+}
+
+function shapeFlowEvidence(
+  block: TranslationBlock,
+  model: OverlayBlockRenderModel,
+) {
+  return getActiveGeneratedLettering(block) || !model.textVisible
+    ? "unverified"
+    : observeRenderedShapeFlow(block, model.layout);
 }

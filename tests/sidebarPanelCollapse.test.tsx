@@ -132,20 +132,22 @@ describe("sidebar list panel switching", () => {
     );
 
     expect(
-      [
-        "새 원본 추가",
-        "여러 화 추가",
-        "작업 내보내기",
-        "작업 가져오기",
-        "테스트 작품 이름 변경",
-      ].every(
+      ["원본 추가", "테스트 작품 이름 변경"].every(
         (name) =>
           (screen.getByRole("button", { name }) as HTMLButtonElement).disabled,
       ),
     ).toBe(true);
 
     fireEvent.click(screen.getByRole("button", { name: "설정" }));
-    fireEvent.click(screen.getByRole("button", { name: "보관함 폴더" }));
+    fireEvent.click(screen.getByRole("button", { name: "더 보기" }));
+    expect(
+      ["작업 내보내기", "작업 가져오기"].every(
+        (name) =>
+          (screen.getByRole("menuitem", { name }) as HTMLButtonElement)
+            .disabled,
+      ),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("menuitem", { name: "보관함 폴더" }));
     fireEvent.click(screen.getByTitle("1화"));
     fireEvent.click(screen.getByTitle("001.png"));
 
@@ -185,7 +187,7 @@ describe("sidebar list panel switching", () => {
     expect(
       (
         screen.getByRole("button", {
-          name: "새 원본 추가",
+          name: "원본 추가",
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(true);
@@ -203,6 +205,44 @@ describe("sidebar list panel switching", () => {
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false);
+  });
+
+  it("offers chat from the toolbar only while no chapter or chat is open", () => {
+    const onOpenChat = vi.fn();
+    const props = {
+      currentChapter: null,
+      selectedPageId: null,
+      library: LIBRARY,
+      jobActive: false,
+      settingsBusy: true,
+      settingsOpen: false,
+      onOpenTranslationSource: vi.fn(),
+      onOpenBatchImport: vi.fn(),
+      onOpenSettings: vi.fn(),
+      onOpenChat,
+      onOpenLibraryFolder: vi.fn(),
+      onOpenShareExport: vi.fn(),
+      onOpenShareImport: vi.fn(),
+      onOpenChapter: vi.fn(),
+      onRenameWork: vi.fn(),
+      onRenameChapter: vi.fn(),
+      onReorderChapter: vi.fn(),
+      onSelectPage: vi.fn(),
+      onRetranslatePage: vi.fn(),
+      onRemovePage: vi.fn(),
+      onReorderPage: vi.fn(),
+    };
+    const view = render(<AppSidebar {...props} />);
+    expect(
+      (screen.getByRole("button", { name: "설정" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "채팅" }));
+    expect(onOpenChat).toHaveBeenCalledOnce();
+    view.rerender(<AppSidebar {...props} chatOpen />);
+    expect(screen.queryByRole("button", { name: "채팅" })).toBeNull();
+    view.rerender(<AppSidebar {...props} currentChapter={CHAPTER} />);
+    expect(screen.queryByRole("button", { name: "채팅" })).toBeNull();
   });
 });
 

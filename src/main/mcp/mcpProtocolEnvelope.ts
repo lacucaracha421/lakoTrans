@@ -1,4 +1,9 @@
 export const MCP_MODERN_VERSION = "2026-07-28";
+export const MCP_PROTOCOL_VERSIONS = [
+  MCP_MODERN_VERSION,
+  "2025-11-25",
+  "2025-06-18",
+] as const;
 export const MCP_SERVER_INFO = {
   name: "carrot-manga-translator",
   version: "0.2.0",

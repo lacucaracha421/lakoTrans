@@ -6,6 +6,7 @@ import { escapeMcpHtml, mcpPageStart, mcpScopeList } from "./mcpOAuthPage";
 export function mcpPairingPage(consent: {
   transaction: string;
   clientName: string;
+  redirectUri?: string;
   resource: string;
   scope: string;
   code: string;
@@ -22,6 +23,7 @@ export function mcpPairingPage(consent: {
 <p class="lead">앱의 <strong>설정 → AI 연결 / MCP</strong>에서 아래 확인 코드와 요청 권한이 같은지 확인한 뒤 승인하세요. 암호를 복사할 필요가 없습니다.</p>
 <div class="code"><span>확인 코드</span><strong>${escapeMcpHtml(consent.code)}</strong></div>
 <dl class="facts"><div><dt>클라이언트가 표시한 이름</dt><dd>${escapeMcpHtml(consent.clientName)}</dd></div>
+${consent.redirectUri ? `<div><dt>승인 후 돌아갈 주소</dt><dd class="mono">${escapeMcpHtml(consent.redirectUri)}</dd></div>` : ""}
 <div><dt>서버</dt><dd class="mono">${escapeMcpHtml(consent.resource)}</dd></div>
 <div><dt>요청 권한</dt><dd>${mcpScopeList(scopes)}</dd></div></dl>
 <p id="status" class="status" role="status" data-state="waiting"><span class="spinner" aria-hidden="true"></span><span id="status-text">앱의 승인을 확인하고 있습니다…</span></p>

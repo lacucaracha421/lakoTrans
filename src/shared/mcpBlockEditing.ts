@@ -75,6 +75,12 @@ const edit = z
     blockId: id,
     fields: McpEditableFieldsSchema.optional(),
     renderRect: renderRect.optional(),
+    allowDetectedLayoutOverride: z
+      .boolean()
+      .optional()
+      .describe(
+        "Omit for normal typography edits. True deliberately replaces detected balloon geometry after visual verification; never use it merely to resize text or bypass a rejected renderRect.",
+      ),
   })
   .strict()
   .refine(

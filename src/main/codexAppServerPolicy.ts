@@ -53,7 +53,7 @@ const CODEX_APP_SERVER_RESEARCH_ENABLED_FEATURES = [
 ] as const;
 
 export type CodexAppServerCapability =
-  "isolated" | "research" | "typesetting-preview" | "image-generation";
+  "isolated" | "research" | "typesetting-preview" | "image-generation" | "chat";
 
 export function buildCodexAppServerTurnConfig(
   capability: CodexAppServerCapability,
@@ -87,9 +87,13 @@ export function buildCodexAppServerTurnConfig(
 
 export function buildCodexAppServerArguments(
   capability: CodexAppServerCapability,
+  chatConnection?: { url: string; token: string },
 ): readonly string[] {
+  if (chatConnection && capability !== "chat")
+    throw new Error("Internal MCP is only available to chat sessions.");
   const research = capability === "research";
-  const codeMode = research || capability === "typesetting-preview";
+  const codeMode =
+    research || capability === "typesetting-preview" || capability === "chat";
   const disabledFeatures = codeMode
     ? CODEX_APP_SERVER_DISABLED_FEATURES.filter(
         (feature) =>
@@ -110,6 +114,18 @@ export function buildCodexAppServerArguments(
       "-c",
       override,
     ]),
+    ...(chatConnection
+      ? [
+          "-c",
+          `mcp_servers.carrot.url=${JSON.stringify(chatConnection.url)}`,
+          "-c",
+          'mcp_servers.carrot.bearer_token_env_var="CARROT_CHAT_MCP_TOKEN"',
+          "-c",
+          "mcp_servers.carrot.required=true",
+          "-c",
+          'mcp_servers.carrot.default_tools_approval_mode="approve"',
+        ]
+      : []),
     "-c",
     `web_search="${research ? "live" : "disabled"}"`,
     "-c",
@@ -133,7 +149,10 @@ export const CODEX_APP_SERVER_ARGUMENTS =
 export const CODEX_APP_SERVER_RESEARCH_ARGUMENTS =
   buildCodexAppServerArguments("research");
 
-export function buildCodexEnvironment(codexHomeDir: string): NodeJS.ProcessEnv {
+export function buildCodexEnvironment(
+  codexHomeDir: string,
+  chatConnection?: { token: string },
+): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     CODEX_HOME: codexHomeDir,
@@ -145,8 +164,10 @@ export function buildCodexEnvironment(codexHomeDir: string): NodeJS.ProcessEnv {
     "CODEX_API_KEY",
     "CODEX_ACCESS_TOKEN",
     "OPENAI_BASE_URL",
+    "CARROT_CHAT_MCP_TOKEN",
   ]) {
     delete env[key];
   }
+  if (chatConnection) env.CARROT_CHAT_MCP_TOKEN = chatConnection.token;
   return env;
 }

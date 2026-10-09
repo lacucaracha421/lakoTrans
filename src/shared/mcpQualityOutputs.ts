@@ -45,6 +45,13 @@ export const McpSoundEffectCandidateMetadataSchema = z
     ]),
   })
   .strict();
+export const McpPageImageKindSchema = z.enum([
+  "source-crop",
+  "rendered-page",
+  "rendered-crop",
+  "cleaned-page",
+  "cleaned-crop",
+]);
 export const mcpRenderedPageEvidenceFields = {
   layout: pageExportLayoutEvidenceSchema.optional(),
   layoutWarnings: z

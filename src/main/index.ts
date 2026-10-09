@@ -71,6 +71,7 @@ import { MainWindowSessionLifecycle } from "./mainWindowSessionLifecycle";
 import { createLinkedWorkspaceRuntime } from "./linkedWorkspace/linkedWorkspaceRuntime";
 import { createMcpRuntime } from "./mcpRuntime";
 import { createMcpDesktopRuntime } from "./mcpDesktopRuntime";
+import { createChatService } from "./chat/createChatService";
 
 const resolvedAppPaths = getAppPaths();
 assertDataRootInstanceLockHeld(resolvedAppPaths.dataRoot);
@@ -131,6 +132,16 @@ const mcpDesktop = createMcpDesktopRuntime(
   (diagnostic) => logInfo("MCP HTTP request", diagnostic),
 );
 const inpaintingRevisionStore = new InpaintingRevisionStore();
+const chat = createChatService({
+  paths: appPaths,
+  appVersion: app.getVersion(),
+  mcp: mcpDesktop,
+  publish: (event) => {
+    if (mainWindow && !mainWindow.isDestroyed())
+      mainWindow.webContents.send(ipcEventContracts.chatEvent.channel, event);
+  },
+  reportError: (error) => logError("Global chat operation failed", error),
+});
 let mainWindow: BrowserWindow | null = null;
 const linkedWorkspaceRuntime = createLinkedWorkspaceRuntime({
   dataRoot: appPaths.dataRoot,
@@ -153,17 +164,22 @@ const mainWindowSessionLifecycle = new MainWindowSessionLifecycle({
   suspendMutations: () => libraryMutationCoordinator.suspendNewMutations(),
   runCleanup: async () => {
     try {
-      await runMainWindowCloseCleanup({
-        jobs,
-        operations,
-        waitForLibraryMutations: () => libraryMutationCoordinator.waitForIdle(),
-        disposeInpainting: () =>
-          disposeCachedInpaintingEngines("main-window-closed"),
-        disposeTranslation: () =>
-          disposeTranslationRuntimeResources("main-window-closed"),
-        logError,
-        logWarn,
-      });
+      try {
+        await chat.pauseAll();
+      } finally {
+        await runMainWindowCloseCleanup({
+          jobs,
+          operations,
+          waitForLibraryMutations: () =>
+            libraryMutationCoordinator.waitForIdle(),
+          disposeInpainting: () =>
+            disposeCachedInpaintingEngines("main-window-closed"),
+          disposeTranslation: () =>
+            disposeTranslationRuntimeResources("main-window-closed"),
+          logError,
+          logWarn,
+        });
+      }
     } finally {
       try {
         await disposeImageThumbnails();
@@ -298,6 +314,7 @@ void app
     }
     installNativeApplicationMenu();
     registerIpc({
+      chat,
       mcpDesktop,
       appPaths,
       jobs,
@@ -499,7 +516,7 @@ async function finishTerminalCleanup(
 ): Promise<void> {
   const results = await Promise.allSettled([
     mcpRuntime.dispose(),
-    mcpDesktop.dispose(),
+    chat.dispose().finally(() => mcpDesktop.dispose()),
     disposeImageThumbnails(),
     finishTerminalAppCleanup(reason, updateProgress),
   ]);

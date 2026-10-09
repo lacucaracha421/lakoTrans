@@ -64,6 +64,49 @@ function expectCurveFormattingArtifacts(
 }
 
 describe("page artwork renderer parity", () => {
+  it("certifies actual native shape slots, not rectangular or transformed fallback text", () => {
+    const shaped = makeBlocks().find((block) => block.id === "bubble");
+    if (!shaped) throw new Error("Shape fixture missing");
+    const cases = [
+      shaped,
+      { ...shaped, id: "rectangle", bubbleLayout: undefined },
+      { ...shaped, id: "rotated", rotationDeg: 12 },
+      {
+        ...shaped,
+        id: "wrong-direction",
+        renderDirection: "vertical" as const,
+      },
+      { ...shaped, id: "too-large", fontSizePx: 400 },
+    ];
+    const before = structuredClone(cases);
+    const { container } = render(
+      <PageArtwork
+        fontCatalog={DEFAULT_BLOCK_FONT_CATALOG}
+        imageSrc="source.png"
+        page={{
+          id: "shape-evidence",
+          name: "shape.png",
+          width: 1000,
+          height: 1400,
+          blocks: cases,
+        }}
+        visualSize={{ width: 1000, height: 1400 }}
+      />,
+    );
+    const evidence = [
+      ...container.querySelectorAll("[data-layout-evidence]"),
+    ].map((node) =>
+      JSON.parse(node.getAttribute("data-layout-evidence") ?? "null"),
+    );
+    expect(evidence.map((item) => [item.blockId, item.shapeFlow])).toEqual([
+      ["bubble", "contained"],
+      ["rectangle", "unverified"],
+      ["rotated", "unverified"],
+      ["wrong-direction", "unverified"],
+      ["too-large", "unverified"],
+    ]);
+    expect(cases).toEqual(before);
+  });
   it("keeps prepared empty blocks selectable with no source or background in exported artwork", () => {
     const block = makeBlock("prepared", {
       sourceText: "원문은 출력하지 않음",

@@ -36,6 +36,7 @@ describe("mangaGateway", () => {
     expect(unsubscribe()).toBeUndefined();
     await expect(gateway.getActiveAppOperation()).resolves.toBeNull();
     gateway.onJobEvent(vi.fn())();
+    gateway.onChatEvent(vi.fn())();
     gateway.onAppActivities(vi.fn())();
     await expect(gateway.getActiveJobs()).resolves.toEqual([]);
     await expect(

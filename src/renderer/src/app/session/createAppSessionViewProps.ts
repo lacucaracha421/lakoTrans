@@ -47,7 +47,20 @@ export function createAppSessionViewProps(model: AppSessionViewModel) {
     modalsProps: createModalsProps(model),
     pageRetranslateProps: createPageRetranslateProps(model),
     panelSessionValue: createPanelSessionValue(model),
-    rightRailProps: createRightRailProps(model),
+    rightRailProps: {
+      ...createRightRailProps(model),
+      onOpenChat: model.commandRegistry.byId["open-chat"].run,
+      onChatPage: (chapterId: string, pageId: string) => {
+        void (async () => {
+          if (model.core.currentChapter?.id !== chapterId)
+            await model.libraryActions.openChapter(chapterId);
+          if (model.core.currentChapterRef.current?.id === chapterId)
+            model.pageNavigationHandlers.selectPageForReading(pageId);
+        })().catch((error: unknown) =>
+          model.statusLog.pushStatus(String(error)),
+        );
+      },
+    },
     shortcutHelpProps: createShortcutHelpProps(model),
     sidebarProps: createSidebarProps(model),
     soundEffectLauncherProps: createSoundEffectTranslationLauncherProps(model),
@@ -260,8 +273,10 @@ function createSidebarProps({
   pageNavigationHandlers,
   retranslatePage,
   settingsDialog,
+  uiState,
 }: AppSessionViewModel): AppSessionViewProps["sidebarProps"] {
   return {
+    chatOpen: uiState.chatOpen,
     commandLabels: commandRegistry.labels,
     currentChapter: core.currentChapter,
     jobActive: false,
@@ -272,6 +287,7 @@ function createSidebarProps({
     removalLockedPageIds: derivedState.removalLockedPageIds,
     translationBlocked: derivedState.translationModelBusy,
     onOpenBatchImport: commandRegistry.byId["open-batch"].run,
+    onOpenChat: commandRegistry.byId["open-chat"].run,
     onOpenChapter: (chapterId) => void libraryActions.openChapter(chapterId),
     onOpenLibraryFolder: commandRegistry.byId["open-library-folder"].run,
     onOpenSettings: commandRegistry.byId["open-settings"].run,

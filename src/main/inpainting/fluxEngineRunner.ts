@@ -9,8 +9,12 @@ import {
   FLUX_INPAINT_MAX_PIXELS,
   FLUX_RUNNER_MASK_PADDING_PX,
 } from "./fluxEngineConstants";
-import { resolveFluxCropPaths, writeFluxCropInputs } from "./fluxCropIO";
-import { cropBitmapFromPage, readGeneratedBitmap } from "./imageRaster";
+import {
+  readFluxCropCandidate,
+  resolveFluxCropPaths,
+  writeFluxCropInputs,
+} from "./fluxCropIO";
+import { cropBitmapFromPage } from "./imageRaster";
 import {
   buildExclusivePaddedWindowMasks,
   isWindowMaskFullyOwnedByEarlierWindow,
@@ -90,6 +94,7 @@ export async function runFluxInpaint(
   try {
     const summary = await processFluxWindows({
       bitmap,
+      sourceBitmap: Buffer.from(bitmap),
       getWorker,
       height,
       isolateWindowMasks,
@@ -220,19 +225,19 @@ async function processFluxWindow(
       },
       runOptions.signal,
     );
-    const generated = await readGeneratedBitmap(
-      paths.outputPath,
-      crop.paddedBounds.w,
-      crop.paddedBounds.h,
-    );
+    const generated = await readFluxCropCandidate(paths.outputPath, {
+      source: args.sourceBitmap,
+      crop: crop.paddedBounds,
+      constraint: runOptions.compositeConstraints?.[index] ?? null,
+      width,
+      height,
+    });
     const stats = measureMaskedRegionChange(
       cropBitmap,
       generated,
       crop.validationMask,
     );
-    if (stats.maskedPixels > 0) {
-      changeStats.push(stats);
-    }
+    if (stats.maskedPixels > 0) changeStats.push(stats);
     compositeConstrainedFluxOutput({
       bitmap,
       generated,

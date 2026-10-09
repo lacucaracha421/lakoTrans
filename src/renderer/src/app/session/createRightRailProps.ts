@@ -4,6 +4,7 @@ import type { AutoInpaintingEntryScope } from "../../lib/autoInpaintingSelection
 import type { AppSessionViewProps } from "./AppSessionView";
 import type { AppSessionViewModel } from "./appSessionViewModel";
 import { openManualErrorReport } from "../../lib/errorReportStore";
+import { createPageRevision } from "../../../../shared/pageRevision";
 
 type RightRailProps = AppSessionViewProps["rightRailProps"];
 type RightRailViewModel = {
@@ -114,7 +115,12 @@ type RightRailViewModel = {
     | "stageTool"
     | "translationFlowActive"
   > &
-    Partial<Pick<AppSessionViewModel["uiState"], "openExportOptions">>;
+    Partial<
+      Pick<
+        AppSessionViewModel["uiState"],
+        "openExportOptions" | "chatOpen" | "openChat" | "setChatOpen"
+      >
+    >;
   workspaceHistory: Pick<
     AppSessionViewModel["workspaceHistory"],
     "busy" | "canRedo" | "canUndo" | "redo" | "redoLabel" | "undo" | "undoLabel"
@@ -138,6 +144,7 @@ export function createRightRailProps(
   return {
     ...createRightRailActions(model),
     ...resolveLinkedWorkspaceProps(model),
+    ...createChatContext(model),
     blockReadingDirection: resolveRightRailReadingDirection(model),
     blockReadingSize: model.settingsDialog.settings?.ui?.blockReadingSize ?? 15,
     onBlockReadingSizeChange: (size) => {
@@ -331,4 +338,36 @@ function prepareAutoInpainting(
   uiState.setPeekOriginal(false);
   uiState.setAutoInpaintingEntryScope(scope);
   uiState.setAutoInpaintingOptionsOpen(true);
+}
+
+function createChatContext(model: RightRailViewModel) {
+  const chapter = model.core.currentChapter;
+  const page = model.derivedState.selectedPage;
+  return {
+    chatOpen: Boolean(model.uiState.chatOpen),
+    onOpenChat: model.uiState.openChat,
+    onCloseChat: () => model.uiState.setChatOpen?.(false),
+    chatContext: {
+      ...chatPageContext(chapter, page),
+      workTitle:
+        model.core.library?.works.find(
+          (work) => work.id === model.core.currentChapter?.workId,
+        )?.title ?? null,
+      blockIds: model.core.selectedBlockIds ?? [],
+    },
+  };
+}
+function chatPageContext(
+  chapter: RightRailViewModel["core"]["currentChapter"],
+  page: RightRailViewModel["derivedState"]["selectedPage"],
+) {
+  return {
+    workId: chapter?.workId ?? null,
+    chapterId: chapter?.id ?? null,
+    chapterTitle: chapter ? chapter.title : null,
+    pageId: page?.id ?? null,
+    pageNumber:
+      page && chapter ? chapter.pageOrder.indexOf(page.id) + 1 || null : null,
+    revision: page ? createPageRevision(page) : null,
+  };
 }

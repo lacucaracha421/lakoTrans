@@ -69,7 +69,7 @@ export function assertTranslationQualityReport(
         saved.untranslated,
         saved.missingSource,
         saved.staleLettering,
-        saved.pendingSoundEffects,
+        pendingScopedSoundEffects(record, quality, saved.pendingSoundEffects),
       ].some((count) => count > 0) ||
       quality.soundEffectsFound < saved.soundEffects ||
       missingChecks.length > 0
@@ -79,6 +79,20 @@ export function assertTranslationQualityReport(
         `Unresolved text, sound effects, artwork or visual checks require needs-correction/blocked, never accepted. Page ${assessment.pageId}: ${missingChecks.length ? `required visual checks are ${missingChecks.join(", ")}. Inspect the current render before marking them passed. not-applicable means the relevant asset is absent, not that its editing was skipped or done earlier` : "resolve the reported failures and saved-quality omissions"}.`,
       );
   }
+}
+
+function pendingScopedSoundEffects(
+  record: McpCompositeRecord,
+  quality: NonNullable<
+    McpCompositeReviewReport["assessments"][number]["quality"]
+  >,
+  pending: number,
+) {
+  return quality.soundEffectScope === "preserve-original" &&
+    record.plan.qualityPolicy === "complete-translation-v2" &&
+    quality.detailed
+    ? 0
+    : pending;
 }
 
 function assertImageHistory(
@@ -138,6 +152,15 @@ function assertLegacyBudget(
     McpCompositeReviewReport["assessments"][number]["quality"]
   >,
 ) {
+  if (
+    record.plan.qualityPolicy === "complete-translation-v1" &&
+    (quality.soundEffectScope === "preserve-original" ||
+      quality.soundEffectsPreserved)
+  )
+    throw new McpEditError(
+      "invalid_edit",
+      "Explicit SFX preservation requires v2 inventory evidence; legacy v1 still requires translation.",
+    );
   if (
     record.plan.qualityPolicy === "complete-translation-v1" &&
     quality.imageHistory.some(

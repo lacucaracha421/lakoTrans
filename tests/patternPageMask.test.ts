@@ -13,13 +13,78 @@ import type { MangaPage } from "../src/shared/libraryTypes";
 import type { TranslationBlock } from "../src/shared/textTypes";
 
 describe("pattern page text masks", () => {
-  it.each([
-    { blockId: "left" },
-    { blockIds: ["left"] },
-    { excludedBlockIds: ["right"] },
-  ])(
+  it("does not confine artwork SFX to a neighboring detected balloon", () => {
+    const block = {
+      ...createBlock("effect", 100, { y: 100, w: 200, h: 400 }),
+      textRole: "sound" as const,
+    };
+    const options = {
+      page: createPage(100, 100, [block]),
+      width: 100,
+      height: 100,
+      bitmap: Buffer.alloc(100 * 100 * 4, 255),
+      mode: "flux-region" as const,
+      bubbleLayoutConstraintBlockIds: [block.id],
+      sourceEraseConstraintsByBlock: {
+        effect: {
+          bounds: { x: 25, y: 45, w: 40, h: 40 },
+          data: new Uint8Array(1600).fill(1),
+        },
+      },
+    };
+    const result = buildPatternPageMask(options);
+    const mask = expandWindowMaskToPage(
+      result.inpaintCompositeMasks[0],
+      100,
+      100,
+    );
+    expect(mask[20 * 100 + 20]).toBe(1);
+    expect(result.inpaintSpeechBubbleWindows).toEqual([false]);
+    const inside = buildPatternPageMask({
+      ...options,
+      sourceEraseConstraintsByBlock: {
+        effect: {
+          bounds: { x: 5, y: 5, w: 50, h: 60 },
+          data: new Uint8Array(3000).fill(1),
+        },
+      },
+    });
+    expect(inside.inpaintSpeechBubbleWindows).toEqual([true]);
+    const manual = buildPatternPageMask({
+      ...options,
+      page: createPage(100, 100, [
+        {
+          ...block,
+          bubbleLayout: {
+            version: 1,
+            direction: "horizontal",
+            confidence: 1,
+            origin: "manual",
+            insetRatio: 0,
+            regions: [
+              {
+                spans: [
+                  { blockStart: 0, blockEnd: 1, inlineStart: 0, inlineEnd: 1 },
+                ],
+              },
+            ],
+          },
+        },
+      ]),
+    });
+    expect(manual.inpaintSpeechBubbleWindows).toEqual([true]);
+  });
+  it.each(
+    [
+      { blockId: "left" },
+      { blockIds: ["left"] },
+      { excludedBlockIds: ["right"] },
+    ].flatMap((selection) =>
+      [true, false].map((detectedBubble) => ({ ...selection, detectedBubble })),
+    ),
+  )(
     "protects unselected source ink even when detector ownership crosses it: %j",
-    (selection) => {
+    ({ detectedBubble, ...selection }) => {
       const width = 100,
         height = 100;
       const blocks = [
@@ -42,7 +107,7 @@ describe("pattern page text masks", () => {
         height,
         bitmap: Buffer.alloc(width * height * 4, 255),
         mode: "flux-region" as const,
-        bubbleLayoutConstraintBlockIds: ["left", "right"],
+        bubbleLayoutConstraintBlockIds: detectedBubble ? ["left", "right"] : [],
         sourceEraseConstraintsByBlock: { left: raster, right: raster },
         sharedInpaintGroupIdsByBlock: { left: ["shared"], right: ["shared"] },
       };

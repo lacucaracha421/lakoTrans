@@ -220,6 +220,9 @@
     "shortcutHelp": {
       "label": "단축키 도움말",
       "keywords": "shortcut help 단축키 도움말"
+    },
+    "chat": {
+      "label": "채팅으로 번역"
     }
   },
   "shortcuts": {

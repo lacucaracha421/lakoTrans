@@ -1,6 +1,31 @@
 import { join } from "node:path";
 import type { FluxPreparedCrop } from "./fluxCropTiling";
-import { writePngFromBitmap, writePngFromMask } from "./imageRaster";
+import {
+  readGeneratedBitmap,
+  writePngFromBitmap,
+  writePngFromMask,
+} from "./imageRaster";
+import { restoreFluxFlatBackground } from "./fluxFlatBackground";
+import type { InpaintingWindowMask } from "./inpaintingEngine";
+
+export async function readFluxCropCandidate(
+  path: string,
+  options: {
+    source: Buffer;
+    crop: FluxPreparedCrop["paddedBounds"];
+    constraint: InpaintingWindowMask | null;
+    width: number;
+    height: number;
+  },
+): Promise<Buffer> {
+  const generated = await readGeneratedBitmap(
+    path,
+    options.crop.w,
+    options.crop.h,
+  );
+  restoreFluxFlatBackground({ ...options, generated });
+  return generated;
+}
 
 export function resolveFluxCropPaths(
   runDir: string,

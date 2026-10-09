@@ -2,6 +2,7 @@ import { McpTranslationGuideOutputSchema } from "../../shared/mcpTranslationGuid
 import {
   mcpQualityOutputs,
   mcpRenderedPageEvidenceFields,
+  McpPageImageKindSchema,
 } from "../../shared/mcpQualityOutputs";
 import { mcpWorkFileOutputs } from "../../shared/mcpWorkFileImport";
 import { mcpCompositeWorkflowOutputs } from "../../shared/mcpCompositeWorkflowOutputs";
@@ -88,7 +89,7 @@ const block = z
 const image = z
   .object({
     ...target,
-    kind: z.enum(["source-crop", "rendered-page", "rendered-crop"]),
+    kind: McpPageImageKindSchema,
     ...mcpRenderedPageEvidenceFields,
     sourceWidth: size,
     sourceHeight: size,

@@ -22,6 +22,7 @@ export type McpConnection = {
 export type McpPairingRequest = {
   id: string;
   clientName: string;
+  redirectUri?: string;
   code: string;
   scope: string;
   expiresAt: number;

@@ -32,6 +32,8 @@ export const pageExportLayoutEvidenceSchema = z
         innerWidth: z.number().finite(),
         innerHeight: z.number().finite(),
         overflow: z.boolean(),
+        // Native shape-slot usage, not an independent visual contour verdict.
+        shapeFlow: z.enum(["contained", "unverified"]).optional(),
         rendered: z.enum(["text", "generated", "hidden"]).optional(),
         displayText: z.string().optional(),
         direction: z.enum(["horizontal", "vertical"]).optional(),

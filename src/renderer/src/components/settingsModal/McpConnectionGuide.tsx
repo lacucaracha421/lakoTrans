@@ -3,6 +3,7 @@ import { mcpGateway } from "../../api/mcpGateway";
 import { Button } from "../ui/Button";
 import { Tabs } from "../ui/Tabs";
 import { ChatgptGuide } from "./McpChatgptGuide";
+import { OpenCodeGuide, GenericMcpGuide } from "./McpOpenCodeGuide";
 import {
   ClaudeCodeGuide,
   ClaudeGuide,
@@ -11,19 +12,30 @@ import {
 } from "./McpClaudeGuide";
 import styles from "./McpSettingsPanel.module.css";
 
-const MCP_CLIENTS = ["codex", "chatgpt", "claude", "claude-code"] as const;
+const MCP_CLIENTS = [
+  "codex",
+  "chatgpt",
+  "claude",
+  "claude-code",
+  "opencode",
+  "generic",
+] as const;
 type McpClient = (typeof MCP_CLIENTS)[number];
 const CLIENT_LABELS: Record<McpClient, string> = {
   codex: "Codex",
   chatgpt: "ChatGPT",
   claude: "Claude",
   "claude-code": "Claude Code",
+  opencode: "OpenCode",
+  generic: "기타 MCP 앱",
 };
 const HELP_LABELS: Record<McpClient, string> = {
   codex: "Codex 연결 문서",
   chatgpt: "ChatGPT 열기",
   claude: "Claude 열기",
   "claude-code": "Claude Code 연결 문서",
+  opencode: "OpenCode 연결 문서",
+  generic: "MCP 연결 문서",
 };
 
 export function McpTailscaleGuide({
@@ -70,8 +82,8 @@ export function McpTailscaleGuide({
           <strong>AI 앱 연결</strong>
           <p className={styles.note}>
             연결 가능 표시 → 연결 진단 → 주소 복사. /mcp를 포함한 주소로 아래
-            Codex·ChatGPT·Claude 안내를 따라 등록하고, 당근에서 같은 코드를
-            확인해 승인하세요.
+            사용하는 AI 앱의 안내를 따라 등록하고, 당근에서 같은 코드를 확인해
+            승인하세요.
           </p>
         </li>
       </ol>
@@ -121,7 +133,11 @@ export function McpConnectionGuide({
         aria-labelledby={`${id}-${client}`}
         className={styles.body}
       >
-        {client === "claude-code" ? (
+        {client === "opencode" ? (
+          <OpenCodeGuide url={url} busy={busy} run={run} />
+        ) : client === "generic" ? (
+          <GenericMcpGuide url={url} />
+        ) : client === "claude-code" ? (
           <ClaudeCodeGuide url={url} busy={busy} run={run} />
         ) : client === "claude" ? (
           <ClaudeGuide />

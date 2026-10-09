@@ -42,6 +42,7 @@ export class McpPairingBroker {
     this.requests.set(consent.transaction, {
       id: consent.transaction,
       clientName: consent.clientName,
+      redirectUri: consent.redirectUri,
       cookie: consent.cookie,
       scope: consent.scope,
       code,

@@ -1,7 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  IconAlertTriangle,
   IconDownload,
   IconEraser,
   IconFolderOpen,
@@ -11,8 +10,6 @@ import {
 import type { AutoInpaintingEntryScope } from "../lib/autoInpaintingSelection";
 import { Button } from "./ui/Button";
 import { ControlTooltip } from "./ui/ControlTooltip";
-import { IconButton } from "./ui/IconButton";
-import { ChapterTaskHeader } from "./ChapterTaskHeader";
 import { areChapterTaskHubPropsEqual } from "./chapterTaskHubMemo";
 import type { ChapterTaskHubProps } from "./chapterTaskHubTypes";
 
@@ -39,11 +36,6 @@ export const ChapterTaskHub = React.memo(function ChapterTaskHub(
     !props.currentChapter || props.jobActive || props.flowActive;
   return (
     <section className="run-panel chapter-task-hub">
-      <ChapterTaskHeader
-        currentChapter={props.currentChapter}
-        saveStatus={props.saveStatus}
-        onRetrySave={props.onRetrySave}
-      />
       <div className="run-primary-actions">
         <div className="run-translation-action-row">
           <Button
@@ -54,7 +46,14 @@ export const ChapterTaskHub = React.memo(function ChapterTaskHub(
           >
             {t("translationOptions.workspaceAction")}
           </Button>
-          {props.currentChapter ? <TranslationReplacementWarning /> : null}
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={props.onOpenChat}
+            disabled={!props.onOpenChat}
+          >
+            {t("chat.translateInChat")}
+          </Button>
         </div>
         {props.currentChapter && props.hasSelectedPage ? (
           <CurrentPageActionsSection
@@ -74,27 +73,6 @@ export const ChapterTaskHub = React.memo(function ChapterTaskHub(
     </section>
   );
 }, areChapterTaskHubPropsEqual);
-
-function TranslationReplacementWarning(): React.JSX.Element {
-  const { t } = useTranslation("components");
-  const replacementDescription = t("translationOptions.workspaceUndoWarning");
-  return (
-    <ControlTooltip
-      className="run-panel-translation-warning"
-      content={replacementDescription}
-      placement="left"
-    >
-      <IconButton
-        className="run-panel-translation-warning-icon"
-        label={replacementDescription}
-        size="sm"
-        title=""
-      >
-        <IconAlertTriangle size={16} stroke={2} aria-hidden="true" />
-      </IconButton>
-    </ControlTooltip>
-  );
-}
 
 function CurrentPageActionsSection({
   actionsDisabled,

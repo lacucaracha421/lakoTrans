@@ -3,6 +3,26 @@ import type { TranslationBlock } from "../../shared/textTypes";
 import { normalizeTranslationCompletionReferences } from "../translationCompletionReferences";
 import { bboxToPixelRect, expandRect, hasUsableBbox } from "./maskGeometry";
 import type { InpaintingWindowMask } from "./inpaintingEngine";
+import { projectWindowMask } from "./bubbleLayoutConstraintMask";
+
+/** Artwork SFX must not inherit the nearest dialogue balloon's erase boundary. */
+export function acceptsPatternBubbleConstraint(
+  block: TranslationBlock,
+  page: MangaPage,
+  mask: InpaintingWindowMask,
+): boolean {
+  if (block.textRole !== "sound" || block.bubbleLayout?.origin === "manual")
+    return true;
+  const source = bboxToPixelRect(block.bbox, page);
+  return Boolean(
+    projectWindowMask(mask, {
+      x: Math.floor(source.x + source.w / 2),
+      y: Math.floor(source.y + source.h / 2),
+      w: 1,
+      h: 1,
+    })[0],
+  );
+}
 
 export function isPatternInpaintingBlockEligible(
   block: TranslationBlock,
@@ -73,7 +93,7 @@ export function shouldUseOriginalPatternImage(
 }
 
 /** Detector ownership is approximate; a selected balloon must not cut peer ink. */
-export function protectUnselectedPatternText(
+function protectUnselectedPatternText(
   mask: InpaintingWindowMask,
   options: {
     page: MangaPage;
@@ -115,4 +135,33 @@ export function protectUnselectedPatternText(
     }
   }
   return data ? { bounds, data } : mask;
+}
+export function protectUnselectedFluxPlan(
+  plan: {
+    compositeMask: InpaintingWindowMask;
+    constraint: InpaintingWindowMask | null;
+    featherPx: number;
+  },
+  options: Parameters<typeof protectUnselectedPatternText>[1],
+): void {
+  plan.compositeMask = protectUnselectedPatternText(
+    plan.compositeMask,
+    options,
+  );
+  // A fallback/SFX rectangle needs the same peer protection as a detected
+  // balloon, including its outer feather. Keep legacy unconstrained output
+  // exactly when no neighboring source ink intersects the write envelope.
+  const bounds = expandRect(
+    plan.compositeMask.bounds,
+    options.page.width,
+    options.page.height,
+    plan.featherPx,
+  );
+  const envelope = plan.constraint ?? {
+    bounds,
+    data: new Uint8Array(bounds.w * bounds.h).fill(1),
+  };
+  const protectedEnvelope = protectUnselectedPatternText(envelope, options);
+  if (plan.constraint || protectedEnvelope !== envelope)
+    plan.constraint = protectedEnvelope;
 }

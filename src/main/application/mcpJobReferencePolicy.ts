@@ -178,6 +178,7 @@ export function validErasureJobTarget(
   kind: string,
   target: {
     engine?: "local" | "codex";
+    localModel?: "flux-klein" | "lama-manga" | "aot-inpainting";
     expectedModel?: string;
     allowExternalProcessing?: boolean;
   },
@@ -185,11 +186,14 @@ export function validErasureJobTarget(
   if (kind !== "erase")
     return [
       target.engine,
+      target.localModel,
       target.expectedModel,
       target.allowExternalProcessing,
     ].every((value) => value === undefined);
   return (
     target.engine !== "codex" ||
-    (Boolean(target.expectedModel) && target.allowExternalProcessing === true)
+    (target.localModel === undefined &&
+      Boolean(target.expectedModel) &&
+      target.allowExternalProcessing === true)
   );
 }

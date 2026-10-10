@@ -160,6 +160,7 @@ const pageSummary = z
     changedBlocks: count,
     result: z.enum(["not_started", "saved", "failed", "cancelled"]),
     errorCode: z.string().nullable(),
+    errorMessage: z.string().max(1024).optional(),
   })
   .strict();
 const summary = z

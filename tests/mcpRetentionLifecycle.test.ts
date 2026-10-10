@@ -3,6 +3,10 @@ import { readFile, writeFile, access } from "node:fs/promises";
 import { expect, it, vi } from "vitest";
 import { retentionFixture } from "./mcpRetention.fixture";
 import { createPageRevision } from "../src/shared/pageRevision";
+import {
+  MCP_RETENTION_CAPACITY,
+  MCP_RETENTION_BYTES,
+} from "../src/main/mcp/mcpRetentionRecords";
 
 it("keeps existing pages and records intact when encryption becomes unavailable", async () => {
   const f = await retentionFixture();
@@ -117,8 +121,41 @@ it("expires records without touching current images and prunes only expired stor
 
 it("fails closed at the bounded catalog capacity without evicting another connection or changing the page", async () => {
   const f = await retentionFixture();
+  const { mcpToolError } = await import("../src/main/mcp/mcpToolResult");
   try {
     await f.edit("kept history");
+    const index = await f.storage.index();
+    const first = index.entries[0];
+    index.entries = Array.from({ length: MCP_RETENTION_CAPACITY }, (_, i) => ({
+      ...first,
+      id: i ? randomUUID() : first.id,
+      owner: i ? "different-owner" : first.owner,
+    }));
+    await writeFile(
+      await f.storage.path(),
+      JSON.stringify(await f.codec.seal(index)),
+    );
+    const before = await readFile(f.chapterPath);
+    const failure = await f
+      .edit("capacity must not evict history")
+      .catch((error: unknown) => error);
+    expect(mcpToolError(failure).structuredContent).toMatchObject({
+      error: "retention_full",
+      retryable: false,
+    });
+    expect(await readFile(f.chapterPath)).toEqual(before);
+    expect((await f.storage.index()).entries).toEqual(index.entries);
+    expect((await f.list()).total).toBe(1);
+  } finally {
+    await f.close();
+  }
+});
+
+it("continues from an existing 256-record profile without evicting history and can undo after restart", async () => {
+  const f = await retentionFixture();
+  try {
+    const original = (await f.snapshot()).pages[0].blocks[0].translatedText;
+    await f.edit("old history");
     const index = await f.storage.index();
     const first = index.entries[0];
     index.entries = Array.from({ length: 256 }, (_, i) => ({
@@ -130,11 +167,71 @@ it("fails closed at the bounded catalog capacity without evicting another connec
       await f.storage.path(),
       JSON.stringify(await f.codec.seal(index)),
     );
+    await f.restart();
+    await f.edit("new chapter edit");
+    expect((await f.storage.index()).entries.slice(0, 256)).toEqual(
+      index.entries,
+    );
+    expect((await f.storage.index()).entries).toHaveLength(257);
+    const latest = (await f.list()).items.find((item) => item.id !== first.id);
+    if (!latest) throw new Error("Missing new recovery record");
+    await f.restart();
+    await f.recover(latest.id, "undo");
+    expect((await f.snapshot()).pages[0].blocks[0].translatedText).toBe(
+      "old history",
+    );
+    await f.recover(first.id, "undo");
+    expect((await f.snapshot()).pages[0].blocks[0].translatedText).toBe(
+      original,
+    );
+  } finally {
+    await f.close();
+  }
+});
+
+it("preflights the unchanged byte quota before image work without pruning or touching the page", async () => {
+  const f = await retentionFixture();
+  const { mcpToolError } = await import("../src/main/mcp/mcpToolResult");
+  try {
+    await f.edit("kept image source");
+    const index = await f.storage.index();
+    index.entries[0].bytes = MCP_RETENTION_BYTES;
+    await writeFile(
+      await f.storage.path(),
+      JSON.stringify(await f.codec.seal(index)),
+    );
     const before = await readFile(f.chapterPath);
-    await expect(f.edit("capacity must not evict history")).rejects.toThrow();
+    const result = await f.paint();
+    expect(result.status).toBe("failed");
+    expect(JSON.stringify(result)).toContain("retention_full");
+    const nativeJobs = f.app.jobs.all.length;
+    const page = (await f.snapshot()).pages[0];
+    const started = await f.invoke("carrot_run_page_erasure", {
+      chapterId: "chapter",
+      pageId: page.id,
+      revision: createPageRevision(page),
+      requestId: randomUUID(),
+      localModel: "aot-inpainting",
+    });
+    const jobId = (started.structuredContent as { jobId: string }).jobId;
+    await vi.waitFor(async () => {
+      const job = await f.invoke("carrot_get_job", { jobId });
+      expect(job.structuredContent).toMatchObject({
+        status: "failed",
+        error: { code: "retention_full" },
+      });
+    });
+    expect(f.app.jobs.all.length).toBe(nativeJobs);
     expect(await readFile(f.chapterPath)).toEqual(before);
-    expect((await f.storage.index()).entries).toEqual(index.entries);
-    expect((await f.list()).total).toBe(1);
+    expect(await f.storage.index()).toEqual(index);
+    await f.storage.assertCanAdd().then(
+      () => {
+        throw new Error("Expected full quota");
+      },
+      (error: unknown) => {
+        expect(mcpToolError(error).structuredContent.retryable).toBe(false);
+      },
+    );
   } finally {
     await f.close();
   }

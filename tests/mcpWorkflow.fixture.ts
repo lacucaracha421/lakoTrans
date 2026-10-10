@@ -21,6 +21,7 @@ export async function workflowFixture() {
     await import("../src/main/mcp/mcpRetainedOutputs");
   const { wrapRetainedTool } =
     await import("../src/main/mcp/mcpRecoveryCapture");
+  const { withLibraryRead } = await import("../src/main/library/lock");
   const { McpOperationService } =
     await import("../src/main/application/mcpOperationService");
   const { McpPageExportService } =
@@ -81,7 +82,9 @@ export async function workflowFixture() {
       assertImageAccess: async () => {},
     });
     const wrap = (tool: Parameters<typeof wrapRetainedTool>[1]) =>
-      wrapRetainedTool(storage, tool);
+      wrapRetainedTool(storage, tool, () =>
+        withLibraryRead(() => storage.assertCanAdd()),
+      );
     const native = [
       ...selection.tools,
       ...createMcpOperationTools(operations, {

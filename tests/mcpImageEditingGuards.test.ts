@@ -110,9 +110,14 @@ it.each(["consent", "engine"] as const)(
       else command.expectedEngine = "flux-klein";
       const before = await readFile(f.chapterPath),
         plan = await f.preview(command);
-      expect((await f.action(plan.batchId, "apply")).result.status).toBe(
-        "failed",
-      );
+      const result = (await f.action(plan.batchId, "apply")).result;
+      expect(result.status).toBe("failed");
+      if (kind === "engine") {
+        const details = JSON.stringify(result);
+        expect(details).toContain("Configured erasure engine (lama-manga)");
+        expect(details).toContain("reviewed plan (flux-klein)");
+        expect(details).toContain("carrot_run_page_erasure.localModel");
+      }
       expect(await readFile(f.chapterPath)).toEqual(before);
       expect(f.acquireEngine).not.toHaveBeenCalled();
     } finally {

@@ -12,7 +12,9 @@ import { z } from "zod";
 import { LibraryChapterFileSchema } from "../../shared/ipcLibrarySchemas";
 
 export const MCP_RETENTION_MS = 7 * 24 * 60 * 60_000;
-export const MCP_RETENTION_CAPACITY = 256;
+// A chapter can produce many source, cleanup, layout and review commits per page.
+// Keep those recoverable across chapters; the 1 GiB byte quota still bounds disk use.
+export const MCP_RETENTION_CAPACITY = 4096;
 export const MCP_RETENTION_BYTES = 1024 * 1024 * 1024;
 export const MCP_RETAINED_FILE_BYTES = 128 * 1024 * 1024;
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);

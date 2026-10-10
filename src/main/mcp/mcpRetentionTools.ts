@@ -7,6 +7,7 @@ import {
 import { createMcpBatchTool } from "./mcpBatchTool";
 import type { McpRecoveryAction } from "../../shared/mcpRetention";
 import { McpEditError } from "../application/mcpEditPolicy";
+import { MCP_RETENTION_CAPACITY } from "./mcpRetentionRecords";
 
 type Service = {
   list: (
@@ -110,8 +111,7 @@ function readRetentionTools(service: Service) {
         schema: McpRetentionListSchema,
         scopes: ["carrot.read"],
         write: false,
-        description:
-          "List this connection's durable saved page changes or retained text/context/raster/PSD/ZIP/working-file outputs. Metadata only; no image, path, model or page mutation. Records survive restart in the same encrypted profile for seven days, within 256 records/1 GiB. Pagination after offset zero requires the returned catalog snapshot. A new unrelated OAuth connection cannot inherit these records.",
+        description: `List this connection's durable saved page changes or retained text/context/raster/PSD/ZIP/working-file outputs. Metadata only; no image, path, model or page mutation. Records survive restart in the same encrypted profile for seven days, within ${MCP_RETENTION_CAPACITY} records/1 GiB. Pagination after offset zero requires the returned catalog snapshot. A new unrelated OAuth connection cannot inherit these records.`,
         execute: (args, owner, guard) =>
           service.list(
             owner,

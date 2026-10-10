@@ -12,6 +12,7 @@ export type BatchPage<C extends BatchChange> = {
   state: "pending" | "applied" | "undone" | "unchanged" | "excluded";
   result: "not_started" | "saved" | "failed" | "cancelled";
   errorCode: string | null;
+  errorMessage?: string;
   changedBlocks: number;
   changes: C[];
 };

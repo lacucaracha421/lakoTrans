@@ -36,6 +36,8 @@ export function mcpToolError(error: unknown) {
     revision_conflict:
       "Read the current page and review changes before retrying.",
     editor_busy: "Save local edits or wait for the active app job, then retry.",
+    retention_full:
+      "Recovery storage is full. Do not retry unchanged or discard history automatically. Ask the user which owned recovery records may be discarded, or wait for their retention period to expire.",
     not_found: "List current targets or owned jobs before retrying.",
     invalid_edit: "Correct the arguments; do not retry unchanged.",
     invalid_arguments:

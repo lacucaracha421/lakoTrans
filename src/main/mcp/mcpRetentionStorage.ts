@@ -105,7 +105,7 @@ export class McpRetentionStorage {
       MCP_RETENTION_BYTES
     )
       throw new McpEditError(
-        "editor_busy",
+        "retention_full",
         "Retained storage is full (1 GiB). Discard owned records explicitly; no page change was saved.",
       );
     await transaction.stageJsonReplacement(
@@ -228,24 +228,40 @@ export class McpRetentionStorage {
       );
   }
   async prune(transaction: LibraryTransaction, index: RetentionIndex) {
-    const expired = index.entries.filter(
-      (entry) =>
-        entry.expiresAt <= this.now() &&
-        (!["output-sync", "composite-workflow"].includes(entry.kind) ||
-          !this.activeSettlement(entry.id)),
-    );
+    const expired = index.entries.filter((entry) => this.expired(entry));
     const retired = new Set(expired.map((entry) => entry.id));
     for (const entry of expired) await this.retire(transaction, entry.id);
     const next = {
       ...index,
       entries: index.entries.filter((entry) => !retired.has(entry.id)),
     };
-    if (next.entries.length >= MCP_RETENTION_CAPACITY)
-      throw new McpEditError(
-        "editor_busy",
-        "Retained history contains 256 records. Discard owned records before another edit.",
-      );
+    this.assertAvailable(next.entries);
     return next;
+  }
+  /** Read-only early check before expensive image work. The caller holds a read
+   * lock; publication still rechecks quotas atomically in the write transaction. */
+  async assertCanAdd() {
+    this.assertAvailable(
+      (await this.index()).entries.filter((entry) => !this.expired(entry)),
+    );
+  }
+  private expired(entry: RetentionEntry) {
+    return (
+      entry.expiresAt <= this.now() &&
+      (!["output-sync", "composite-workflow"].includes(entry.kind) ||
+        !this.activeSettlement(entry.id))
+    );
+  }
+  private assertAvailable(entries: RetentionEntry[]) {
+    if (
+      entries.length >= MCP_RETENTION_CAPACITY ||
+      entries.reduce((sum, entry) => sum + entry.bytes, 0) >=
+        MCP_RETENTION_BYTES
+    )
+      throw new McpEditError(
+        "retention_full",
+        `Recovery storage has reached its ${MCP_RETENTION_CAPACITY}-record or 1 GiB limit. Existing history is preserved; no new page change was saved.`,
+      );
   }
   /** The caller verifies ownership under its library lock. A supplied index makes
    * directory retirement and catalog removal one indivisible publication. */

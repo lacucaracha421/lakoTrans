@@ -68,7 +68,9 @@ export function createMcpRetentionSession(
       ...migrations.tools,
     ],
     wrap: (tool: Parameters<typeof wrapRetainedTool>[1]) =>
-      wrapRetainedTool(storage, tool),
+      wrapRetainedTool(storage, tool, () =>
+        withLibraryRead(() => storage.assertCanAdd()),
+      ),
     ready: () => withLibraryRead(() => storage.index()),
     stop: () => lifetime.abort(),
     close: async () => {

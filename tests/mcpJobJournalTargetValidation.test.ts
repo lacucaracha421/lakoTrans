@@ -142,8 +142,18 @@ it("persists explicit Codex erasure consent and rejects missing consent or unrel
     ["ocr", target],
     ["erase", { ...target, allowExternalProcessing: false }],
     ["erase", { ...target, expectedModel: undefined }],
+    ["erase", { ...target, localModel: "aot-inpainting" as const }],
+    ["ocr", { ...pageTarget, localModel: "aot-inpainting" as const }],
   ] as const)
     expect(() =>
       parseMcpJobJournal({ version: 1, records: [record(kind, parameters)] }),
     ).toThrow();
 });
+
+it.each(["flux-klein", "lama-manga", "aot-inpainting"] as const)(
+  "preserves task-local %s erasure selection in durable receipts",
+  (localModel) => {
+    const job = record("erase", { ...pageTarget, localModel });
+    expect(parseMcpJobJournal({ version: 1, records: [job] })).toEqual([job]);
+  },
+);

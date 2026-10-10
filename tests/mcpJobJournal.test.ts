@@ -1,12 +1,92 @@
 import { randomUUID } from "node:crypto";
 import { expect, it, vi } from "vitest";
-import { McpOperationService } from "../src/main/application/mcpOperationService";
+import {
+  McpOperationService,
+  type McpOperationExecutor,
+} from "../src/main/application/mcpOperationService";
 import {
   MCP_JOB_RETENTION_MS,
   parseMcpJobJournal,
 } from "../src/main/application/mcpJobJournal";
 
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
+
+it.each(["flux-klein", "lama-manga", "aot-inpainting"] as const)(
+  "admits %s through the real tool and preserves its model across durable restart and replay",
+  async (localModel) => {
+    const { createMcpOperationTools } =
+      await import("../src/main/mcp/mcpOperationTools");
+    const store = storage();
+    const service = new McpOperationService(() => {}, Date.now, store);
+    const execute = vi.fn<McpOperationExecutor>(async () => ({
+      pagesChanged: 1,
+      blocksErased: 1,
+    }));
+    const tool = createMcpOperationTools(service, { erase: execute }).find(
+      (tool) => tool.name === "carrot_run_page_erasure",
+    );
+    if (!tool) throw new Error("Missing erasure tool");
+    const parameters = { ...input().parameters, localModel };
+    const result = await tool.invoke(parameters, {
+      principalId: "grant-a",
+      assertAuthorized: () => {},
+    });
+    if (result[0].type !== "text") throw new Error("Missing receipt");
+    const receipt = JSON.parse(result[0].text);
+    expect((await settled(service, receipt.jobId)).status).toBe("completed");
+    expect(execute.mock.calls[0]?.[0]).toEqual(parameters);
+    await service.close();
+    const restarted = new McpOperationService(() => {}, Date.now, store);
+    try {
+      const replay = await restarted.start({
+        ...input(),
+        kind: "erase",
+        parameters,
+        requestId: parameters.requestId,
+        execute: (operation) => execute(parameters, operation),
+      });
+      expect(replay.jobId).toBe(receipt.jobId);
+      expect(execute).toHaveBeenCalledOnce();
+      expect(parseMcpJobJournal(store.snapshot())[0].parameters).toEqual(
+        parameters,
+      );
+    } finally {
+      await restarted.close();
+    }
+  },
+);
+
+it("preserves the selected local model when recovering a failed job after restart", async () => {
+  const store = storage();
+  const request = input();
+  const parameters = {
+    ...request.parameters,
+    localModel: "aot-inpainting" as const,
+  };
+  const service = new McpOperationService(() => {}, Date.now, store);
+  const receipt = await service.start({
+    ...request,
+    kind: "erase",
+    parameters,
+    execute: async () => {
+      throw new Error("synthetic engine failure");
+    },
+  });
+  expect((await settled(service, receipt.jobId)).status).toBe("failed");
+  await service.close();
+  const restarted = new McpOperationService(() => {}, Date.now, store);
+  try {
+    await restarted.ready();
+    expect(
+      restarted.retryTarget(receipt.jobId, "grant-a", parameters.revision),
+    ).toEqual({
+      kind: "erase",
+      target: parameters,
+    });
+  } finally {
+    await restarted.close();
+  }
+});
 function input(
   execute = vi.fn(async () => ({ status: "saved", blockIds: ["block"] })),
 ) {

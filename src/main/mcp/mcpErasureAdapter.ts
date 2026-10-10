@@ -10,6 +10,7 @@ import { createPageRevision } from "../../shared/pageRevision";
 import { McpEditError } from "../application/mcpEditPolicy";
 import type { McpOperationContext } from "../application/mcpOperationService";
 import type { McpOperationTarget } from "./mcpOperationTools";
+import { currentRetentionInvocation } from "./mcpRecoveryCapture";
 
 type Editing = {
   assertWritable: (chapterId: string, pageId: string) => Promise<void>;
@@ -26,6 +27,8 @@ export async function eraseMcpPage(
   onHistory?: (reference: InpaintingHistoryTransactionRef) => void,
 ) {
   operation.assertAuthorized();
+  const retention = currentRetentionInvocation();
+  if (retention) await retention.assertCapacity();
   const { startInpaintingJob } = await import("../jobs/inpaintingJobs.js");
   runtime ??= (await import("../jobs/inpaintingJobRuntime.js"))
     .productionInpaintingJobRuntime;

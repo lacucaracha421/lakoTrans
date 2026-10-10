@@ -90,6 +90,9 @@ export const mcpJobTargetSchema = z
     blockId: id.optional(),
     contextMode: z.enum(["none", "saved"]).optional(),
     engine: z.enum(["local", "codex"]).optional(),
+    localModel: z
+      .enum(["flux-klein", "lama-manga", "aot-inpainting"])
+      .optional(),
     expectedModel: z.string().min(1).max(128).optional(),
     allowExternalProcessing: z.boolean().optional(),
     revision: z.string().regex(/^page-v1:[a-f0-9]{16}$/),
@@ -385,10 +388,8 @@ function expiredPlanResult(
     const { importPreview: _preview, ...metadata } = result;
     return { ...metadata, importPreviewExpired: true };
   }
-  if (
-    result.retainedContextProposal &&
-    result.retainedContextProposal.expiresAt <= now
-  )
+  const proposal = result.retainedContextProposal;
+  if (proposal && proposal.expiresAt <= now)
     return { ...result, proposalExpired: true };
   if (result.soundEffectPlan && result.soundEffectPlan.expiresAt <= now) {
     const { soundEffectPlan: _sound, ...metadata } = result;

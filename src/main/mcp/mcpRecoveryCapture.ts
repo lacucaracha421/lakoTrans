@@ -33,6 +33,7 @@ type Invocation = {
   operation: string;
   requestId: string | null;
   assertAuthorized: () => void;
+  assertCapacity: () => Promise<void>;
 };
 const invocations = new AsyncLocalStorage<Invocation>();
 export function currentRetentionInvocation() {
@@ -45,6 +46,7 @@ type Staged = { before: ChapterFile; after: ChapterFile };
 export function wrapRetainedTool(
   storage: McpRetentionStorage,
   tool: McpTool,
+  assertCapacity: () => Promise<void>,
 ): McpTool {
   if (
     (tool.readOnly !== false &&
@@ -79,6 +81,7 @@ export function wrapRetainedTool(
         owner: context.principalId,
         operation: tool.name,
         requestId: typeof args?.requestId === "string" ? args.requestId : null,
+        assertCapacity,
         assertAuthorized: () => {
           if (context.assertJobAuthorized)
             context.assertJobAuthorized(tool.requiredScopes);

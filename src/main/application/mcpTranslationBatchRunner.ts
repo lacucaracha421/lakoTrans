@@ -36,6 +36,7 @@ export async function runMcpPageBatch<
   for (const page of pages) {
     page.result = "not_started";
     page.errorCode = null;
+    delete page.errorMessage;
   }
   for (const page of pages) {
     try {
@@ -61,11 +62,10 @@ export async function runMcpPageBatch<
       // Keep committed state even if a post-commit notification failed.
       if (page.result !== "saved")
         page.result = run.controller.signal.aborted ? "cancelled" : "failed";
-      page.errorCode = run.controller.signal.aborted
-        ? "cancelled"
-        : error instanceof McpEditError
-          ? error.code
-          : "save_failed";
+      Object.assign(
+        page,
+        describeBatchFailure(error, run.controller.signal.aborted),
+      );
       run.failure = error;
       run.status = saved
         ? "partial"
@@ -76,6 +76,18 @@ export async function runMcpPageBatch<
     }
   }
   run.status = "completed";
+}
+
+function describeBatchFailure(error: unknown, cancelled: boolean) {
+  if (cancelled) return { errorCode: "cancelled" };
+  // Domain errors are public tool diagnostics. Never expose raw model,
+  // filesystem, network errors or arbitrary cancellation reasons.
+  if (error instanceof McpEditError)
+    return {
+      errorCode: error.code,
+      errorMessage: error.message.slice(0, 1024),
+    };
+  return { errorCode: "save_failed" };
 }
 
 export function describeBatchRun(run?: BatchTextRun) {

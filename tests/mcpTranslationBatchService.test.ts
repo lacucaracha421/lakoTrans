@@ -2,6 +2,42 @@ import { randomUUID } from "node:crypto";
 import { expect, it } from "vitest";
 import { translationBatchFixture } from "./mcpTranslationBatch.fixture";
 import { mcpTranslationBatchOutputs } from "../src/shared/mcpTranslationBatch";
+import { McpEditError } from "../src/main/application/mcpEditPolicy";
+
+it.each([true, false])(
+  "exposes only bounded public batch errors and clears them on recovery (public=%s)",
+  async (publicError) => {
+    const f = translationBatchFixture();
+    try {
+      const message = publicError
+        ? "Correct the selected engine. ".repeat(100)
+        : "PRIVATE token at C:/private/internal-model.bin";
+      f.notify.mockImplementationOnce(() => {
+        throw publicError
+          ? new McpEditError("invalid_edit", message)
+          : new Error(message);
+      });
+      const plan = await f.service.preview(f.owner, f.request(), f.guard);
+      f.start(plan.batchId, "apply");
+      const failed =
+        mcpTranslationBatchOutputs.carrot_get_translation_batch.parse(
+          await f.done(plan.batchId),
+        );
+      expect(failed.status).toBe("partial");
+      expect(failed.pages[0].errorMessage).toBe(
+        publicError ? message.slice(0, 1024) : undefined,
+      );
+      expect(JSON.stringify(failed)).not.toContain("PRIVATE");
+      f.start(plan.batchId, "undo");
+      const recovered = await f.done(plan.batchId);
+      expect(recovered.status).toBe("completed");
+      expect(recovered.pages[0]).toMatchObject({ errorCode: null });
+      expect(recovered.pages[0].errorMessage).toBeUndefined();
+    } finally {
+      await f.service.close();
+    }
+  },
+);
 
 it("previews without saving then applies/undoes/redoes only explicit translations", async () => {
   const f = translationBatchFixture();

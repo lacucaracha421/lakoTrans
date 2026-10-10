@@ -55,6 +55,27 @@ revision, mask, history와 native engine 계약은 그대로 사용한다.
 
 ## 검증
 
+릴리스 직전 dev 오류 추가 수정:
+
+- 05:52 KST의 `localModel` Zod 오류는 tool/executor에 추가한 선택값을 durable job target에
+  누락한 문제였다. 같은 값을 journal과 kind별 검증에 추가했고 실제 도구 admission,
+  저장·재시작·동일 요청 replay 및 실패 작업 retry target까지 검증했다.
+- 05:54 KST부터 256개 복구 기록 한도로 저장이 거부되었다. 기존 기록을 삭제하지 않고
+  공통 catalog 한도를 4,096개로 확대했다. 1 GiB, 7일, owner, 암호화, atomic publication은
+  그대로다. 공간 부족은 재시도 가능한 editor_busy 대신 retention_full로 전달하며
+  원문 제거/이미지 편집 전 read-lock 아래 사전 확인, 저장 시 최종 확인을 수행한다.
+  동시 작업이 사전 확인 이후 공간을 채우는 경우에는 최종 저장이 여전히 거부될 수 있다.
+- 256개 기존 index의 새 편집·재시작·undo, 4,096개 한도에서 무삭제 거부,
+  1 GiB 한도에서 native erasure job 시작 전 거부를 isolated encrypted library로 검증했다.
+  실제 사용자 보관함과 복구 기록은 수정하거나 정리하지 않았다.
+- configured engine과 preview expectedEngine 불일치는 변경된 설정을 확인하는 정상 guard다.
+  작업별 엔진 선택은 carrot_run_page_erasure.localModel 계약이며 reviewed image-edit의
+  expectedEngine을 설정 override로 바꾸지 않았다.
+  오류에는 현재/요청 엔진과 작업별 선택 도구를 명시해 같은 잘못된 호출을 반복하지 않게 했다.
+- 비동기 page batch가 errorCode만 남기던 경로에 optional errorMessage를 추가했다.
+  공개 McpEditError만 최대 1,024자로 전달하고 일반 Error와 취소 사유는 노출하지 않는다.
+  새 작업 시작 때 이전 설명을 제거한다. 공통 schema를 사용하는 앱/MCP 양쪽에 적용된다.
+
 - duplicate-key 회귀 테스트, 실제 Electron 10회 대화 왕복 후 wide/narrow/200% zoom QA:
   log·composer 각 1개, 네 방향 잘림·외부 스크롤·겹침 없음. 캡처를 직접 확인했다.
 - installed ASAR 실제 폰트 3종의 견본 렌더와 archive 변경 거부 smoke.

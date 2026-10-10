@@ -6,6 +6,7 @@ import { applyInpaintingRetouch } from "../inpainting";
 import { inpaintDrawnPatternPage } from "../inpainting/drawnPatternPage";
 import { McpEditError } from "../application/mcpEditPolicy";
 import type { prepareMcpImageEdit } from "./mcpImageEditEvidence";
+import { currentRetentionInvocation } from "./mcpRecoveryCapture";
 
 export type McpImageEditRuntime = Pick<
   InpaintingJobRuntime,
@@ -41,6 +42,9 @@ export async function produceMcpImageEdit(
   runtime: McpImageEditRuntime | undefined,
   produced: Production["produced"],
 ): Promise<McpImageProduct> {
+  guard();
+  const retention = currentRetentionInvocation();
+  if (retention) await retention.assertCapacity();
   guard();
   const input = { app, page, prepared, guard, signal, runtime, produced };
   return command.kind === "paint" || command.kind === "restore"
@@ -80,10 +84,11 @@ async function acquireLocalEngine(input: Production, command: Erasure) {
   input.guard();
   const settings = await runtime.getSettings(input.app.appPaths);
   input.guard();
-  if ((settings.inpainting?.model ?? "flux-klein") !== command.expectedEngine)
+  const configuredEngine = settings.inpainting?.model ?? "flux-klein";
+  if (configuredEngine !== command.expectedEngine)
     throw new McpEditError(
       "revision_conflict",
-      "Configured erasure engine differs from the reviewed plan. No fallback or settings change was made.",
+      `Configured erasure engine (${configuredEngine}) differs from the reviewed plan (${command.expectedEngine}). expectedEngine must match settings; for task-local block erasure use carrot_run_page_erasure.localModel. No fallback or settings change was made.`,
     );
   return runtime.acquireEngine({
     appPaths: input.app.appPaths,

@@ -13,6 +13,7 @@ import { createMcpSoundEffectReadTool } from "./mcpSoundEffectReadTool";
 import { createMcpSoundEffectPrepareTools } from "./mcpSoundEffectPrepareTools";
 import { createMcpSoundEffectImageTool } from "./mcpSoundEffectImageTool";
 import { createMcpBatchTool } from "./mcpBatchTool";
+import { createMcpImageBudgetTool } from "./mcpImageBudgetTool";
 
 export function createMcpSoundEffectSession(
   app: InpaintingJobContext,
@@ -65,6 +66,7 @@ export function createMcpSoundEffectSession(
       createMcpSoundEffectReadTool(app.appPaths),
       ...(enabled
         ? [
+            createMcpImageBudgetTool(app.appPaths, lifetime.signal),
             ...preparation.tools.filter(
               (tool) =>
                 allowImages || !tool.requiredScopes?.includes("carrot.images"),

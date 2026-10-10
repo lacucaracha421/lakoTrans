@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import type { ChatSession } from "../src/shared/chatTypes";
 import { codexChatProtocolFixture } from "./helpers/codexChatProtocolFixture";
+import { handleMcpMessage } from "../src/main/mcp/mcpProtocol";
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -39,6 +40,31 @@ it("persists and resumes the native thread, steers with IDs, and uses actual com
   expect(audit.find((x) => x.method === "thread/resume")?.params).toMatchObject(
     { threadId: "persistent", sandbox: "read-only" },
   );
+  const external = await handleMcpMessage(
+    {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2025-11-25",
+        clientInfo: { name: "Codex", version: "test" },
+        capabilities: {},
+      },
+    },
+    [],
+    () => {},
+  );
+  const guidance = (external.body as { result: { instructions: string } })
+    .result.instructions;
+  const instructions = audit.find((x) => x.method === "thread/resume")?.params
+    .developerInstructions;
+  expect(guidance).toContain("complete-translation-v2");
+  expect(instructions).toContain(guidance);
+  expect(instructions).not.toContain("configured image/erasure path unless");
+  expect(audit.find((x) => x.method === "turn/start")?.params).toMatchObject({
+    model: "gpt-6.1-sol",
+    effort: "high",
+  });
   expect(audit.find((x) => x.method === "turn/steer")?.params).toMatchObject({
     expectedTurnId: "turn-1",
     clientUserMessageId: "m2",

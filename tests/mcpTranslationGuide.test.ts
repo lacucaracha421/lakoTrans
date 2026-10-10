@@ -205,8 +205,33 @@ it("rechecks authorization after reads and filters tools to this connection", as
   ).rejects.toThrow("revoked");
 });
 it.each([
-  [{}, "check-host"],
-  [{ hostGeneration: "available", hostFileTransfer: "available" }, "host"],
+  [{}, "check-app"],
+  [{ hostGeneration: "available", hostFileTransfer: "available" }, "check-app"],
+  [{ preferredProvider: "host" }, "check-host"],
+  [
+    {
+      preferredProvider: "host",
+      hostGeneration: "available",
+      hostFileTransfer: "available",
+    },
+    "host",
+  ],
+  [
+    {
+      hostGeneration: "available",
+      hostFileTransfer: "available",
+      appGeneration: "available",
+    },
+    "app",
+  ],
+  [
+    {
+      hostGeneration: "available",
+      hostFileTransfer: "available",
+      appGeneration: "unavailable",
+    },
+    "host",
+  ],
   [
     { hostGeneration: "available", hostFileTransfer: "unavailable" },
     "check-app",

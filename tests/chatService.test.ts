@@ -10,6 +10,69 @@ vi.mock("electron", () => ({
 }));
 
 describe("global chat durable execution", () => {
+  it("persists native MCP failures and transport errors so a failed tool can explain its warning", async () => {
+    const f = await chatFixture();
+    try {
+      await f.service.send(chatRequest(f.session.id));
+      await vi.waitFor(() => expect(f.runtime.send).toHaveBeenCalledOnce());
+      f.events().notification({
+        method: "item/completed",
+        params: {
+          item: {
+            type: "mcpToolCall",
+            id: "font-failure",
+            tool: "carrot_get_font_samples",
+            status: "completed",
+            result: {
+              isError: true,
+              content: [
+                {
+                  type: "text",
+                  text: '{"error":"revision_conflict","message":"Font bytes changed."}',
+                },
+              ],
+            },
+          },
+        },
+      });
+      f.events().notification({
+        method: "item/completed",
+        params: {
+          item: {
+            type: "mcpToolCall",
+            id: "transport-failure",
+            tool: "carrot_render_page_preview",
+            status: "failed",
+            error: { message: "HTTP 429: Too many concurrent requests." },
+          },
+        },
+      });
+      f.events().notification({
+        kind: "tool",
+        id: "claude-failure",
+        name: "carrot_get_sound_effects",
+        done: true,
+        failed: true,
+        result: {
+          isError: true,
+          content: [{ type: "text", text: "limit must be at most 25" }],
+        },
+      });
+      const items = (await f.service.read(f.session.id)).items.filter(
+        (item) => item.role === "tool",
+      );
+      expect(items.map(({ text, state }) => ({ text, state }))).toEqual([
+        {
+          text: '{"error":"revision_conflict","message":"Font bytes changed."}',
+          state: "failed",
+        },
+        { text: "HTTP 429: Too many concurrent requests.", state: "failed" },
+        { text: "limit must be at most 25", state: "failed" },
+      ]);
+    } finally {
+      await f.cleanup();
+    }
+  });
   it("cancels a late app receipt after stop without recursively cancelling status reads", async () => {
     const f = await chatFixture();
     try {

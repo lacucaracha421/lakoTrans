@@ -163,11 +163,33 @@ function reduceTool(
   if (item.arguments !== undefined)
     target.toolFingerprint = hashStableValue(item.arguments);
   if (!target.text) target.text = target.toolName;
+  const failure = toolFailure(item);
+  if (completed && failure.failed && failure.text) target.text = failure.text;
   target.state = !completed
     ? "running"
-    : item.status === "failed"
+    : failure.failed
       ? "failed"
       : "completed";
+}
+function toolFailure(item: JsonRecord) {
+  const result = asRecord(item.result);
+  const error = asRecord(item.error);
+  const failed =
+    item.status === "failed" || result?.isError === true || Boolean(error);
+  let text = "";
+  if (failed) {
+    const content = Array.isArray(result?.content) ? result.content : [];
+    text = content
+      .flatMap((part) => {
+        const value = asRecord(part);
+        return value?.type === "text" && typeof value.text === "string"
+          ? [value.text]
+          : [];
+      })
+      .join("\n");
+    if (typeof error?.message === "string") text = error.message;
+  }
+  return { failed, text };
 }
 
 function normalizeNotification(event: JsonRecord): JsonRecord {
@@ -176,6 +198,7 @@ function normalizeNotification(event: JsonRecord): JsonRecord {
     tool: event.name,
     arguments: event.arguments,
     status: event.failed ? "failed" : "completed",
+    result: event.result,
   };
   const messages: Record<string, JsonRecord> = {
     started: { method: "turn/started", params: {} },

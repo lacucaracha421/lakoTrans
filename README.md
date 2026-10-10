@@ -6,7 +6,7 @@
 
 **한국어** · [English](README.en.md) · [日本語](README.ja.md) · [简体中文](README.zh-Hans.md) · [繁體中文](README.zh-Hant.md)
 
-**[v3.3.0 다운로드](https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/v3.3.0)** · [릴리스 노트](docs/release-notes/v3.3.0.md) · [오류·제안](https://github.com/ucx0204/CarrotMangaTranslator/issues)
+**[v3.3.1 다운로드](https://github.com/ucx0204/CarrotMangaTranslator/releases/tag/v3.3.1)** · [릴리스 노트](docs/release-notes/v3.3.1.md) · [오류·제안](https://github.com/ucx0204/CarrotMangaTranslator/issues)
 
 Windows 10/11 · Apple Silicon macOS 14+ · [GPL-3.0-only](LICENSE)
 
@@ -242,6 +242,8 @@ HayaiOCR의 **기존 버전**과 PaddleOCR에서는 화·페이지를 선택하�
 - **진행 제어:** 실행 중에도 추가 지시를 보내거나 중지할 수 있습니다. 패널을 닫아도 작업은 계속되고, 앱을 종료하면 진행 중 대화는 일시 중지 상태로 남습니다. 화면 이동만으로 진행 중인 작업 대상이 바뀌지는 않습니다.
 - **연결 준비:** 앱 안의 채팅은 Tailscale이나 외부 MCP 연결 설정 없이 사용할 수 있습니다. 모델 계정의 네트워크 연결은 필요하며, OCR·원문 제거처럼 앱의 엔진을 실행하는 작업은 해당 모델 준비가 필요합니다.
 - **검수 상태:** 답변이 끝난 것과 정밀 검수가 완료된 것은 다릅니다. 확인하지 않은 페이지, 오래된 검수, 폰트 대체, 사용자 보정 대기 항목을 확인하세요. 되돌리기도 현재 저장 상태와 복구 가능 여부를 확인하는 작업입니다.
+- **MCP와 같은 작업 기준:** 앱 채팅과 외부 MCP가 번역·이미지 도구 선택·검수 지침을 공유합니다. 원문을 지울 영역과 한국어 배치를 구분하고, 확대 원본·실제 폰트 견본·제거된 배경·최종 식자를 확인하도록 안내합니다. 도구 오류는 펼친 작업 목록에서 확인할 수 있습니다.
+- **원문 제거와 사용량:** 사용자가 엔진을 지정하면 그 선택이 우선합니다. 미지정 시 단순 배경은 단색 칠하기/AOT, 일반 제거는 FLUX, 복잡한 배경·그림형 글자는 앱 이미지 생성을 검토합니다. ChatGPT 구독과 현재 Codex 사용량을 확인해 Pro에는 더 여유를 주고 Plus 등에는 보수적으로 사용합니다. 이 조회는 이미지 생성 잔여 횟수를 뜻하지 않으며, 조회 불가나 낮은 잔여량을 무제한으로 취급하지 않습니다.
 
 ## 작업 화면
 
@@ -557,6 +559,8 @@ HayaiOCR의 **기존 버전**과 PaddleOCR에서는 화·페이지를 선택하�
 ## AI 앱 연결 · MCP
 
 MCP(Model Context Protocol)는 AI 앱이 당근의 기능을 도구로 호출하는 연결 방식입니다. **Codex·ChatGPT·Claude·Claude Code·OpenCode 등 MCP를 지원하는 앱**에서 보관함을 읽고 번역·식자·검수·출력을 요청합니다. 변경 결과는 당근 보관함에 저장되어 앱에서 이어서 편집할 수 있습니다. 당근 안에서 바로 대화하려면 [채팅으로 번역](#채팅으로-번역)을 사용하세요.
+
+외부 MCP도 앱 채팅과 같은 번역·원문 제거·검수 지침을 사용하고 앱의 이미지 도구를 기본으로 선택합니다. 호스트의 이미지 도구를 명시적으로 요청하면 그 선택과 해당 호스트 계정의 사용량을 따릅니다. MCP에서 작업별 로컬 제거 엔진을 선택해도 앱의 전역 설정은 바뀌지 않습니다.
 
 ![MCP 연결 주소·승인된 앱·기능별 권한](docs/images/readme-current/mcp.png)
 

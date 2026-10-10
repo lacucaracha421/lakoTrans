@@ -27,6 +27,9 @@ const targetSchema = z
     pageId: z.string(),
     contextMode: z.enum(["none", "saved"]).optional(),
     engine: z.enum(["local", "codex"]).optional(),
+    localModel: z
+      .enum(["flux-klein", "lama-manga", "aot-inpainting"])
+      .optional(),
     expectedModel: z.string().min(1).max(128).optional(),
     allowExternalProcessing: z.boolean().optional(),
     blockId: z
@@ -129,8 +132,23 @@ const operationDescriptions: Record<
   erase: {
     name: "carrot_run_page_erasure",
     description:
-      "Erase original text for the page's existing non-excluded blocks, or ONLY blockId. engine=codex uses the app's Codex image controller with no local inference/downloads; requires image permission, allowExternalProcessing=true and expectedModel from get_sound_effects. External images use account quota. Omitted engine or local uses the configured LOCAL engine and may download assets. No OCR, translation or layout. Preserves text/styles and native history. Poll jobId, then visually inspect the rendered page; completion alone does not prove clean erasure. Never substitute a local engine when the user excludes local models.",
+      "Erase original text for the page's existing non-excluded blocks, or ONLY blockId. Honor explicit user engine/model choices. Otherwise read carrot_get_image_budget: simple backgrounds can use localModel=aot-inpainting, ordinary erasure localModel=flux-klein, and complex restoration engine=codex according to plan/usage. localModel overrides only this job, never global settings. Omit it to follow the configured local model. Use one page job for same-engine work, wait for completion, and use blockId only for targeted exceptions. Source bounds are hard erasure permission: fix incomplete sourceRect from original crops first; repeating generation cannot erase ink outside that boundary. engine=codex uses the app's Codex image controller with no local inference/downloads; requires image permission, allowExternalProcessing=true and expectedModel from get_sound_effects. External images use account quota. Omitted engine or local uses the configured LOCAL engine and may download assets. No OCR, translation or layout. Preserves text/styles and native history. Poll jobId, then inspect render_page_preview omitText=true followed by the final composite; completion alone does not prove clean erasure. Never substitute a local engine when the user excludes local models.",
   },
+};
+const erasureInputProperties = {
+  engine: {
+    type: "string",
+    enum: ["local", "codex"],
+    default: "local",
+  },
+  expectedModel: { type: "string", minLength: 1, maxLength: 128 },
+  localModel: {
+    type: "string",
+    enum: ["flux-klein", "lama-manga", "aot-inpainting"],
+    description:
+      "Task-local eraser override; does not change global settings. Only for local engine.",
+  },
+  allowExternalProcessing: { type: "boolean", default: false },
 };
 function createStartOperationTool(
   operations: McpOperationService,
@@ -159,13 +177,7 @@ function createStartOperationTool(
         ...(block ? { blockId: identifierSchema } : {}),
         ...(kind === "erase"
           ? {
-              engine: {
-                type: "string",
-                enum: ["local", "codex"],
-                default: "local",
-              },
-              expectedModel: { type: "string", minLength: 1, maxLength: 128 },
-              allowExternalProcessing: { type: "boolean", default: false },
+              ...erasureInputProperties,
             }
           : {}),
         ...(translation
@@ -229,11 +241,14 @@ function assertErasureArguments(target: McpOperationTarget, kind: string) {
     (kind !== "erase" &&
       [
         target.engine,
+        target.localModel,
         target.expectedModel,
         target.allowExternalProcessing,
       ].some((value) => value !== undefined)) ||
     (target.engine === "codex" &&
-      (!target.expectedModel || target.allowExternalProcessing !== true))
+      (!target.expectedModel ||
+        target.allowExternalProcessing !== true ||
+        target.localModel !== undefined))
   )
     throw new McpInvalidParams([{ path: ["engine"], code: "invalid_value" }]);
 }

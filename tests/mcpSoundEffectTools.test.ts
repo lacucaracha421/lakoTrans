@@ -81,7 +81,12 @@ it("connects preparation, bounded inspection, native application and exact recov
   try {
     const before = await readFile(f.chapterPath),
       page = (await f.snapshot()).pages[0];
-    expect(f.soundSession.tools).toHaveLength(10);
+    expect(f.soundSession.tools).toHaveLength(11);
+    expect(
+      f.soundSession.tools.some(
+        (tool) => tool.name === "carrot_get_image_budget",
+      ),
+    ).toBe(true);
     const plan = await f.preparePlan({
       kind: "text",
       edits: [{ blockId: page.blocks[0].id, translatedText: "BANG!" }],

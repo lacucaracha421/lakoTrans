@@ -143,6 +143,28 @@ it("maps Claude streaming, MCP receipts, compaction and failure without exposing
       toolFingerprint: fingerprint,
       state: "completed",
     });
+    for (const content of [
+      "Font evidence failed",
+      [{ type: "text", text: "Font evidence failed" }],
+    ]) {
+      feed({
+        type: "user",
+        message: {
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "tool",
+              is_error: true,
+              content,
+            },
+          ],
+        },
+      });
+      expect(session.items.find((x) => x.id === "tool")).toMatchObject({
+        state: "failed",
+        text: "Font evidence failed",
+      });
+    }
     feed({ type: "system", subtype: "status", status: "compacting" });
     expect(session.state).toBe("compacting");
     feed({ type: "system", subtype: "compact_boundary" });

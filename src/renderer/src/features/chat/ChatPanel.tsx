@@ -62,6 +62,7 @@ export function ChatPanel(props: {
       )}
       {chat.session ? (
         <ChatConversation
+          key={chat.session.id}
           session={chat.session}
           chat={chat}
           send={send}
@@ -100,7 +101,6 @@ function ChatConversation(props: {
   return (
     <>
       <ChatTranscript
-        key={session.id}
         session={session}
         onPage={props.onPage}
         onUndo={(item) =>
@@ -126,7 +126,6 @@ function ChatConversation(props: {
         />
       )}
       <ChatComposer
-        key={session.id}
         sessionId={session.id}
         busy={chat.busy}
         running={props.running}

@@ -43,6 +43,7 @@ import { mcpStructureOutputs } from "../../shared/mcpBlockStructure";
 import { mcpErasureRecoveryOutputs } from "../../shared/mcpErasureRecoverySchemas";
 import { McpExportPreflightOutput } from "../../shared/mcpExportBatch";
 import { z } from "zod/v4";
+import { ImageEditingBudgetSchema } from "../../shared/imageEditingBudget";
 import { mcpContextOutputSchemas } from "../../shared/mcpContextEditing";
 import { mcpJobReceiptOutput, mcpJobFileOutput } from "./mcpJobOutputSchema";
 import { McpWorkFileExportReviewSchema } from "../../shared/mcpWorkFileExport";
@@ -108,6 +109,7 @@ const image = z
   .strict();
 /** Public projections only. JSON Schema and runtime validation share these definitions. */
 export const mcpOutputSchemas: Record<string, z.ZodType> = {
+  carrot_get_image_budget: ImageEditingBudgetSchema,
   ...mcpQualityOutputs,
   carrot_get_translation_guide: McpTranslationGuideOutputSchema,
   ...mcpCompositeWorkflowOutputs,

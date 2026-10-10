@@ -65,6 +65,17 @@ export class ClaudeChatEvents {
           id: part.tool_use_id,
           done: true,
           failed: part.is_error,
+          ...(part.is_error
+            ? {
+                result: {
+                  isError: true,
+                  content:
+                    typeof part.content === "string"
+                      ? [{ type: "text", text: part.content }]
+                      : part.content,
+                },
+              }
+            : {}),
         });
   }
   private system(message: Extract<SDKMessage, { type: "system" }>) {

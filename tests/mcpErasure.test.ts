@@ -58,6 +58,27 @@ function fixture(autoAcknowledge = true) {
   };
 }
 describe("MCP uses the existing app erasure job", () => {
+  it.each(["aot-inpainting", "flux-klein"] as const)(
+    "selects %s for just this job without changing saved settings",
+    async (localModel) => {
+      const f = fixture();
+      const settings = await f.harness.runtime.getSettings(f.app.appPaths);
+      const before = structuredClone(settings);
+      f.harness.runtime.getSettings = async () => settings;
+      await eraseMcpPage(
+        f.app,
+        f.editing,
+        { ...f.target, localModel },
+        f.operation,
+        f.harness.runtime,
+      );
+      expect(f.harness.acquireEngine).toHaveBeenCalledWith(
+        expect.objectContaining({ model: localModel }),
+      );
+      expect(settings).toEqual(before);
+      expect(f.harness.releaseEngine).toHaveBeenCalledOnce();
+    },
+  );
   it("routes explicitly selected Codex erasure through native ownership without a local engine or layout", async () => {
     const f = fixture();
     const settings = await f.harness.runtime.getSettings(f.app.appPaths);

@@ -142,6 +142,50 @@ const context: CurrentViewContext = {
   blockIds: [],
 };
 
+it("replaces the whole conversation on repeated history switches without retaining old transcripts", async () => {
+  const f = setup(DEFAULT_MODELS, {
+    listChats: async () => [first, second],
+    readChat: async (id) => (id === first.id ? first : second),
+  });
+  const first: ChatSession = {
+    ...f.session,
+    title: "첫 대화",
+    items: [
+      {
+        id: "reply",
+        role: "assistant",
+        state: "completed",
+        createdAt: 1,
+        text: "첫 대화 내용",
+      },
+    ],
+  };
+  const second: ChatSession = {
+    ...first,
+    id: "second",
+    title: "두 번째 대화",
+    items: [],
+  };
+  codexConnection.publish(null);
+  render(<ChatPanel enabled />);
+  await screen.findByText("첫 대화 내용");
+  for (let index = 0; index < 4; index++) {
+    const next = index % 2 === 0 ? second : first;
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(
+      await screen.findByRole("option", { name: `Codex · ${next.title}` }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("combobox").textContent).toContain(next.title),
+    );
+    expect(screen.getAllByRole("log")).toHaveLength(1);
+    expect(screen.getAllByRole("textbox", { name: "메시지" })).toHaveLength(1);
+    expect(screen.queryAllByText("첫 대화 내용")).toHaveLength(
+      next === first ? 1 : 0,
+    );
+  }
+});
+
 it("keeps a draft on panel/navigation changes and sends the new view only at send time", async () => {
   const f = setup();
   const view = render(<ChatPanel enabled context={context} />);

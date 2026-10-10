@@ -30,7 +30,13 @@ export async function eraseMcpPage(
   runtime ??= (await import("../jobs/inpaintingJobRuntime.js"))
     .productionInpaintingJobRuntime;
   operation.assertAuthorized();
-  const settings = await runtime.getSettings(app.appPaths);
+  const storedSettings = await runtime.getSettings(app.appPaths);
+  const settings = target.localModel
+    ? {
+        ...storedSettings,
+        inpainting: { ...storedSettings.inpainting, model: target.localModel },
+      }
+    : storedSettings;
   await assertErasureEngine(app, target, settings);
   const scopedApp = {
     ...app,
@@ -215,7 +221,10 @@ function cleanupFailure(
     blocksErased: undefined,
     blocksIncomplete: undefined,
     performed: ["erase-original"],
-    engine: target.engine === "codex" ? "codex" : "app-configured-local",
+    engine:
+      target.engine === "codex"
+        ? "codex"
+        : (target.localModel ?? "app-configured-local"),
   };
 }
 
@@ -243,6 +252,9 @@ function erasureResult(
     blocksErased: result.blocksErased ?? 0,
     blocksIncomplete: result.blocksIncomplete ?? 0,
     performed: ["erase-original"],
-    engine: target.engine === "codex" ? "codex" : "app-configured-local",
+    engine:
+      target.engine === "codex"
+        ? "codex"
+        : (target.localModel ?? "app-configured-local"),
   };
 }

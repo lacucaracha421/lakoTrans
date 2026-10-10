@@ -98,6 +98,7 @@ export const McpTranslationSavedQualitySchema = z
 
 export const McpImageRouteInputSchema = z
   .object({
+    preferredProvider: z.enum(["app", "host"]).default("app"),
     hostGeneration: z
       .enum(["available", "unavailable", "unknown"])
       .default("unknown"),
@@ -135,6 +136,22 @@ export function selectMcpImageRoute(input: McpImageRouteInput) {
     return {
       route: "local",
       reason: "generation-budget-exhausted",
+      remainingAttempts,
+    };
+  return selectAvailableImageRoute(input, remainingAttempts);
+}
+
+function selectAvailableImageRoute(
+  input: McpImageRouteInput,
+  remainingAttempts: number,
+) {
+  if (
+    input.preferredProvider === "app" &&
+    input.appGeneration !== "unavailable"
+  )
+    return {
+      route: input.appGeneration === "available" ? "app" : "check-app",
+      reason: "prefer-configured-app-image-tools",
       remainingAttempts,
     };
   if (

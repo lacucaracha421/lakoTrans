@@ -12,6 +12,7 @@ import { formatJobLabel } from "../../lib/jobProgress";
 import { useEventCallback } from "../../hooks/useEventCallback";
 import type { CompletionSoundCategory } from "../../hooks/useCompletionSound";
 import { isAggregateFlowTerminal } from "../../hooks/jobEventFlowGuard";
+import { isMcpJob } from "../../lib/mcpNotificationBatch";
 
 type OpenErrorReport = (
   context: ErrorReportContext,
@@ -175,6 +176,11 @@ function handleJobStatusChange({
     return;
   }
   if (translationFlowActive && isTerminalJobStatus(next)) return;
+  // MCP jobs report once, as a batch, when all MCP and chat work settles.
+  if (isMcpJob(jobState.id)) {
+    if (next === "completed") onJobTerminal(jobState);
+    return;
+  }
   if (next === "completed") {
     handleCompletedJob(jobState, onJobTerminal, t);
     return;

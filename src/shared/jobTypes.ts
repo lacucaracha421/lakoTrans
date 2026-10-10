@@ -64,6 +64,8 @@ export type JobState = {
 };
 
 export type JobEvent = JobState & {
+  /** Set on jobs an MCP client (external or the built-in chat) started. */
+  origin?: "mcp";
   soundEffectTextReview?: import("./soundEffectTextReview").SoundEffectTextReview;
   imageRedactionReview?: import("./imageRedaction").ImageRedactionReview;
   regionRequestId?: string;

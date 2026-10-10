@@ -77,7 +77,7 @@ it("does not invent word-split findings for phrase breaks, excluded render modes
     expect(otherClientLayoutWarnings("OpenCode", layout)).toEqual([]);
 });
 
-it("adds only other-client coaching while preserving the shared tools, policy and quick mode", async () => {
+it("separates Claude and other-client coaching while preserving shared tools, scope and quick mode", async () => {
   const chapter = editingChapter();
   const tool = createTranslationGuideTool(
     {
@@ -121,8 +121,6 @@ it("adds only other-client coaching while preserving the shared tools, policy an
     "codex_cli_rs",
     "OpenAI",
     "  CODEX  ",
-    "Claude Code",
-    "Anthropic Claude",
   ]) {
     expect(await read(name)).toEqual(baseline);
     expect(await read(name, "quick")).toEqual(quick);
@@ -130,6 +128,7 @@ it("adds only other-client coaching while preserving the shared tools, policy an
       preserveOriginal,
     );
   }
+  await assertClaudeGuidance(read);
   for (const name of [
     "OpenCode",
     "OpenCode Go",
@@ -164,6 +163,17 @@ it("adds only other-client coaching while preserving the shared tools, policy an
     expect(layout?.tools).toContain("carrot_get_page_blocks");
     expect(layout?.instruction).toContain("OMIT renderRect");
     expect(layout?.instruction).toContain("User instructions override");
+    expect(layout?.instruction).toContain(
+      "First save non-empty translatedText",
+    );
+    expect(layout?.instruction).toContain("allowAssetDownloads:true");
+    expect(layout?.instruction).toContain("different horizontal centers");
+    expect(clientGuidance?.instruction).toContain(
+      "excessive unused balloon space",
+    );
+    expect(clientGuidance?.instruction).toContain(
+      "re-render only changed pages",
+    );
     const fast = await read(name, "quick");
     expect(fast.soundEffectScope).toBe("preserve-original");
     expect(fast.qualityPolicy).toBe(quick.qualityPolicy);
@@ -172,3 +182,70 @@ it("adds only other-client coaching while preserving the shared tools, policy an
   expect(tool.requiredScopes).toEqual(["carrot.read"]);
   expect(tool.readOnly).toBe(true);
 });
+
+async function assertClaudeGuidance(
+  read: (
+    clientName?: string,
+    mode?: "quick",
+    soundEffectScope?: "translate" | "preserve-original",
+  ) => Promise<ReturnType<typeof McpTranslationGuideOutputSchema.parse>>,
+) {
+  for (const name of [
+    "Claude Code",
+    "Anthropic Claude",
+    "claude-ai",
+    "  CLAUDE  ",
+  ]) {
+    for (const mode of [undefined, "quick"] as const) {
+      for (const soundEffectScope of [
+        undefined,
+        "translate",
+        "preserve-original",
+      ] as const) {
+        const expected = await read(undefined, mode, soundEffectScope);
+        const actual = await read(name, mode, soundEffectScope);
+        const { clientGuidance, steps, ...rest } = actual;
+        expect({ ...rest, steps: expected.steps }).toEqual(expected);
+        expect(clientGuidance?.profile).toBe("claude");
+        expect(clientGuidance?.instruction).toContain("includeLayout=true");
+        expect(clientGuidance?.instruction).toContain("saved-but-unreviewed");
+        expect(clientGuidance?.instruction).toContain("never covers page 4");
+        expect(clientGuidance?.instruction).toContain(
+          "Explicit user choices take precedence",
+        );
+        expect(
+          steps.filter((step) => step.id !== "physical-lettering-regions"),
+        ).toEqual(
+          expected.steps.filter(
+            (step) => step.id !== "physical-lettering-regions",
+          ),
+        );
+        if (mode === "quick") {
+          expect(steps).toEqual(expected.steps);
+          continue;
+        }
+        const layout = steps.find(
+          (step) => step.id === "physical-lettering-regions",
+        );
+        expect(layout?.tools).toEqual(
+          expect.arrayContaining([
+            "carrot_get_page_blocks",
+            "carrot_prepare_lettering_batch",
+            "carrot_get_lettering_batch",
+            "carrot_apply_lettering_batch",
+          ]),
+        );
+        expect(layout?.instruction).toContain("OMIT renderRect");
+        expect(layout?.instruction).toContain("mode:geometry");
+        expect(layout?.instruction).toContain("BEFORE geometry preparation");
+        expect(layout?.instruction).toContain("allowAssetDownloads:true");
+        expect(layout?.instruction).not.toContain("Before writing Korean");
+        expect(layout?.instruction).toContain("different horizontal centers");
+        expect(layout?.instruction).toContain("manual alternative");
+        expect(layout?.instruction).toContain(
+          "allowDetectedLayoutOverride=true",
+        );
+      }
+    }
+  }
+}

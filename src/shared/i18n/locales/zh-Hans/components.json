@@ -3094,6 +3094,7 @@
       "completed": "结果",
       "failed": "失败"
     },
+    "toolGroup": "工具 {{count}} 个",
     "state": {
       "idle": "就绪",
       "running": "处理中…",
@@ -3120,12 +3121,15 @@
       "accepted-with-font-substitutions": "通过检查，含字体替代",
       "chapter": "整话 · 后续编辑需要重新检查",
       "selection": "仅选定页面",
-      "substitutions": "{{count}} 项字体替代"
+      "substitutions": "{{count}} 项字体替代",
+      "details": "未验收原因",
+      "pages": "{{count}} 页"
     },
     "redo": "检查能否重新应用",
     "redoRequest": "请检查 {{tool}} 的恢复记录和当前修订，只在不会覆盖后续手动编辑且仍可恢复时重新应用。结果：{{result}}",
-    "runtime": "对话运行器",
+    "runtime": "AI",
     "claudeLoginHint": "请登录 Claude 账户。",
-    "claudeLogin": "登录 Claude"
+    "claudeLogin": "登录 Claude",
+    "moreImages": "再显示 {{count}} 张图片"
   }
 }

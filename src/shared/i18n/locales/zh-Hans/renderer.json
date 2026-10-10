@@ -113,7 +113,15 @@
       "failed": "任务失败。",
       "cancelled": "任务已取消。",
       "openLogs": "打开日志文件夹",
-      "reportError": "报告错误"
+      "reportError": "报告错误",
+      "mcpCompleted": "MCP 任务已完成（{{count}} 项）",
+      "mcpFailed": "失败 {{count}} 项",
+      "chat": {
+        "idle": "聊天任务已完成",
+        "failed": "聊天任务已中断",
+        "needs-input": "聊天正在等待你的回答",
+        "paused": "已停止聊天任务"
+      }
     },
     "codex": {
       "stages": {

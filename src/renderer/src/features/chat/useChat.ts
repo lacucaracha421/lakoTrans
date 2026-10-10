@@ -6,6 +6,7 @@ import type {
   CurrentViewContext,
 } from "../../../../shared/chatTypes";
 import { chatGateway } from "../../api/chatGateway";
+import { noteChatState } from "../../lib/mcpNotificationBatch";
 
 export function useChat(enabled: boolean) {
   const [session, setSession] = useState<ChatSession | null>(null);
@@ -19,6 +20,8 @@ export function useChat(enabled: boolean) {
     new Map<string, { text: string; images: ChatImage[] }>(),
   );
   const accept = useCallback((value: ChatSession) => {
+    // The panel stays mounted while hidden, so chat turns always end the batch.
+    noteChatState(value.id, value.state);
     if (selected.current === value.id)
       setSession((current) =>
         current?.id === value.id && current.updatedAt > value.updatedAt

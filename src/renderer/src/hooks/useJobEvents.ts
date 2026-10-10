@@ -11,6 +11,7 @@ import {
 } from "../lib/appHelpers";
 import { formatJobEventLine } from "../lib/jobProgress";
 import { toast } from "../lib/toastStore";
+import { noteMcpJobEvent } from "../lib/mcpNotificationBatch";
 import {
   createLiveChapterRefreshCoordinator,
   type LiveChapterRefreshCoordinator,
@@ -205,7 +206,8 @@ function subscribeToJobEventUpdates({
     if (suppressTerminalEvents) {
       aggregateGuardRef.current.activeJobIds.add(event.id);
     }
-    if (event.notification) {
+    const batched = noteMcpJobEvent(event);
+    if (event.notification && !batched) {
       toast[event.notification.variant](event.notification.message);
     }
     pendingBatch.enqueue(event);

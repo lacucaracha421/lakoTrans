@@ -13,6 +13,7 @@ export type ChatComposerProps = {
   modelControl?: React.ReactNode;
   drafts: React.RefObject<Map<string, { text: string; images: ChatImage[] }>>;
   onSend: (text: string, images: ChatImage[]) => Promise<boolean>;
+  onStop: () => void;
   onError: (run: () => Promise<void>) => Promise<void>;
 };
 export function useChatDraft(props: ChatComposerProps) {

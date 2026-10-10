@@ -113,7 +113,15 @@
       "failed": "The job failed.",
       "cancelled": "The job was cancelled.",
       "openLogs": "Open log folder",
-      "reportError": "Report error"
+      "reportError": "Report error",
+      "mcpCompleted": "MCP work finished ({{count}})",
+      "mcpFailed": "{{count}} failed",
+      "chat": {
+        "idle": "Chat work finished",
+        "failed": "Chat work was interrupted",
+        "needs-input": "Chat is waiting for your answer",
+        "paused": "Chat work stopped"
+      }
     },
     "codex": {
       "stages": {

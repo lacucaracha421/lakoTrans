@@ -107,7 +107,7 @@ export const McpTranslationGuideOutputSchema = z
       .optional(),
     requiredEvidence: z.array(z.string()),
     clientGuidance: z
-      .object({ profile: z.literal("other"), instruction: z.string() })
+      .object({ profile: z.enum(["other", "claude"]), instruction: z.string() })
       .strict()
       .optional(),
     maxReviewPasses: z.literal(3),

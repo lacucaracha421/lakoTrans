@@ -3094,6 +3094,7 @@
       "completed": "Result",
       "failed": "Failed"
     },
+    "toolGroup": "{{count}} tools",
     "state": {
       "idle": "Ready",
       "running": "Working…",
@@ -3120,12 +3121,15 @@
       "accepted-with-font-substitutions": "Review passed with font substitutions",
       "chapter": "Whole chapter · later edits require another review",
       "selection": "Selected pages only",
-      "substitutions": "{{count}} font substitutions"
+      "substitutions": "{{count}} font substitutions",
+      "details": "Unreviewed reasons",
+      "pages": "{{count}} pages"
     },
     "redo": "Check reapply",
     "redoRequest": "Check the retained recovery record and current revision for {{tool}}. Reapply only if still available without overwriting later manual edits. Result: {{result}}",
-    "runtime": "Chat runtime",
+    "runtime": "Assistant",
     "claudeLoginHint": "Sign in to Claude to start chatting.",
-    "claudeLogin": "Sign in to Claude"
+    "claudeLogin": "Sign in to Claude",
+    "moreImages": "Show {{count}} more images"
   }
 }

@@ -113,7 +113,15 @@
       "failed": "工作失敗。",
       "cancelled": "工作已取消。",
       "openLogs": "開啟記錄資料夾",
-      "reportError": "回報錯誤"
+      "reportError": "回報錯誤",
+      "mcpCompleted": "MCP 工作已完成（{{count}} 項）",
+      "mcpFailed": "失敗 {{count}} 項",
+      "chat": {
+        "idle": "聊天工作已完成",
+        "failed": "聊天工作已中斷",
+        "needs-input": "聊天正在等待你的回答",
+        "paused": "已停止聊天工作"
+      }
     },
     "codex": {
       "stages": {

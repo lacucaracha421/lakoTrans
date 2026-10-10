@@ -6,7 +6,6 @@ import type {
   ChatSession,
   CurrentViewContext,
 } from "../../../../shared/chatTypes";
-import { Button } from "../../components/ui/Button";
 import { useChat } from "./useChat";
 import { useChatModel } from "./useChatModel";
 import { ChatComposer } from "./ChatComposer";
@@ -69,7 +68,15 @@ export function ChatPanel(props: {
           running={running}
           authenticated={model.authenticated}
           context={props.context}
-          modelControl={<ChatModelControls model={model} />}
+          modelControl={
+            <ChatModelControls
+              model={model}
+              disabled={chat.busy}
+              onRuntimeChange={(runtime) =>
+                void chat.select(undefined, runtime)
+              }
+            />
+          }
           onPage={props.onPage}
         />
       ) : (
@@ -118,22 +125,6 @@ function ChatConversation(props: {
           onAnswer={chat.answer}
         />
       )}
-      <div className={styles.state} role="status">
-        {session.state === "idle" ? null : (
-          <>
-            <span>{t(`chat.state.${session.state}`)}</span>
-            {props.running ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void chat.stop()}
-              >
-                {t("chat.stop")}
-              </Button>
-            ) : null}
-          </>
-        )}
-      </div>
       <ChatComposer
         key={session.id}
         sessionId={session.id}
@@ -144,6 +135,7 @@ function ChatConversation(props: {
         modelControl={props.modelControl}
         drafts={chat.drafts}
         onSend={props.send}
+        onStop={() => void chat.stop()}
         onError={chat.perform}
       />
     </>

@@ -65,14 +65,17 @@ export function createJobEventEmitter(
     queues.set(id, queue);
     return queue;
   };
-  return (jobs, mainWindow, event) => {
-    const current = jobs.get(event.id);
+  return (jobs, mainWindow, untagged) => {
+    const current = jobs.get(untagged.id);
     if (
-      current?.id !== event.id ||
+      current?.id !== untagged.id ||
       (current.lastEvent && isTerminalJobStatus(current.lastEvent.status))
     ) {
       return;
     }
+    const event = current.origin
+      ? { ...untagged, origin: current.origin }
+      : untagged;
     jobs.updateLastEvent(event.id, event);
     const queue = resolveQueue(jobs, event.id);
     queue.enqueue(mainWindow, event);

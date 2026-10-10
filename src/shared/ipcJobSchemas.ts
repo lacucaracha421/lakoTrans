@@ -68,6 +68,7 @@ export const JobEventSchema = z
     id: z.string().min(1).max(200),
     kind: JobKindSchema,
     status: JobStatusSchema,
+    origin: z.literal("mcp").optional(),
     progressText: z.string().min(1).max(1000),
     detail: z.string().max(4000).optional(),
     ...JobProgressFieldsSchema,

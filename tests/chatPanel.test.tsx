@@ -14,7 +14,6 @@ import { ChatMarkdown } from "../src/renderer/src/features/chat/ChatMarkdown";
 import { ChatTranscript } from "../src/renderer/src/features/chat/ChatTranscript";
 import { codexConnection } from "../src/renderer/src/api/codexConnection";
 import { claudeConnection } from "../src/renderer/src/api/claudeConnection";
-import { chooseCustomSelectOption } from "./testUtils/customSelect";
 import type { MangaApi } from "../src/shared/mangaApi";
 import { createTestMangaGatewayStub } from "../src/renderer/src/api/mangaGateway";
 import type {
@@ -124,13 +123,13 @@ it("switches runtimes and logs into the chosen account, keeping new conversation
   await screen.findByRole("button", { name: /ChatGPT.*로그인/ });
   fireEvent.click(screen.getByRole("button", { name: /ChatGPT.*로그인/ }));
   await waitFor(() => expect(loginCodex.mock.calls.length).toBeGreaterThan(1));
-  chooseCustomSelectOption("대화 실행기", "Claude");
+  chooseRuntime("Claude");
   await screen.findByRole("button", { name: /Claude.*로그인/ });
   fireEvent.click(screen.getByRole("button", { name: /Claude.*로그인/ }));
   await waitFor(() => expect(loginClaude).toHaveBeenCalledOnce());
   fireEvent.click(screen.getByRole("button", { name: "새 대화" }));
   await waitFor(() => expect(create).toHaveBeenLastCalledWith("claude"));
-  chooseCustomSelectOption("대화 실행기", "Codex");
+  chooseRuntime("Codex");
   await waitFor(() => expect(create).toHaveBeenLastCalledWith("codex"));
 });
 const context: CurrentViewContext = {
@@ -224,7 +223,7 @@ it("keeps an empty conversation free of hints and folds model choice into one ch
   await waitFor(() => expect(input.hasAttribute("disabled")).toBe(false));
   expect(input.getAttribute("placeholder")).toBe("요청 입력");
   expect(screen.getByText("1화 p.1 · 말풍선 1개")).toBeTruthy();
-  expect(screen.getByRole("status").textContent).toBe("");
+  expect(screen.queryByRole("status")).toBeNull();
   expect(screen.getByRole("log").textContent).toBe("");
   expect(
     screen
@@ -233,7 +232,7 @@ it("keeps an empty conversation free of hints and folds model choice into one ch
   ).toBe(false);
 
   const chip = screen.getByRole("button", { name: /모델·추론 수준/ });
-  expect(chip.textContent).toBe("GPT 6.1 SOL · 추론 높음");
+  expect(chip.textContent).toBe("Codex · GPT 6.1 SOL · 추론 높음");
   fireEvent.click(chip);
   expect(screen.getByRole("group", { name: "모델·추론 수준" })).toBeTruthy();
   expect(screen.getByRole("combobox", { name: "추론 수준" })).toBeTruthy();
@@ -256,7 +255,7 @@ it("falls back to the model settings label without models and keeps select menus
   expect(screen.getByText("1화")).toBeTruthy();
   const chip = await screen.findByRole("button", { name: /모델·추론 수준/ });
   await waitFor(() => expect(chip.hasAttribute("disabled")).toBe(false));
-  expect(chip.textContent).toBe("모델·추론 수준");
+  expect(chip.textContent).toBe("Codex");
   fireEvent.click(chip);
   const popover = screen.getByRole("group", { name: "모델·추론 수준" });
   fireEvent.click(screen.getByRole("combobox", { name: "모델" }));
@@ -377,9 +376,174 @@ it("starts chat at high reasoning when the model supports it", async () => {
   await codexConnection.refresh();
   render(<ChatPanel enabled context={context} />);
   const chip = await screen.findByRole("button", { name: /모델·추론 수준/ });
-  await waitFor(() => expect(chip.textContent).toBe("GPT 6.1 SOL · 추론 높음"));
+  await waitFor(() =>
+    expect(chip.textContent).toBe("Codex · GPT 6.1 SOL · 추론 높음"),
+  );
   fireEvent.click(chip);
   fireEvent.click(screen.getByRole("combobox", { name: "모델" }));
   fireEvent.click(await screen.findByRole("option", { name: "GPT Mini" }));
-  await waitFor(() => expect(chip.textContent).toBe("GPT Mini · 추론 중간"));
+  await waitFor(() =>
+    expect(chip.textContent).toBe("Codex · GPT Mini · 추론 중간"),
+  );
+});
+
+/** The assistant is chosen in the chip's popover and starts a new chat. */
+function chooseRuntime(name: "Codex" | "Claude") {
+  fireEvent.click(screen.getByRole("button", { name: /모델·추론 수준/ }));
+  fireEvent.click(screen.getByRole("radio", { name }));
+}
+it("folds runs of tool calls into one row with thumbnails, a grouped receipt and live activity", async () => {
+  window.mangaApi = createTestMangaGatewayStub({
+    readChatImage: async (_session, id) => ({
+      id,
+      name: `image ${id}`,
+      dataUrl: "data:image/png;base64,AA==",
+    }),
+  });
+  const pageId = (n: number) => `00000000-0000-4000-a000-00000000000${n}`;
+  const receipt = {
+    completion: {
+      scope: "whole-chapter",
+      status: "incomplete",
+      chapterPageCount: 2,
+      checkedPages: 2,
+      acceptedPages: 0,
+      pages: [1, 2].map((n) => ({
+        pageId: pageId(n),
+        revision: "page-v1:0123456789abcdef",
+        status: "pending",
+        reason: "No retained v2 review covers this page.",
+      })),
+      fontSubstitutions: [],
+      nextAction: "review",
+      observation: "current-owned-v2-evidence; not-an-aesthetic-guarantee",
+    },
+  };
+  const tool = (id: string, toolName: string, extra = {}) => ({
+    id,
+    role: "tool" as const,
+    state: "completed" as const,
+    createdAt: 2,
+    text: "{}",
+    toolName,
+    ...extra,
+  });
+  render(
+    <ChatTranscript
+      session={{
+        version: 1,
+        id: "00000000-0000-4000-a000-000000000004",
+        title: "대화",
+        runtime: "claude",
+        nativeThreadId: null,
+        model: null,
+        effort: null,
+        state: "running",
+        createdAt: 1,
+        updatedAt: 1,
+        checkpoint: [],
+        question: null,
+        items: [
+          tool("t1", "carrot_get_translation_guide", {
+            text: JSON.stringify(receipt),
+          }),
+          tool("t2", "carrot_get_page_crop", {
+            imageIds: ["i1", "i2", "i3"],
+          }),
+          tool("t3", "carrot_render_page_preview", {
+            imageIds: ["i4", "i5", "i6"],
+          }),
+          tool("t4", "carrot_get_translation_guide"),
+        ],
+      }}
+      onUndo={vi.fn()}
+    />,
+  );
+  const group = screen.getByRole("button", { name: /도구 4개/ });
+  expect(group.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.queryByRole("button", { name: /이미지 작업/ })).toBeNull();
+  expect(screen.getByRole("status").textContent).toBe("작업 중…");
+  expect(await screen.findAllByRole("img")).toHaveLength(4);
+
+  fireEvent.click(screen.getByRole("button", { name: "미검수 사유" }));
+  expect(
+    screen.getByText("No retained v2 review covers this page.").textContent,
+  ).toContain("2페이지");
+
+  fireEvent.click(screen.getByRole("button", { name: "이미지 2개 더 보기" }));
+  expect(group.getAttribute("aria-expanded")).toBe("true");
+  await waitFor(() => expect(screen.getAllByRole("img")).toHaveLength(6));
+  expect(screen.getAllByRole("button", { name: /이미지 작업/ })).toHaveLength(
+    2,
+  );
+});
+it("swaps send for stop while a turn runs and the input is empty", async () => {
+  setup(DEFAULT_MODELS, {
+    readChat: async () => ({
+      version: 1,
+      id: "00000000-0000-4000-a000-000000000001",
+      title: "대화",
+      runtime: "codex",
+      nativeThreadId: null,
+      model: null,
+      effort: null,
+      state: "running",
+      createdAt: 1,
+      updatedAt: 1,
+      items: [],
+      checkpoint: [],
+      question: null,
+    }),
+  });
+  render(<ChatPanel enabled context={context} />);
+  const input = await screen.findByRole("textbox", { name: "메시지" });
+  expect(await screen.findByRole("button", { name: "중지" })).toBeTruthy();
+  fireEvent.change(input, { target: { value: "글꼴도 맞춰줘" } });
+  expect(screen.queryByRole("button", { name: "중지" })).toBeNull();
+  expect(screen.getByRole("button", { name: "추가 지시" })).toBeTruthy();
+});
+it("renders conversation controls in the host header and requests undo from a tool row", async () => {
+  const loaded = (): ChatSession => ({
+    ...f.session,
+    nativeThreadId: "native",
+    items: [
+      {
+        id: "t1",
+        role: "tool",
+        state: "completed",
+        createdAt: 1,
+        text: "{}",
+        toolName: "carrot_apply_translation_batch",
+      },
+    ],
+  });
+  const compactChat = vi.fn<ChatApi["compactChat"]>(async () => ({
+    ...loaded(),
+    state: "idle",
+    updatedAt: 5,
+  }));
+  const createChat = vi.fn<ChatApi["createChat"]>();
+  const f = setup(DEFAULT_MODELS, {
+    compactChat,
+    createChat,
+    readChat: async () => loaded(),
+  });
+  const slot = document.body.appendChild(document.createElement("div"));
+  render(<ChatPanel enabled context={context} headerSlot={slot} />);
+  const compact = await screen.findByRole("button", { name: "대화 압축" });
+  expect(slot.contains(compact)).toBe(true);
+  await waitFor(() => expect(compact.hasAttribute("disabled")).toBe(false));
+  fireEvent.click(compact);
+  await waitFor(() => expect(compactChat).toHaveBeenCalledOnce());
+
+  chooseRuntime("Codex");
+  expect(createChat).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: /페이지 편집/ }));
+  fireEvent.click(screen.getByRole("button", { name: "되돌리기 확인" }));
+  await waitFor(() => expect(f.send).toHaveBeenCalledOnce());
+  expect(f.send.mock.calls[0][0].text).toContain(
+    "carrot_apply_translation_batch",
+  );
+  slot.remove();
 });

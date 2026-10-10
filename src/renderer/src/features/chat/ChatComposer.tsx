@@ -1,6 +1,11 @@
 import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { IconPaperclip, IconSend, IconX } from "@tabler/icons-react";
+import {
+  IconPaperclip,
+  IconPlayerStopFilled,
+  IconSend,
+  IconX,
+} from "@tabler/icons-react";
 import { useChatDraft, type ChatComposerProps } from "./useChatDraft";
 import { IconButton } from "../../components/ui/IconButton";
 import { Input, Textarea } from "../../components/ui/Field";
@@ -98,17 +103,29 @@ function ChatComposerActions({
         <IconPaperclip size={18} />
       </IconButton>
       <div className={styles.composerModel}>{props.modelControl}</div>
-      <IconButton
-        label={sendLabel}
-        title={`${sendLabel} · ${t("chat.enterHint")}`}
-        className={styles.send}
-        onClick={() => void submit()}
-        disabled={
-          props.busy || !props.authenticated || (!text.trim() && !images.length)
-        }
-      >
-        <IconSend size={18} aria-hidden="true" />
-      </IconButton>
+      {props.running && !text.trim() && !images.length ? (
+        <IconButton
+          label={t("chat.stop")}
+          className={styles.stop}
+          onClick={props.onStop}
+        >
+          <IconPlayerStopFilled size={14} aria-hidden="true" />
+        </IconButton>
+      ) : (
+        <IconButton
+          label={sendLabel}
+          title={`${sendLabel} · ${t("chat.enterHint")}`}
+          className={styles.send}
+          onClick={() => void submit()}
+          disabled={
+            props.busy ||
+            !props.authenticated ||
+            (!text.trim() && !images.length)
+          }
+        >
+          <IconSend size={18} aria-hidden="true" />
+        </IconButton>
+      )}
     </div>
   );
 }

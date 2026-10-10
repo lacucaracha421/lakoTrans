@@ -45,6 +45,7 @@ export async function runMcpAppJob<T>(
     resources: scope?.resources,
     abortController: controller,
     cleanup: () => completion,
+    origin: "mcp",
   });
   operation.signal.addEventListener("abort", cancel, { once: true });
   if (operation.signal.aborted) cancel();

@@ -31,6 +31,8 @@ export type ActiveJob = {
   cleanup?: () => Promise<void>;
   lastEvent?: JobEvent;
   resources?: readonly AppActivityResource[];
+  /** Stamped on every event so the renderer can batch MCP notifications. */
+  origin?: JobEvent["origin"];
 };
 
 export class ActiveJobStore {

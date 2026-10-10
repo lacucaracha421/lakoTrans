@@ -4,11 +4,13 @@ import {
   IconPlus,
   IconArrowsMinimize,
   IconChevronDown,
+  IconFileText,
 } from "@tabler/icons-react";
 import type { CurrentViewContext } from "../../../../shared/chatTypes";
 import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
 import { Select } from "../../components/ui/Select";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { usePopupController } from "../../components/ui/usePopupController";
 import { codexConnection } from "../../api/codexConnection";
 import { settingsGateway } from "../../api/settingsGateway";
@@ -29,18 +31,6 @@ export function ChatHistoryControls({
   const { t } = useTranslation("components");
   return (
     <header className={styles.header}>
-      <Select
-        ariaLabel={t("chat.runtime")}
-        value={chat.session?.runtime ?? "codex"}
-        options={[
-          { value: "codex", label: "Codex" },
-          { value: "claude", label: "Claude" },
-        ]}
-        onValueChange={(value) =>
-          void chat.select(undefined, value === "claude" ? "claude" : "codex")
-        }
-        disabled={chat.busy}
-      />
       <Select
         ariaLabel={t("chat.history")}
         value={chat.session?.id ?? ""}
@@ -68,11 +58,20 @@ export function ChatHistoryControls({
     </header>
   );
 }
-/** One chip under the composer; the model and effort pickers open above it. */
+const RUNTIME_LABELS = { codex: "Codex", claude: "Claude" } as const;
+
+/**
+ * One chip under the composer. The assistant, model and effort pickers open
+ * above it; choosing the other assistant starts a conversation with it.
+ */
 export function ChatModelControls({
   model,
+  disabled,
+  onRuntimeChange,
 }: {
   model: ReturnType<typeof useChatModel>;
+  disabled: boolean;
+  onRuntimeChange: (runtime: "codex" | "claude") => void;
 }) {
   const { t } = useTranslation("components");
   const [open, setOpen] = React.useState(false);
@@ -80,14 +79,15 @@ export function ChatModelControls({
   const { rootRef, contentRef, toggle, triggerRef } = usePopupController({
     closeOnFocusOut: true,
     isInsidePopup: isSelectMenuTarget,
-    initialFocus: "[data-ui-select-trigger]",
+    initialFocus: '[aria-checked="true"]',
     open,
     onOpenChange: setOpen,
-    disabled: !model.authenticated,
+    disabled,
   });
   const effortLabel = (value: string) =>
     t(`settings.options.reasoning.${value}.label`, { defaultValue: value });
   const summary = [
+    RUNTIME_LABELS[model.runtime],
     model.model?.displayName,
     model.effort
       ? t("chat.effortChip", { level: effortLabel(model.effort) })
@@ -105,47 +105,89 @@ export function ChatModelControls({
         aria-label={`${t("chat.modelSettings")}: ${summary}`}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        disabled={!model.authenticated}
+        disabled={disabled}
         iconRight={<IconChevronDown size={14} aria-hidden="true" />}
         onClick={toggle}
       >
-        <span className={styles.modelChipText}>
-          {summary || t("chat.modelSettings")}
-        </span>
+        <span className={styles.modelChipText}>{summary}</span>
       </Button>
       {open ? (
-        <div
-          ref={contentRef}
-          id={panelId}
-          role="group"
-          aria-label={t("chat.modelSettings")}
-          className={styles.modelPopover}
-        >
-          <div className={styles.modelField}>
-            <span>{t("chat.model")}</span>
-            <Select
-              ariaLabel={t("chat.model")}
-              value={model.model?.id ?? ""}
-              options={model.models.map((entry) => ({
-                value: entry.id,
-                label: entry.displayName,
-              }))}
-              onValueChange={model.selectModel}
-            />
-          </div>
-          <div className={styles.modelField}>
-            <span>{t("chat.effort")}</span>
-            <Select
-              ariaLabel={t("chat.effort")}
-              value={model.effort}
-              options={(model.model?.supportedReasoningEfforts ?? []).map(
-                (value) => ({ value, label: effortLabel(value) }),
-              )}
-              onValueChange={model.selectEffort}
-            />
-          </div>
-        </div>
+        <ChatModelPopover
+          contentRef={contentRef}
+          panelId={panelId}
+          model={model}
+          effortLabel={effortLabel}
+          onRuntimeChange={(runtime) => {
+            setOpen(false);
+            onRuntimeChange(runtime);
+          }}
+        />
       ) : null}
+    </div>
+  );
+}
+function ChatModelPopover({
+  contentRef,
+  panelId,
+  model,
+  effortLabel,
+  onRuntimeChange,
+}: {
+  contentRef: React.RefObject<HTMLDivElement | null>;
+  panelId: string;
+  model: ReturnType<typeof useChatModel>;
+  effortLabel: (value: string) => string;
+  onRuntimeChange: (runtime: "codex" | "claude") => void;
+}) {
+  const { t } = useTranslation("components");
+  return (
+    <div
+      ref={contentRef}
+      id={panelId}
+      role="group"
+      aria-label={t("chat.modelSettings")}
+      className={styles.modelPopover}
+    >
+      <div className={styles.modelField}>
+        <span>{t("chat.runtime")}</span>
+        <SegmentedControl
+          ariaLabel={t("chat.runtime")}
+          singleRow
+          value={model.runtime}
+          options={[
+            { id: "codex", label: RUNTIME_LABELS.codex },
+            { id: "claude", label: RUNTIME_LABELS.claude },
+          ]}
+          onChange={(runtime) => {
+            if (runtime !== model.runtime) onRuntimeChange(runtime);
+          }}
+        />
+      </div>
+      <div className={styles.modelField}>
+        <span>{t("chat.model")}</span>
+        <Select
+          ariaLabel={t("chat.model")}
+          disabled={!model.authenticated}
+          value={model.model?.id ?? ""}
+          options={model.models.map((entry) => ({
+            value: entry.id,
+            label: entry.displayName,
+          }))}
+          onValueChange={model.selectModel}
+        />
+      </div>
+      <div className={styles.modelField}>
+        <span>{t("chat.effort")}</span>
+        <Select
+          ariaLabel={t("chat.effort")}
+          disabled={!model.authenticated}
+          value={model.effort}
+          options={(model.model?.supportedReasoningEfforts ?? []).map(
+            (value) => ({ value, label: effortLabel(value) }),
+          )}
+          onValueChange={model.selectEffort}
+        />
+      </div>
     </div>
   );
 }
@@ -171,7 +213,8 @@ export function ChatViewContext({ context }: { context?: CurrentViewContext }) {
   const label = [place, blocks].filter(Boolean).join(" · ");
   return (
     <div className={styles.context} title={label}>
-      {label}
+      <IconFileText size={13} aria-hidden="true" />
+      <span>{label}</span>
     </div>
   );
 }

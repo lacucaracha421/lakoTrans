@@ -3094,6 +3094,7 @@
       "completed": "結果",
       "failed": "失敗"
     },
+    "toolGroup": "工具 {{count}} 個",
     "state": {
       "idle": "就緒",
       "running": "處理中…",
@@ -3120,12 +3121,15 @@
       "accepted-with-font-substitutions": "通過檢查，含字型替代",
       "chapter": "整話 · 後續編輯需要重新檢查",
       "selection": "僅選定頁面",
-      "substitutions": "{{count}} 項字型替代"
+      "substitutions": "{{count}} 項字型替代",
+      "details": "未驗收原因",
+      "pages": "{{count}} 頁"
     },
     "redo": "檢查能否重新套用",
     "redoRequest": "請檢查 {{tool}} 的復原記錄和目前修訂，只在不會覆蓋後續手動編輯且仍可復原時重新套用。結果：{{result}}",
-    "runtime": "對話執行器",
+    "runtime": "AI",
     "claudeLoginHint": "請登入 Claude 帳戶。",
-    "claudeLogin": "登入 Claude"
+    "claudeLogin": "登入 Claude",
+    "moreImages": "再顯示 {{count}} 張圖片"
   }
 }

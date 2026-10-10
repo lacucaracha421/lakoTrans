@@ -113,7 +113,15 @@
       "failed": "処理に失敗しました。",
       "cancelled": "処理をキャンセルしました。",
       "openLogs": "ログフォルダーを開く",
-      "reportError": "エラーを報告"
+      "reportError": "エラーを報告",
+      "mcpCompleted": "MCP作業が完了しました（{{count}}件）",
+      "mcpFailed": "失敗 {{count}}件",
+      "chat": {
+        "idle": "チャットの作業が完了しました",
+        "failed": "チャットの作業が中断されました",
+        "needs-input": "チャットが回答を待っています",
+        "paused": "チャットの作業を停止しました"
+      }
     },
     "codex": {
       "stages": {

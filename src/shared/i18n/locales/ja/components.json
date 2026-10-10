@@ -3094,6 +3094,7 @@
       "completed": "結果",
       "failed": "失敗"
     },
+    "toolGroup": "ツール{{count}}件",
     "state": {
       "idle": "待機中",
       "running": "作業中…",
@@ -3120,12 +3121,15 @@
       "accepted-with-font-substitutions": "フォント代替を含めて検査に合格",
       "chapter": "章全体 · 後の編集には再検査が必要",
       "selection": "選択ページのみ",
-      "substitutions": "フォント代替 {{count}}件"
+      "substitutions": "フォント代替 {{count}}件",
+      "details": "未検収の理由",
+      "pages": "{{count}}ページ"
     },
     "redo": "再適用の可否を確認",
     "redoRequest": "{{tool}} の復元記録と現在のリビジョンを確認し、後から加えた手動編集を上書きせずに再適用できる場合だけ実行してください。結果: {{result}}",
-    "runtime": "チャットの実行環境",
+    "runtime": "AI",
     "claudeLoginHint": "Claude アカウントでログインしてください。",
-    "claudeLogin": "Claude でログイン"
+    "claudeLogin": "Claude でログイン",
+    "moreImages": "画像をあと{{count}}件表示"
   }
 }

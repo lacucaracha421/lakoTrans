@@ -113,7 +113,15 @@
       "failed": "작업에 실패했습니다.",
       "cancelled": "작업이 취소되었습니다.",
       "openLogs": "로그 폴더 열기",
-      "reportError": "오류 보고"
+      "reportError": "오류 보고",
+      "mcpCompleted": "MCP 작업을 마쳤습니다 ({{count}}건)",
+      "mcpFailed": "실패 {{count}}건",
+      "chat": {
+        "idle": "채팅 작업을 마쳤습니다",
+        "failed": "채팅 작업이 중단되었습니다",
+        "needs-input": "채팅이 답변을 기다리고 있습니다",
+        "paused": "채팅 작업을 중지했습니다"
+      }
     },
     "codex": {
       "stages": {

@@ -64,6 +64,7 @@ export async function eraseMcpPage(
   const job = app.jobs.all.find(
     (entry) => !previous.has(entry.id) && entry.kind === "inpainting",
   );
+  if (job) job.origin = "mcp";
   const cancel = () => {
     if (job && app.jobs.get(job.id) === job) job.abortController.abort();
   };

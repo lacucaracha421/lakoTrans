@@ -14,6 +14,11 @@ import {
   usesOtherClientGuidance,
   otherClientTranslationSteps,
 } from "./mcpOtherClientGuidance";
+import {
+  CLAUDE_CLIENT_TRANSLATION_GUIDANCE,
+  usesClaudeClientGuidance,
+  claudeClientTranslationSteps,
+} from "./mcpClaudeClientGuidance";
 
 export function createTranslationGuideTool(
   library: McpLibraryReadPort,
@@ -51,15 +56,7 @@ export function createTranslationGuideTool(
       return textContent(
         McpTranslationGuideOutputSchema.parse({
           ...result,
-          ...(usesOtherClientGuidance(context?.clientName)
-            ? {
-                steps: otherClientTranslationSteps(result.steps),
-                clientGuidance: {
-                  profile: "other",
-                  instruction: OTHER_CLIENT_TRANSLATION_GUIDANCE,
-                },
-              }
-            : {}),
+          ...clientTranslationGuidance(result.steps, context?.clientName),
           ...(completion ? { completion } : {}),
           workTypography: {
             revision: profile ? compositeFingerprint(profile) : null,
@@ -69,6 +66,29 @@ export function createTranslationGuideTool(
       );
     },
   };
+}
+
+function clientTranslationGuidance(
+  steps: Awaited<ReturnType<typeof getTranslationGuide>>["steps"],
+  clientName: string | undefined,
+) {
+  if (usesOtherClientGuidance(clientName))
+    return {
+      steps: otherClientTranslationSteps(steps),
+      clientGuidance: {
+        profile: "other",
+        instruction: OTHER_CLIENT_TRANSLATION_GUIDANCE,
+      },
+    };
+  if (usesClaudeClientGuidance(clientName))
+    return {
+      steps: claudeClientTranslationSteps(steps),
+      clientGuidance: {
+        profile: "claude",
+        instruction: CLAUDE_CLIENT_TRANSLATION_GUIDANCE,
+      },
+    };
+  return {};
 }
 
 function resolveSoundEffectScope(

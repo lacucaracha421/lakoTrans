@@ -276,14 +276,14 @@ describe("Windows installer clean uninstall option", () => {
     );
 
     // The trained font matching runtime bundle is externalized out of the
-    // installer (downloaded on first use), so the unpacked size budget guards
-    // the ~745 MiB floor without the bundle and rejects the 467 MiB bundle
-    // returning (~1212 MiB).
+    // installer (downloaded on first use). The budget includes the audited
+    // official Codex and Claude native payloads while keeping the external
+    // font bundle and training data out of the installer.
     expect(packagedRuntimeVerifier).toContain(
-      "const MAX_PACKAGED_BYTES = 1450 * 1024 * 1024;",
+      "const MAX_PACKAGED_BYTES = 1695 * 1024 * 1024;",
     );
     expect(packagedRuntimeVerifier).toContain(
-      "const MAX_PACKAGED_FILES = 375;",
+      "const MAX_PACKAGED_FILES = 379;",
     );
     expect(packagedRuntimeVerifier).toContain(
       "const mainRuntimeSmokeMessage = runPackagedMainRuntimeSmoke();",

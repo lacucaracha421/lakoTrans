@@ -157,17 +157,19 @@ const allowedElectronLocales = new Set([
 // replacements do not change the count. The audited thin payload is 374 files.
 // v3.2.2 adds font-chapter-c18/glyph-fast-verification.py for optional CPU
 // glyph verification. This single runtime leaf makes the thin payload 375 files.
-const MAX_PACKAGED_FILES = 375;
+// v3.3.0 adds exactly four official Claude runtime files under resources/claude:
+// claude.exe, LICENSE.md, package.json and README.md (256,156,384 bytes total).
+const MAX_PACKAGED_FILES = 379;
 // The trained font matching runtime bundle (~467 MiB) is externalized out of
-// the installer and downloaded into the data-root cache on first use, so the
-// unpacked payload is ~745 MiB (Electron + app.asar + tools, no bundle) and the
-// NSIS installer shrinks to ~333 MiB. The budget guards the UNPACKED size: it
-// passes the legit ~745 MiB floor with headroom for renderer/runtime growth
-// while rejecting the 467 MiB bundle returning (~1212 MiB) or large training
-// datasets / QA artifacts sneaking back in.
+// the installer and downloaded into the data-root cache on first use. Guard
+// the complete UNPACKED payload, including Electron, app.asar and native tools,
+// while rejecting that bundle or training datasets / QA artifacts returning.
 // The official Codex native distribution adds its App Server, code-mode host,
 // rg, and Windows sandbox helpers (~370 MiB) under resources/c.
-const MAX_PACKAGED_BYTES = 1450 * 1024 * 1024;
+// The official Claude runtime adds 244.3 MiB. Reserve its rounded 245 MiB
+// alongside the existing 1450 MiB budget; external model/training bundles
+// remain excluded and the previous headroom is not otherwise expanded.
+const MAX_PACKAGED_BYTES = 1695 * 1024 * 1024;
 
 assertPackagedCodexInventory();
 if (existsSync(asarUnpackedNodeModules)) {

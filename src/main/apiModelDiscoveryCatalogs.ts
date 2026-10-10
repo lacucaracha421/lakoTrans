@@ -1,6 +1,7 @@
 import {
   NVIDIA_NIM_BASE_URL,
   OLLAMA_BASE_URL,
+  OPENCODE_GO_BASE_URL,
   OPENROUTER_BASE_URL,
   type ApiModelDiscoveryRequest,
   type ApiModelDiscoveryResult,
@@ -91,6 +92,29 @@ export async function discoverOllamaModels(
     .filter((id): id is string => Boolean(id));
   const models = liveIds.map((id) => modelOption(id, id, OLLAMA_BASE_URL));
   return discoveryResult("ollama", models, liveIds.length, 0);
+}
+
+// Go's public catalogue lists IDs without image-input capability metadata.
+export async function discoverOpenCodeGoModels(
+  request: ApiModelDiscoveryRequest,
+  fetchImpl: FetchLike,
+): Promise<ApiModelDiscoveryResult> {
+  const payload = await fetchJsonWithKeys(
+    `${OPENCODE_GO_BASE_URL}/models`,
+    request.apiKey,
+    bearerHeaders,
+    fetchImpl,
+    true,
+  );
+  const entries = readArray(payload.data);
+  const models = entries.flatMap((entry) => {
+    const record = readRecord(entry);
+    const id = readString(record?.id);
+    return id
+      ? [modelOption(id, readString(record?.name) ?? id, OPENCODE_GO_BASE_URL)]
+      : [];
+  });
+  return discoveryResult("opencode-go", models, entries.length, 0);
 }
 
 async function readNvidiaImageToTextCatalog(

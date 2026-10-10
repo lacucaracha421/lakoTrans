@@ -37,6 +37,50 @@ afterEach(async () => {
 });
 
 describe("API provider connection fields", () => {
+  it("loads and selects Go models without claiming image verification, and retains manual editing", async () => {
+    const discoverApiModels = vi.fn().mockResolvedValue({
+      provider: "opencode-go",
+      models: [
+        {
+          id: "deepseek-v4.1-flash",
+          label: "deepseek-v4.1-flash",
+          baseUrl: "https://opencode.ai/zen/go/v1",
+        },
+      ],
+      checkedCount: 1,
+      unverifiedCount: 0,
+    });
+    window.mangaApi = createTestMangaGatewayStub({
+      discoverApiModels,
+      onUiLocaleChanged: () => () => undefined,
+    });
+    render(
+      <AppI18nProvider>
+        <Harness />
+      </AppI18nProvider>,
+    );
+    chooseCustomSelectOption("Quick API provider setup", "OpenCode GO");
+    fireEvent.click(screen.getByRole("button", { name: "Load models" }));
+    await waitFor(() =>
+      expect(screen.getByText("Loaded 1 models.")).toBeTruthy(),
+    );
+    expect(discoverApiModels).toHaveBeenCalledWith({
+      provider: "opencode-go",
+      apiKey: "",
+    });
+    expect(screen.queryByLabelText("Verified image-input model")).toBeNull();
+    chooseCustomSelectOption("Available models", "deepseek-v4.1-flash");
+    expect(readValue(screen.getByLabelText("API model"))).toBe(
+      "deepseek-v4.1-flash",
+    );
+    expect(readValue(screen.getByLabelText("API base URL"))).toBe(
+      "https://opencode.ai/zen/go/v1",
+    );
+    fireEvent.change(screen.getByLabelText("API model"), {
+      target: { value: "custom-model" },
+    });
+    expect(readValue(screen.getByLabelText("API model"))).toBe("custom-model");
+  });
   it("starts with no minimum interval and lets the user change and clear it", () => {
     window.mangaApi = createTestMangaGatewayStub({
       onUiLocaleChanged: () => () => undefined,

@@ -101,6 +101,7 @@ const discoverableApiProviderSchema = z.enum([
   "google-vertex",
   "openrouter",
   "ollama",
+  "opencode-go",
 ]);
 const vertexSetupPageSchema = z.enum(VERTEX_SETUP_PAGE_IDS);
 

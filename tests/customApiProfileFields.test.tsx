@@ -71,8 +71,12 @@ describe("custom API profile settings UI", () => {
       screen.getByDisplayValue('{"response_format":{"type":"json_object"}}'),
     ).toBeTruthy();
     expect(screen.getByDisplayValue("x-opencode-session")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /load models/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /load models/i })).toBeTruthy();
+    expect(
+      screen.getByRole("combobox", { name: "Available models" }),
+    ).toBeTruthy();
     chooseCustomSelectOption("Quick API provider setup", "Custom");
+    expect(screen.queryByRole("button", { name: /load models/i })).toBeNull();
     expect(screen.queryByDisplayValue("x-opencode-session")).toBeNull();
     chooseCustomSelectOption("Quick API provider setup", "OpenCode GO");
     expect(screen.getByDisplayValue("x-opencode-session")).toBeTruthy();

@@ -95,7 +95,9 @@ function ProviderTemplateFields({
             content={t(
               !connection.isDiscoverable
                 ? "settings.api.providerHintCustom"
-                : "settings.api.providerHintVerified",
+                : connection.provider === "opencode-go"
+                  ? "settings.api.providerHintCatalog"
+                  : "settings.api.providerHintVerified",
             )}
           >
             {(descriptionId) => (

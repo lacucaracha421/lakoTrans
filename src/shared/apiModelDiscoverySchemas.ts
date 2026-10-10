@@ -21,6 +21,7 @@ const discoverableApiProviderSchema = z.enum([
   "google-vertex",
   "openrouter",
   "ollama",
+  "opencode-go",
 ]);
 
 export const apiModelDiscoveryRequestSchema = z

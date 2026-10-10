@@ -16,6 +16,7 @@ const API_PROVIDER_URLS = {
     "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/start/quickstart",
   openrouter: "https://openrouter.ai/keys",
   ollama: "https://ollama.com/library",
+  "opencode-go": "https://opencode.ai/auth",
 } as const;
 const VERTEX_SETUP_PAGE_URLS = {
   "project-create": "https://console.cloud.google.com/projectcreate",

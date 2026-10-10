@@ -5,6 +5,7 @@ import type {
 import {
   discoverNvidiaNimModels,
   discoverOllamaModels,
+  discoverOpenCodeGoModels,
   discoverOpenRouterModels,
 } from "./apiModelDiscoveryCatalogs";
 import type { FetchLike } from "./apiModelDiscoveryCommon";
@@ -90,5 +91,7 @@ function dispatchApiModelDiscovery(
       return discoverOpenRouterModels(request, fetchImpl);
     case "ollama":
       return discoverOllamaModels(request, fetchImpl);
+    case "opencode-go":
+      return discoverOpenCodeGoModels(request, fetchImpl);
   }
 }

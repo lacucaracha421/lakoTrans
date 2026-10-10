@@ -9,10 +9,7 @@ export const API_PROVIDER_PRESET_IDS = [
 ] as const;
 
 export type ApiProviderPresetId = (typeof API_PROVIDER_PRESET_IDS)[number];
-export type DiscoverableApiProviderId = Exclude<
-  ApiProviderPresetId,
-  "custom" | "opencode-go"
->;
+export type DiscoverableApiProviderId = Exclude<ApiProviderPresetId, "custom">;
 
 export function isApiProviderPresetId(
   value: unknown,
@@ -75,6 +72,7 @@ export const GOOGLE_AI_STUDIO_BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta/openai";
 export const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
+export const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
 const DEFAULT_VERTEX_LOCATION = "global";
 
 export function buildVertexOpenAiBaseUrl(
@@ -120,7 +118,7 @@ export function resolveApiProviderBaseUrl({
   if (provider === "ollama") {
     return OLLAMA_BASE_URL;
   }
-  if (provider === "opencode-go") return "https://opencode.ai/zen/go/v1";
+  if (provider === "opencode-go") return OPENCODE_GO_BASE_URL;
   return null;
 }
 

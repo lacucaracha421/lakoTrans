@@ -7,6 +7,7 @@ import {
   inferApiProviderPreset,
   NVIDIA_NIM_BASE_URL,
   OLLAMA_BASE_URL,
+  OPENCODE_GO_BASE_URL,
   OPENROUTER_BASE_URL,
 } from "../src/shared/apiProviderPresets";
 
@@ -56,6 +57,55 @@ describe("API provider presets", () => {
 });
 
 describe("API image-model discovery", () => {
+  it("loads Go's live IDs without inventing image capability or endpoint URLs", async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        data: [
+          { id: "deepseek-v4.1-flash" },
+          { id: "deepseek-v4.1-flash" },
+          {
+            id: "kimi-k3",
+            name: "Kimi K3",
+            baseUrl: "https://untrusted.example",
+          },
+          { id: " " },
+          null,
+        ],
+      }),
+    );
+    const result = await discoverApiModels(
+      { provider: "opencode-go", apiKey: "" },
+      fetchMock,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${OPENCODE_GO_BASE_URL}/models`,
+      expect.any(Object),
+    );
+    expect(result.models).toEqual([
+      {
+        id: "deepseek-v4.1-flash",
+        label: "deepseek-v4.1-flash",
+        baseUrl: OPENCODE_GO_BASE_URL,
+      },
+      { id: "kimi-k3", label: "Kimi K3", baseUrl: OPENCODE_GO_BASE_URL },
+    ]);
+    expect(result.provider).toBe("opencode-go");
+  });
+
+  it("reports a failed Go catalogue request without exposing the key", async () => {
+    await expect(
+      discoverApiModels(
+        { provider: "opencode-go", apiKey: "go-secret" },
+        vi.fn(async () => new Response("invalid go-secret", { status: 401 })),
+      ),
+    ).rejects.toThrow(/401/);
+    await expect(
+      discoverApiModels(
+        { provider: "opencode-go", apiKey: "go-secret" },
+        vi.fn(async () => new Response("invalid go-secret", { status: 401 })),
+      ),
+    ).rejects.not.toThrow("go-secret");
+  });
   it("intersects NVIDIA's Image-to-Text catalog with the live NIM list", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

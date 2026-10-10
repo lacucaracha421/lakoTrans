@@ -91,9 +91,9 @@ export function useApiProviderConnection(props: ApiProviderConnectionProps) {
     vertexLocation,
   );
 
-  const isDiscoverable = provider !== "custom" && provider !== "opencode-go";
+  const isDiscoverable = provider !== "custom";
   const loadModels = async (): Promise<void> => {
-    if (provider === "custom" || provider === "opencode-go") return;
+    if (provider === "custom") return;
     await modelDiscovery.load(
       provider,
       props.apiKey,
@@ -225,7 +225,7 @@ async function openProviderPage(
   provider: ApiProviderPresetId,
   reportError: (error: unknown) => void,
 ): Promise<void> {
-  if (provider === "custom" || provider === "opencode-go") return;
+  if (provider === "custom") return;
   try {
     await settingsGateway.openApiProviderPage(provider);
   } catch (error) {

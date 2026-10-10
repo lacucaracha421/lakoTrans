@@ -45,6 +45,7 @@ export function ApiProviderModelFields({
       <DiscoveryMessage
         discovery={connection.discovery}
         models={connection.models}
+        isGo={connection.provider === "opencode-go"}
       />
       <label>
         {t("settings.api.model")}
@@ -74,6 +75,11 @@ function ModelDiscoveryFields({
   setApiModel,
 }: Omit<ModelFieldProps, "submit">): React.JSX.Element {
   const { t } = useTranslation("components");
+  const label = t(
+    connection.provider === "opencode-go"
+      ? "settings.api.availableModel"
+      : "settings.api.discoveredModel",
+  );
   const selected = connection.models.some((model) => model.id === apiModel)
     ? apiModel
     : "";
@@ -87,9 +93,9 @@ function ModelDiscoveryFields({
   return (
     <div className="settings-model-discovery-row">
       <label>
-        {t("settings.api.discoveredModel")}
+        {label}
         <Select
-          ariaLabel={t("settings.api.discoveredModel")}
+          ariaLabel={label}
           value={selected}
           disabled={
             controlsBusy ||
@@ -100,7 +106,10 @@ function ModelDiscoveryFields({
             { value: "", label: t("settings.api.chooseModel") },
             ...connection.models.map((model) => ({
               value: model.id,
-              label: `${model.label} · ${model.id}`,
+              label:
+                model.label === model.id
+                  ? model.id
+                  : `${model.label} · ${model.id}`,
               searchText: `${model.label} ${model.id}`,
             })),
           ]}
@@ -131,9 +140,11 @@ function ModelDiscoveryFields({
 function DiscoveryMessage({
   discovery,
   models,
+  isGo,
 }: {
   discovery: DiscoveryState;
   models: ApiModelOption[];
+  isGo: boolean;
 }): React.JSX.Element | null {
   const { t } = useTranslation("components");
   if (discovery.status === "error") {
@@ -146,11 +157,14 @@ function DiscoveryMessage({
   if (discovery.status !== "success") return null;
   return (
     <p className="settings-api-status" role="status">
-      {t("settings.api.modelLoadSuccess", {
-        count: models.length,
-        checked: discovery.checkedCount,
-        excluded: discovery.unverifiedCount,
-      })}
+      {t(
+        isGo ? "settings.api.modelListLoaded" : "settings.api.modelLoadSuccess",
+        {
+          count: models.length,
+          checked: discovery.checkedCount,
+          excluded: discovery.unverifiedCount,
+        },
+      )}
     </p>
   );
 }

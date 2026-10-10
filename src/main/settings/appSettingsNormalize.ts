@@ -1,3 +1,7 @@
+import {
+  normalizeClaudePreferences,
+  normalizeImageReview,
+} from "./claudePreferences";
 import type { AppSettings } from "../../shared/settingsTypes";
 import {
   DEFAULT_TRANSLATION_LANGUAGE_SETTINGS,
@@ -88,6 +92,7 @@ export function normalizeAppSettings(
       record.translation,
       defaults.translation ?? DEFAULT_TRANSLATION_LANGUAGE_SETTINGS,
     ),
+    ...normalizeNativePreferences(record),
     gemma: normalizeGemmaSettings(asRecord(record.gemma), defaults),
     codex,
     internetResearch: normalizeInternetResearchSettings(
@@ -203,4 +208,11 @@ export function parseStoredAppSettings(
     raw,
     normalizeAppSettings(raw, defaults),
   );
+}
+
+function normalizeNativePreferences(record: Record<string, unknown>) {
+  return {
+    claude: normalizeClaudePreferences(record.claude),
+    imageReview: normalizeImageReview(record.imageReview),
+  };
 }

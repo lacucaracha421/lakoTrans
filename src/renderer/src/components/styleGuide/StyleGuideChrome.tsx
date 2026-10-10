@@ -176,6 +176,10 @@ export function StyleGuideAnalysisActions({
                 label: t("styleGuide.analysis.engines.tavily"),
               },
               {
+                id: "claude-web",
+                label: "Claude Code",
+              },
+              {
                 id: "codex-web",
                 label: t("styleGuide.analysis.engines.codex"),
               },

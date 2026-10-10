@@ -25,7 +25,7 @@ const { buildChatRequestBody } = require("./request-bodies.cjs");
 const {
   isOllamaCloudApiModel,
   isOpenAIApiProvider,
-  isOpenAICodexProvider,
+  usesResponsesTransport,
   resolveConfiguredCodexModel,
   resolveConfiguredCodexReasoningEffort,
 } = require("../simple-page-model-config.cjs");
@@ -112,7 +112,7 @@ function buildSemanticStageRequestBody(
   unitCount,
 ) {
   const tokenBudget = resolveStructuredTokenBudget(options, stage, unitCount);
-  if (isOpenAICodexProvider(options)) {
+  if (usesResponsesTransport(options)) {
     return buildCodexSemanticRequestBody(
       options,
       messages,
@@ -351,14 +351,22 @@ function buildCodexSemanticRequestBody(
   const systemMessage = messages.find((message) => message.role === "system");
   const userMessages = messages.filter((message) => message.role !== "system");
   return {
-    model: resolveConfiguredCodexModel(options),
+    model:
+      options.modelProvider === "claude-code"
+        ? String(options.claudeModel || "default")
+        : resolveConfiguredCodexModel(options),
     instructions: readMessageText(systemMessage),
     input: userMessages.map((message) => ({
       role: String(message.role ?? "user"),
       content: readMessageContent(message.content).map(toResponsesContentPart),
     })),
     max_output_tokens: maxTokens,
-    reasoning: { effort: resolveConfiguredCodexReasoningEffort(options) },
+    reasoning: {
+      effort:
+        options.modelProvider === "claude-code"
+          ? String(options.claudeEffort || "high")
+          : resolveConfiguredCodexReasoningEffort(options),
+    },
     text: {
       format: {
         type: "json_schema",

@@ -7,6 +7,13 @@ export function reduceChatNotification(
   session: ChatSession,
   value: JsonRecord,
 ): boolean {
+  return reduceNativeNotification(session, normalizeNotification(value));
+}
+
+function reduceNativeNotification(
+  session: ChatSession,
+  value: JsonRecord,
+): boolean {
   const params = asRecord(value.params);
   if (!params) return false;
   const paused = session.state === "paused";
@@ -42,6 +49,7 @@ export function reduceChatNotification(
   session.updatedAt = Math.max(Date.now(), session.updatedAt + 1);
   return true;
 }
+
 function readItemNotification(
   session: ChatSession,
   params: JsonRecord,
@@ -150,12 +158,66 @@ function reduceTool(
   completed: boolean,
 ) {
   const target = ensureItem(session, String(item.id), "tool");
-  target.toolName = typeof item.tool === "string" ? item.tool : "carrot";
-  target.toolFingerprint = hashStableValue(item.arguments ?? {});
+  target.toolName =
+    typeof item.tool === "string" ? item.tool : (target.toolName ?? "carrot");
+  if (item.arguments !== undefined)
+    target.toolFingerprint = hashStableValue(item.arguments);
   if (!target.text) target.text = target.toolName;
   target.state = !completed
     ? "running"
     : item.status === "failed"
       ? "failed"
       : "completed";
+}
+
+function normalizeNotification(event: JsonRecord): JsonRecord {
+  const item = {
+    id: event.id,
+    tool: event.name,
+    arguments: event.arguments,
+    status: event.failed ? "failed" : "completed",
+  };
+  const messages: Record<string, JsonRecord> = {
+    started: { method: "turn/started", params: {} },
+    finished: {
+      method: "turn/completed",
+      params: {
+        turn: { status: event.status, error: { message: event.error } },
+      },
+    },
+    compacting: {
+      method: "item/started",
+      params: { item: { id: "runtime-compaction", type: "contextCompaction" } },
+    },
+    compacted: {
+      method: "thread/compacted",
+      params: { continuesTurn: event.continues },
+    },
+    usage: {
+      method: "thread/tokenUsage/updated",
+      params: {
+        tokenUsage: {
+          total: { totalTokens: event.totalTokens },
+          modelContextWindow: event.contextWindow,
+        },
+      },
+    },
+    tool: {
+      method: event.done ? "item/completed" : "item/started",
+      params: { item: { ...item, type: "mcpToolCall" } },
+    },
+  };
+  if (event.kind === "text") return normalizeTextNotification(event);
+  return messages[String(event.kind)] ?? event;
+}
+function normalizeTextNotification(event: JsonRecord): JsonRecord {
+  if (typeof event.delta === "string")
+    return {
+      method: "item/agentMessage/delta",
+      params: { itemId: event.id, delta: event.delta },
+    };
+  return {
+    method: event.done ? "item/completed" : "item/started",
+    params: { item: { id: event.id, type: "agentMessage", text: event.text } },
+  };
 }

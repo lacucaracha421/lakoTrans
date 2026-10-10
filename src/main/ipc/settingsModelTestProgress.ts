@@ -42,6 +42,14 @@ export function sendEnginePreparationProgress(
   options: TranslationOptions,
   sendProgress: SendModelTestProgress,
 ): void {
+  if (options.modelProvider === "claude-code") {
+    sendProgress({
+      phase: "booting",
+      progressText: "Claude Code",
+      detail: options.claudeModel ?? "default",
+    });
+    return;
+  }
   if (options.modelProvider === "openai-codex") {
     sendProgress({
       phase: "booting",

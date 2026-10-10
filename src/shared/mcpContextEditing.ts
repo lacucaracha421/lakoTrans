@@ -158,7 +158,7 @@ export const McpContextResearchTargetSchema = z
   .object({
     ...target,
     researchTitle: z.string().trim().min(1).max(200),
-    engine: z.enum(["tavily", "codex-web"]),
+    engine: z.enum(["tavily", "codex-web", "claude-web"]),
   })
   .strict();
 export type McpContextResearchTarget = z.infer<

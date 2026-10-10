@@ -182,6 +182,8 @@ function buildResearchPanelProps({
     researchApiModel: values.researchApiModel,
     researchApiMaxOutputTokens: values.researchApiMaxOutputTokens,
     researchApiContextTokens: values.researchApiContextTokens,
+    researchClaude: values.researchClaude,
+    setResearchClaude: setters.setResearchClaude,
     researchCodexModel: values.researchCodexModel,
     researchCodexReasoningEffort: values.researchCodexReasoningEffort,
     researchCodexMaxOutputTokens: values.researchCodexMaxOutputTokens,

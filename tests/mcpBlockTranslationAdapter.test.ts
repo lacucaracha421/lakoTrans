@@ -1,5 +1,29 @@
 import { expect, it, vi } from "vitest";
 import { translationFixture as fixture } from "./mcpBlockTranslation.fixture";
+import { translateMcpBlock } from "../src/main/mcp/mcpBlockTranslationAdapter";
+
+it.each([undefined, "sonnet"])(
+  "reports the actual Claude model %s and preserves the page",
+  async (claudeModel) => {
+    const f = await fixture();
+    try {
+      const before = await f.snapshot();
+      const result = await translateMcpBlock(
+        f.input,
+        { ...f.options, modelProvider: "claude-code", claudeModel },
+        f.operation,
+        f.runtime,
+      );
+      expect(result).toMatchObject({
+        engine: "claude-code",
+        model: claudeModel ?? "default",
+      });
+      expect(await f.snapshot()).toEqual(before);
+    } finally {
+      await f.close();
+    }
+  },
+);
 
 it("uses one text request and existing saved context without changing the page or images", async () => {
   const f = await fixture();

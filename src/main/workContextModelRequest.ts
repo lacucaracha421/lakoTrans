@@ -42,7 +42,9 @@ export async function requestWorkContextAnalysisText({
     abortSignal: deadline.signal,
   };
   try {
-    return boundedOptions.modelProvider === "openai-codex"
+    return ["openai-codex", "claude-code"].includes(
+      boundedOptions.modelProvider,
+    )
       ? await requestCodexText(
           endpoint,
           boundedOptions,
@@ -148,7 +150,12 @@ async function requestCodexText(
       },
     ],
     max_output_tokens: maxOutputTokens,
-    reasoning: { effort: options.codexReasoningEffort },
+    reasoning: {
+      effort:
+        options.modelProvider === "claude-code"
+          ? options.claudeEffort
+          : options.codexReasoningEffort,
+    },
     stream: true,
     store: false,
   };

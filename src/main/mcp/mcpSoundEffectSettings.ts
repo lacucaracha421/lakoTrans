@@ -10,13 +10,16 @@ import {
   isCodexImageModel,
 } from "../../shared/codexSettings";
 import { McpEditError } from "../application/mcpEditPolicy";
+import { normalizeImageReview } from "../settings/claudePreferences";
 
 /** No migrations, secret decoding, login, runtime start or settings writes on discovery. */
 export async function readMcpSoundEffectSettings(
   paths: AppPaths,
   expectedModel?: string,
+  purpose: "generate" | "verify" = "generate",
 ) {
   const settings = await inspectStoredPublicSettings(paths, (record) => ({
+    imageReview: normalizeImageReview(record.imageReview),
     codex: z
       .object({
         imageModel: z.string().min(1).default(CODEX_TYPESETTING_MODEL),
@@ -33,8 +36,10 @@ export async function readMcpSoundEffectSettings(
   }));
   if (
     expectedModel !== undefined &&
-    (settings.codex.imageModel !== expectedModel ||
-      !isCodexImageModel(expectedModel))
+    (purpose === "verify" && settings.imageReview.provider === "claude"
+      ? settings.imageReview.claude.model !== expectedModel
+      : settings.codex.imageModel !== expectedModel ||
+        !isCodexImageModel(expectedModel))
   )
     throw new McpEditError(
       "invalid_edit",

@@ -9,6 +9,7 @@ import type {
 } from "../../shared/mcpSoundEffects";
 import type { AppPaths } from "../appPaths";
 import { startCodexImageSession } from "../codexImageSession";
+import { startImageReviewSession } from "../imageReviewSession";
 import { readImageRedactionState } from "../imageRedactionStore";
 import { McpEditError } from "../application/mcpEditPolicy";
 import {
@@ -139,25 +140,28 @@ export async function withMcpSoundEffectClient<T>(
   try {
     options.signal.throwIfAborted();
     await options.guard();
-    client = await (options.runtime?.startClient ?? startCodexImageSession)(
-      options.paths,
-      settings,
-      directory,
-      options.signal,
-    );
+    client =
+      options.input.command.kind === "verify"
+        ? await startReview()
+        : await (options.runtime?.startClient ?? startCodexImageSession)(
+            options.paths,
+            settings,
+            directory,
+            options.signal,
+          );
     const ask: CodexTypesettingPorts["ask"] = async (stage, prompt, images) => {
       await check();
-      reader ??= await (options.runtime?.startReader ?? startCodexImageSession)(
-        options.paths,
-        settings,
-        directory,
-        options.signal,
-        "isolated",
-      );
+      reader ??=
+        client && options.input.command.kind === "verify"
+          ? client
+          : await startReview();
       const result = await askAstraJson({
         client: reader,
         model: reader.imageModel,
-        effort: settings.codex.imageReasoningEffort,
+        effort:
+          settings.imageReview.provider === "claude"
+            ? settings.imageReview.claude.effort
+            : settings.codex.imageReasoningEffort,
         stage,
         prompt,
         images,
@@ -178,29 +182,32 @@ export async function withMcpSoundEffectClient<T>(
   } catch (error) {
     outcome = { ok: false, error };
   }
-  const failures: unknown[] = [];
-  try {
-    await reader?.dispose();
-  } catch (error) {
-    failures.push(error);
-  }
-  try {
-    await client?.dispose();
-  } catch (error) {
-    failures.push(error);
-  }
-  // Stop client writers before cleaning the directory; do not mask the primary failure.
-  try {
-    await rm(directory, { recursive: true, force: true });
-  } catch (error) {
-    failures.push(error);
-  }
+  const failures = await disposeSoundEffectClients(client, reader, directory);
   if (failures.length)
     throw new SoundEffectCleanupError(
       outcome.ok ? failures : [outcome.error, ...failures],
     );
   if (!outcome.ok) throw outcome.error;
   return outcome.value;
+  function startReview() {
+    return startSoundEffectReader(options, settings, directory);
+  }
+}
+function startSoundEffectReader(
+  options: Options,
+  settings: Awaited<ReturnType<typeof readMcpSoundEffectSettings>>,
+  directory: string,
+) {
+  const { paths, signal } = options;
+  if (options.runtime?.startReader)
+    return options.runtime.startReader(
+      paths,
+      settings,
+      directory,
+      signal,
+      "isolated",
+    );
+  return startImageReviewSession(paths, settings, directory, signal);
 }
 async function runTargets(
   options: Options,
@@ -320,4 +327,30 @@ function assertSnapshotSize(page: MangaPage, candidate: TranslationBlock[]) {
       "invalid_edit",
       "Generated snapshots exceed the bounded plan budget; use fewer/smaller assets.",
     );
+}
+
+async function disposeSoundEffectClients(
+  client: Client | undefined,
+  reader: Client | undefined,
+  directory: string,
+) {
+  const failures: unknown[] = [];
+  try {
+    if (reader !== client) await reader?.dispose();
+  } catch (error) {
+    failures.push(error);
+  }
+  try {
+    await client?.dispose();
+  } catch (error) {
+    failures.push(error);
+  }
+  // Stop client writers before cleaning the directory; do not mask the primary failure.
+  try {
+    await rm(directory, { recursive: true, force: true });
+  } catch (error) {
+    failures.push(error);
+  }
+
+  return failures;
 }

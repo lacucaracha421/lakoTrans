@@ -5,6 +5,7 @@ import type { createMcpDesktopRuntime } from "../mcpDesktopRuntime";
 import { ChatService } from "../application/chatService";
 import { ChatRepository } from "./chatRepository";
 import { CodexChatRuntime } from "./codexChatRuntime";
+import { ClaudeChatRuntime } from "./claudeChatRuntime";
 
 export function createChatService(options: {
   paths: AppPaths;
@@ -18,14 +19,21 @@ export function createChatService(options: {
     publish: options.publish,
     reportError: options.reportError,
     runtime: async (session, events, observe) => {
-      const connection = await options.mcp.connectChat(session.id, observe);
+      const connection = await options.mcp.connectChat(
+        session.id,
+        observe,
+        session.runtime === "claude" ? "Claude Code" : "Codex",
+      );
       try {
-        const runtime = await CodexChatRuntime.start(
-          options.paths,
-          options.appVersion,
-          connection,
-          events,
-        );
+        const runtime =
+          session.runtime === "claude"
+            ? new ClaudeChatRuntime(options.paths, connection, events)
+            : await CodexChatRuntime.start(
+                options.paths,
+                options.appVersion,
+                connection,
+                events,
+              );
         return {
           runtime,
           release: connection.close,

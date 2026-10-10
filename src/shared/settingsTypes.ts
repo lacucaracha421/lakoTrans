@@ -29,7 +29,8 @@ export type {
 export type { CodexReasoningEffort } from "./codexSettings";
 export type { LanguageCode } from "./translationLanguages";
 export type { UiLocale } from "./uiLocales";
-export type ModelProvider = "gemma" | "openai-codex" | "openai-api";
+export type ModelProvider =
+  "gemma" | "openai-codex" | "openai-api" | "claude-code";
 export type ModelSource = "huggingface" | "local";
 export type GemmaVramMode = "minimum12b" | "economy26b" | "full31b";
 export type ApiReasoningEffort =
@@ -159,6 +160,7 @@ export type GenerationLimitSettings = {
 export type GenerationLimitProfiles = {
   gemma: GenerationLimitSettings;
   codex: GenerationLimitSettings;
+  claude?: GenerationLimitSettings;
   api: Partial<Record<ApiProviderPresetId, GenerationLimitSettings>>;
 };
 
@@ -235,6 +237,11 @@ export type AppSettings = {
   translation?: TranslationLanguageSettings;
   gemma: GemmaSettings;
   codex: CodexSettings;
+  claude?: import("./claudeTypes").ClaudePreferences;
+  imageReview?: {
+    provider: "codex" | "claude";
+    claude: import("./claudeTypes").ClaudePreferences;
+  };
   internetResearch: InternetResearchSettings;
   api: ApiSettings;
   ocr: OcrSettings;

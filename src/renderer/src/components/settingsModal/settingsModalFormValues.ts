@@ -67,6 +67,9 @@ export type SettingsFormValues = {
   gemmaMmprojOffload: boolean;
   llamaRuntimeProfile: LlamaRuntimeProfile;
   allowUnsafeUnifiedMemory: boolean;
+  imageReview: NonNullable<AppSettings["imageReview"]>;
+  claudeModel: string;
+  claudeEffort: import("../../../../shared/claudeTypes").ClaudeEffort;
   codexModel: string;
   codexReasoningEffort: CodexReasoningEffort;
   codexImageReasoningEffort: CodexReasoningEffort;
@@ -83,6 +86,7 @@ export type SettingsFormValues = {
   researchApiProfiles: Partial<
     Record<ApiProviderPresetId, ResearchApiProfileFormValues>
   >;
+  researchClaude: import("../../../../shared/claudeTypes").ClaudePreferences;
   researchCodexModel: string;
   researchCodexReasoningEffort: CodexReasoningEffort;
   researchCodexMaxOutputTokens: string;
@@ -154,6 +158,7 @@ function resolveResearchFormValues(
   | "researchApiMaxOutputTokens"
   | "researchApiContextTokens"
   | "researchApiProfiles"
+  | "researchClaude"
   | "researchCodexModel"
   | "researchCodexReasoningEffort"
   | "researchCodexMaxOutputTokens"
@@ -172,6 +177,7 @@ function resolveResearchFormValues(
     researchApiMaxOutputTokens: String(research.apiMaxOutputTokens),
     researchApiContextTokens: String(research.apiContextTokens),
     researchApiProfiles: resolveResearchApiProfileFormValues(settings),
+    researchClaude: research.claude ?? { model: "default", effort: "high" },
     researchCodexModel: research.codexModel,
     researchCodexReasoningEffort: research.codexReasoningEffort,
     researchCodexMaxOutputTokens: String(research.codexMaxOutputTokens),
@@ -222,6 +228,9 @@ function resolveModelFormValues(
   | "llamaRuntimeProfile"
   | "allowUnsafeUnifiedMemory"
   | "codexModel"
+  | "imageReview"
+  | "claudeModel"
+  | "claudeEffort"
   | "codexReasoningEffort"
   | "codexImageReasoningEffort"
   | "codexImageModel"
@@ -242,6 +251,7 @@ function resolveModelFormValues(
     gemmaMmprojOffload: settings.gemma.mmprojOffload ?? true,
     llamaRuntimeProfile: settings.gemma.llamaRuntimeProfile ?? "cuda12",
     allowUnsafeUnifiedMemory: settings.gemma.allowUnsafeUnifiedMemory === true,
+    ...resolveClaudeFormValues(settings),
     codexModel: settings.codex.model,
     codexImageReasoningEffort: settings.codex.imageReasoningEffort ?? "low",
     codexImageModel: settings.codex.imageModel ?? "gpt-6-astra",
@@ -288,5 +298,16 @@ function resolveGpuFormValues(
   return {
     graphicsGpuPreference: settings.hardware?.graphicsGpuPreference ?? "auto",
     computeGpuIndex: settings.hardware?.computeGpuIndex ?? null,
+  };
+}
+
+function resolveClaudeFormValues(settings: AppSettings) {
+  return {
+    imageReview: settings.imageReview ?? {
+      provider: "codex",
+      claude: { model: "default", effort: "high" },
+    },
+    claudeModel: settings.claude?.model ?? "default",
+    claudeEffort: settings.claude?.effort ?? "high",
   };
 }

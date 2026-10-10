@@ -54,7 +54,7 @@ export const ChatSessionSchema = z
     version: z.literal(1),
     id,
     title: z.string(),
-    runtime: z.literal("codex"),
+    runtime: z.enum(["codex", "claude"]),
     nativeThreadId: z.string().nullable(),
     model: z.string().nullable(),
     effort: z.string().nullable(),
@@ -86,6 +86,7 @@ export const ChatSessionSchema = z
   })
   .strict();
 export const ChatSummarySchema = ChatSessionSchema.pick({
+  runtime: true,
   id: true,
   title: true,
   state: true,

@@ -61,7 +61,8 @@ export async function prepareAnalysisRun({
   );
   const codexSelected = baseOptions.modelProvider === "openai-codex";
   const apiSelected = baseOptions.modelProvider === "openai-api";
-  const remoteProviderSelected = codexSelected || apiSelected;
+  const remoteProviderSelected =
+    codexSelected || apiSelected || baseOptions.modelProvider === "claude-code";
   const modelCached =
     remoteProviderSelected || runtime.isModelCached(baseOptions);
   const localModelSelected =

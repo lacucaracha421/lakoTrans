@@ -1,3 +1,5 @@
+import { useAccountConnection } from "../../hooks/useAccountConnection";
+import { claudeConnection } from "../../api/claudeConnection";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { CodexAccountSnapshot } from "../../../../shared/codexAccountTypes";
@@ -24,6 +26,10 @@ export type StyleGuideResearchSetupController = ReturnType<
 
 export function useStyleGuideResearchSetup(input: ResearchSetupInput) {
   const { t } = useTranslation("components");
+  const { account: claudeAccount } = useAccountConnection(
+    claudeConnection,
+    input.engine === "claude-web",
+  );
   const [title, setTitle] = React.useState(input.initialTitle);
   const [tavilyApiKey, setTavilyApiKey] = React.useState(
     input.settings?.internetResearch.tavilyApiKey ?? "",
@@ -41,6 +47,7 @@ export function useStyleGuideResearchSetup(input: ResearchSetupInput) {
     isEngineReady(input.engine, {
       apiKey: tavilyApiKey,
       codexAccount,
+      claudeAuthenticated: claudeAccount?.authenticated === true,
       credits: parsedCredits,
     }) &&
     !busy;
@@ -91,8 +98,10 @@ function isEngineReady(
     apiKey: string;
     codexAccount: CodexAccountSnapshot | null;
     credits: number;
+    claudeAuthenticated: boolean;
   },
 ): boolean {
+  if (engine === "claude-web") return values.claudeAuthenticated;
   if (engine === "codex-web")
     return values.codexAccount?.authenticated === true;
   return (

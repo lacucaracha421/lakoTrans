@@ -5782,6 +5782,28 @@
         "pct": 70
       }
     },
+    "src/main/runtime/model/compact-model-cache.cjs": {
+      "lines": {
+        "covered": 55,
+        "total": 64,
+        "pct": 85.93
+      },
+      "statements": {
+        "covered": 59,
+        "total": 76,
+        "pct": 77.63
+      },
+      "functions": {
+        "covered": 13,
+        "total": 15,
+        "pct": 86.66
+      },
+      "branches": {
+        "covered": 38,
+        "total": 56,
+        "pct": 67.85
+      }
+    },
     "src/main/runtime/model/gemma4-official-chat-template.cjs": {
       "lines": {
         "covered": 23,
@@ -5824,6 +5846,28 @@
         "covered": 30,
         "total": 33,
         "pct": 90.9
+      }
+    },
+    "src/main/runtime/model/hf-model-download.cjs": {
+      "lines": {
+        "covered": 42,
+        "total": 84,
+        "pct": 50
+      },
+      "statements": {
+        "covered": 45,
+        "total": 91,
+        "pct": 49.45
+      },
+      "functions": {
+        "covered": 7,
+        "total": 16,
+        "pct": 43.75
+      },
+      "branches": {
+        "covered": 16,
+        "total": 60,
+        "pct": 26.66
       }
     },
     "src/main/runtime/model/launch-arguments.cjs": {
@@ -6616,6 +6660,28 @@
         "covered": 9,
         "total": 12,
         "pct": 75
+      }
+    },
+    "src/main/runtime/prompts/model-profile.cjs": {
+      "lines": {
+        "covered": 13,
+        "total": 14,
+        "pct": 92.85
+      },
+      "statements": {
+        "covered": 13,
+        "total": 14,
+        "pct": 92.85
+      },
+      "functions": {
+        "covered": 3,
+        "total": 3,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 8,
+        "total": 10,
+        "pct": 80
       }
     },
     "src/main/runtime/prompts/ocr-bbox-section.cjs": {
@@ -8926,6 +8992,28 @@
         "covered": 0,
         "total": 20,
         "pct": 0
+      }
+    },
+    "src/main/workContextAnalysisBudget.ts": {
+      "lines": {
+        "covered": 26,
+        "total": 26,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 26,
+        "total": 26,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 15,
+        "total": 15,
+        "pct": 100
       }
     },
     "src/main/workContextAnalysisPrompt.ts": {
@@ -21910,6 +21998,50 @@
         "pct": 65.51
       }
     },
+    "src/main/chat/claudeChatEvents.ts": {
+      "lines": {
+        "covered": 38,
+        "total": 39,
+        "pct": 97.43
+      },
+      "statements": {
+        "covered": 42,
+        "total": 46,
+        "pct": 91.3
+      },
+      "functions": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 36,
+        "total": 45,
+        "pct": 80
+      }
+    },
+    "src/main/chat/claudeChatRuntime.ts": {
+      "lines": {
+        "covered": 82,
+        "total": 97,
+        "pct": 84.53
+      },
+      "statements": {
+        "covered": 90,
+        "total": 110,
+        "pct": 81.81
+      },
+      "functions": {
+        "covered": 15,
+        "total": 18,
+        "pct": 83.33
+      },
+      "branches": {
+        "covered": 44,
+        "total": 65,
+        "pct": 67.69
+      }
+    },
     "src/main/chat/codexChatRuntime.ts": {
       "lines": {
         "covered": 64,
@@ -21952,6 +22084,116 @@
         "covered": 0,
         "total": 0,
         "pct": 100
+      }
+    },
+    "src/main/claude/claudeAccount.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 29,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 29,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 9,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 26,
+        "pct": 0
+      }
+    },
+    "src/main/claude/claudeCompletion.ts": {
+      "lines": {
+        "covered": 18,
+        "total": 20,
+        "pct": 90
+      },
+      "statements": {
+        "covered": 18,
+        "total": 23,
+        "pct": 78.26
+      },
+      "functions": {
+        "covered": 2,
+        "total": 3,
+        "pct": 66.66
+      },
+      "branches": {
+        "covered": 12,
+        "total": 18,
+        "pct": 66.66
+      }
+    },
+    "src/main/claude/claudeEndpoint.ts": {
+      "lines": {
+        "covered": 34,
+        "total": 39,
+        "pct": 87.17
+      },
+      "statements": {
+        "covered": 35,
+        "total": 44,
+        "pct": 79.54
+      },
+      "functions": {
+        "covered": 10,
+        "total": 11,
+        "pct": 90.9
+      },
+      "branches": {
+        "covered": 17,
+        "total": 26,
+        "pct": 65.38
+      }
+    },
+    "src/main/claude/claudeResearch.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 24,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 25,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 3,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 29,
+        "pct": 0
+      }
+    },
+    "src/main/claude/claudeRuntime.ts": {
+      "lines": {
+        "covered": 28,
+        "total": 28,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 31,
+        "total": 31,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 23,
+        "total": 24,
+        "pct": 95.83
       }
     },
     "src/main/codexAppServerAccounting.ts": {
@@ -23120,6 +23362,28 @@
         "pct": 80
       }
     },
+    "src/main/imageReviewSession.ts": {
+      "lines": {
+        "covered": 0,
+        "total": 11,
+        "pct": 0
+      },
+      "statements": {
+        "covered": 0,
+        "total": 11,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 3,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 8,
+        "pct": 0
+      }
+    },
     "src/main/imageThumbnailBrowser.ts": {
       "lines": {
         "total": 90,
@@ -23927,6 +24191,28 @@
         "covered": 1,
         "total": 11,
         "pct": 9.09
+      },
+      "branches": {
+        "covered": 0,
+        "total": 2,
+        "pct": 0
+      }
+    },
+    "src/main/ipc/claudeAccountIpc.ts": {
+      "lines": {
+        "covered": 4,
+        "total": 9,
+        "pct": 44.44
+      },
+      "statements": {
+        "covered": 4,
+        "total": 9,
+        "pct": 44.44
+      },
+      "functions": {
+        "covered": 1,
+        "total": 6,
+        "pct": 16.66
       },
       "branches": {
         "covered": 0,
@@ -36012,6 +36298,28 @@
         "pct": 100
       }
     },
+    "src/main/settings/claudePreferences.ts": {
+      "lines": {
+        "covered": 5,
+        "total": 5,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 5,
+        "total": 5,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 3,
+        "total": 3,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 8,
+        "total": 8,
+        "pct": 100
+      }
+    },
     "src/main/settings/codexPreferencesStore.ts": {
       "lines": {
         "covered": 4,
@@ -36892,6 +37200,28 @@
         "pct": 0
       }
     },
+    "src/renderer/src/api/accountConnection.ts": {
+      "lines": {
+        "covered": 24,
+        "total": 24,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 27,
+        "total": 27,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 10,
+        "total": 10,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      }
+    },
     "src/renderer/src/api/blockLibraryGateway.ts": {
       "lines": {
         "total": 1,
@@ -36915,6 +37245,50 @@
       }
     },
     "src/renderer/src/api/chatGateway.ts": {
+      "lines": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/renderer/src/api/claudeConnection.ts": {
+      "lines": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 2,
+        "total": 2,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/renderer/src/api/claudeGateway.ts": {
       "lines": {
         "covered": 1,
         "total": 1,
@@ -41490,6 +41864,28 @@
         "pct": 60
       }
     },
+    "src/renderer/src/components/settingsModal/ClaudeSettingsFields.tsx": {
+      "lines": {
+        "covered": 11,
+        "total": 30,
+        "pct": 36.66
+      },
+      "statements": {
+        "covered": 11,
+        "total": 34,
+        "pct": 32.35
+      },
+      "functions": {
+        "covered": 2,
+        "total": 13,
+        "pct": 15.38
+      },
+      "branches": {
+        "covered": 13,
+        "total": 34,
+        "pct": 38.23
+      }
+    },
     "src/renderer/src/components/settingsModal/CodexAccountField.tsx": {
       "lines": {
         "total": 45,
@@ -43822,6 +44218,28 @@
         "pct": 90.47
       }
     },
+    "src/renderer/src/hooks/useAccountConnection.ts": {
+      "lines": {
+        "covered": 19,
+        "total": 19,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 21,
+        "total": 21,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 5,
+        "total": 5,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 6,
+        "total": 6,
+        "pct": 100
+      }
+    },
     "src/renderer/src/hooks/useAppActivities.ts": {
       "lines": {
         "total": 14,
@@ -45868,6 +46286,28 @@
         "pct": 100
       }
     },
+    "src/shared/claudeTypes.ts": {
+      "lines": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 1,
+        "total": 1,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
     "src/shared/codexAccountSchemas.ts": {
       "lines": {
         "total": 2,
@@ -46823,6 +47263,28 @@
       "statements": {
         "covered": 2,
         "total": 2,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      }
+    },
+    "src/shared/ipcClaudeContracts.ts": {
+      "lines": {
+        "covered": 4,
+        "total": 4,
+        "pct": 100
+      },
+      "statements": {
+        "covered": 4,
+        "total": 4,
         "pct": 100
       },
       "functions": {

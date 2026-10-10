@@ -9,6 +9,7 @@ export const APP_OPERATION_KINDS = [
   "work-share-import",
   "work-share-export",
   "model-test",
+  "claude-auth",
   "codex-auth",
 ] as const;
 

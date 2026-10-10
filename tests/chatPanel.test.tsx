@@ -13,6 +13,9 @@ import { ChatPanel } from "../src/renderer/src/features/chat/ChatPanel";
 import { ChatMarkdown } from "../src/renderer/src/features/chat/ChatMarkdown";
 import { ChatTranscript } from "../src/renderer/src/features/chat/ChatTranscript";
 import { codexConnection } from "../src/renderer/src/api/codexConnection";
+import { claudeConnection } from "../src/renderer/src/api/claudeConnection";
+import { chooseCustomSelectOption } from "./testUtils/customSelect";
+import type { MangaApi } from "../src/shared/mangaApi";
 import { createTestMangaGatewayStub } from "../src/renderer/src/api/mangaGateway";
 import type {
   ChatApi,
@@ -34,7 +37,7 @@ const DEFAULT_MODELS: CodexAccountModel[] = [
 ];
 function setup(
   models: CodexAccountModel[] = DEFAULT_MODELS,
-  extra: Partial<ChatApi> = {},
+  extra: Partial<MangaApi> = {},
 ) {
   const session: ChatSession = {
     version: 1,
@@ -84,6 +87,52 @@ function setup(
   });
   return { session, send, stop, emit: (event: ChatEvent) => emit(event) };
 }
+
+it("switches runtimes and logs into the chosen account, keeping new conversations in that runtime", async () => {
+  const claudeAccount = {
+    authenticated: false,
+    email: null,
+    plan: null,
+    version: "test",
+    models: [],
+  };
+  const loginClaude = vi.fn(async () => claudeAccount);
+  const loginCodex = vi.fn(async () => ({
+    authenticated: false,
+    accountKind: null,
+    email: null,
+    planType: null,
+    requiresOpenaiAuth: true,
+    appServerVersion: "test",
+    models: [],
+  }));
+  const create = vi.fn<ChatApi["createChat"]>(async (runtime) => ({
+    ...f.session,
+    id: `session-${runtime}`,
+    runtime: runtime ?? "codex",
+  }));
+  const f = setup([], {
+    createChat: create,
+    getClaudeAccount: async () => claudeAccount,
+    loginClaudeAccount: loginClaude,
+    getCodexAccount: loginCodex,
+    loginCodexAccount: loginCodex,
+  });
+  claudeConnection.publish(claudeAccount);
+  codexConnection.publish(null);
+  render(<ChatPanel enabled />);
+  await screen.findByRole("button", { name: /ChatGPT.*로그인/ });
+  fireEvent.click(screen.getByRole("button", { name: /ChatGPT.*로그인/ }));
+  await waitFor(() => expect(loginCodex.mock.calls.length).toBeGreaterThan(1));
+  chooseCustomSelectOption("대화 실행기", "Claude");
+  await screen.findByRole("button", { name: /Claude.*로그인/ });
+  fireEvent.click(screen.getByRole("button", { name: /Claude.*로그인/ }));
+  await waitFor(() => expect(loginClaude).toHaveBeenCalledOnce());
+  fireEvent.click(screen.getByRole("button", { name: "새 대화" }));
+  await waitFor(() => expect(create).toHaveBeenLastCalledWith("claude"));
+  chooseCustomSelectOption("대화 실행기", "Codex");
+  await waitFor(() => expect(create).toHaveBeenLastCalledWith("codex"));
+});
 const context: CurrentViewContext = {
   workId: null,
   workTitle: "작품 A",

@@ -11,16 +11,18 @@ export function workflowConfigurationKeys(
       ? settings.gemma
       : settings.modelProvider === "openai-codex"
         ? settings.codex
-        : {
-            provider: settings.api.provider,
-            baseUrl: settings.api.baseUrl,
-            model: settings.api.model,
-            temperature: settings.api.temperature,
-            topP: settings.api.topP,
-            topK: settings.api.topK,
-            reasoningEffort: settings.api.reasoningEffort,
-            extraBodyJson: settings.api.extraBodyJson,
-          };
+        : settings.modelProvider === "claude-code"
+          ? settings.claude
+          : {
+              provider: settings.api.provider,
+              baseUrl: settings.api.baseUrl,
+              model: settings.api.model,
+              temperature: settings.api.temperature,
+              topP: settings.api.topP,
+              topK: settings.api.topK,
+              reasoningEffort: settings.api.reasoningEffort,
+              extraBodyJson: settings.api.extraBodyJson,
+            };
   return {
     detect: hashStableValue([
       settings.ocr.pipeline,

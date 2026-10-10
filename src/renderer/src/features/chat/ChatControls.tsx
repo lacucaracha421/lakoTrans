@@ -12,6 +12,8 @@ import { Select } from "../../components/ui/Select";
 import { usePopupController } from "../../components/ui/usePopupController";
 import { codexConnection } from "../../api/codexConnection";
 import { settingsGateway } from "../../api/settingsGateway";
+import { claudeGateway } from "../../api/claudeGateway";
+import { claudeConnection } from "../../api/claudeConnection";
 import type { useChat } from "./useChat";
 import type { useChatModel } from "./useChatModel";
 import styles from "./ChatPanel.module.css";
@@ -28,18 +30,30 @@ export function ChatHistoryControls({
   return (
     <header className={styles.header}>
       <Select
+        ariaLabel={t("chat.runtime")}
+        value={chat.session?.runtime ?? "codex"}
+        options={[
+          { value: "codex", label: "Codex" },
+          { value: "claude", label: "Claude" },
+        ]}
+        onValueChange={(value) =>
+          void chat.select(undefined, value === "claude" ? "claude" : "codex")
+        }
+        disabled={chat.busy}
+      />
+      <Select
         ariaLabel={t("chat.history")}
         value={chat.session?.id ?? ""}
         options={chat.history.map((entry) => ({
           value: entry.id,
-          label: entry.title,
+          label: `${entry.runtime === "claude" ? "Claude" : "Codex"} · ${entry.title}`,
         }))}
         onValueChange={(id) => void chat.select(id)}
         disabled={chat.busy}
       />
       <IconButton
         label={t("chat.new")}
-        onClick={() => void chat.select()}
+        onClick={() => void chat.select(undefined, chat.session?.runtime)}
         disabled={chat.busy}
       >
         <IconPlus size={18} />
@@ -165,16 +179,33 @@ export function ChatLogin({ chat }: { chat: Controller }) {
   const { t } = useTranslation("components");
   return (
     <div className={styles.login}>
-      <p>{t("chat.loginHint")}</p>
+      <p>
+        {t(
+          chat.session?.runtime === "claude"
+            ? "chat.claudeLoginHint"
+            : "chat.loginHint",
+        )}
+      </p>
       <Button
         onClick={() =>
           void chat.perform(async () => {
-            codexConnection.publish(await settingsGateway.loginCodexAccount());
+            if (chat.session?.runtime === "claude")
+              claudeConnection.publish(
+                await claudeGateway.loginClaudeAccount(),
+              );
+            else
+              codexConnection.publish(
+                await settingsGateway.loginCodexAccount(),
+              );
           })
         }
         disabled={chat.busy}
       >
-        {t("chat.login")}
+        {t(
+          chat.session?.runtime === "claude"
+            ? "chat.claudeLogin"
+            : "chat.login",
+        )}
       </Button>
     </div>
   );

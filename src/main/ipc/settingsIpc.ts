@@ -1,4 +1,5 @@
 import { BrowserWindow } from "electron";
+import { registerClaudeAccountIpc } from "./claudeAccountIpc";
 import { AppSettingsSchema, parseIpcPayload } from "../../shared/ipcSchemas";
 import {
   ipcEventContracts,
@@ -47,6 +48,7 @@ export function registerSettingsIpc(
   context: IpcContext,
   dependencies: SettingsIpcDependencies = {},
 ): void {
+  registerClaudeAccountIpc(context);
   registerCodexAccountIpc(context, dependencies.codexAccountRuntime);
   registerTavilyUsageIpc(
     context,

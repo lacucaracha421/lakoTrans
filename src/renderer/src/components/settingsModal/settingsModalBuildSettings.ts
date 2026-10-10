@@ -69,6 +69,8 @@ export function buildSettingsFromDraft({
     mmprojOffload: values.gemmaMmprojOffload,
     llamaRuntimeProfile: values.llamaRuntimeProfile,
     allowUnsafeUnifiedMemory: values.allowUnsafeUnifiedMemory,
+    imageReview: values.imageReview,
+    claude: { model: values.claudeModel, effort: values.claudeEffort },
     codexModel: draft.trimmedCodexModel,
     codexReasoningEffort: values.codexReasoningEffort,
     codexImageReasoningEffort: values.codexImageReasoningEffort,
@@ -103,6 +105,7 @@ function buildInternetResearchFields(
     researchApiMaxOutputTokens: draft.parsedResearchApiMaxOutputTokens,
     researchApiContextTokens: draft.parsedResearchApiContextTokens,
     researchApiProfiles: buildResearchApiProfiles(values),
+    researchClaude: values.researchClaude,
     researchCodexModel: draft.trimmedResearchCodexModel,
     researchCodexReasoningEffort: values.researchCodexReasoningEffort,
     researchCodexMaxOutputTokens: draft.parsedResearchCodexMaxOutputTokens,
@@ -185,6 +188,7 @@ function buildGenerationLimitProfiles(
       parseGenerationLimits(profiles.gemma) ??
       initialProfiles?.gemma ??
       resolveRecommendedGenerationLimits("gemma"),
+    claude: resolveClaudeLimits(profiles, initialProfiles),
     codex:
       parseGenerationLimits(profiles.codex) ??
       initialProfiles?.codex ??
@@ -203,6 +207,8 @@ function snapshotActiveGenerationLimit(
     maxTokens: values.maxTokens,
     contextTokens: values.contextTokens,
   };
+  if (values.modelProvider === "claude-code")
+    return { ...values.generationLimitProfiles, claude: active };
   if (values.modelProvider === "gemma") {
     return { ...values.generationLimitProfiles, gemma: active };
   }
@@ -316,4 +322,14 @@ function requireApiProfile(profile: ApiProfileFormValues) {
   if (!parsed)
     throw new Error("A saved API profile has invalid connection settings.");
   return parsed;
+}
+
+function resolveClaudeLimits(
+  profiles: SettingsFormValues["generationLimitProfiles"],
+  initialProfiles: AppSettings["generationLimits"],
+) {
+  return (
+    parseGenerationLimits(profiles.claude) ??
+    initialProfiles?.claude ?? { maxTokens: 32768, contextTokens: 65536 }
+  );
 }

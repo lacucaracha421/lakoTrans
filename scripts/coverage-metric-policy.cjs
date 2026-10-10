@@ -2,6 +2,14 @@
 // historical branch floor on its actual owner, not by adding fake facade branches.
 const EXTRACTED_BRANCH_OWNERS = new Map([
   [
+    "src/renderer/src/api/codexConnection.ts",
+    "src/renderer/src/api/accountConnection.ts",
+  ],
+  [
+    "src/renderer/src/hooks/useCodexConnection.ts",
+    "src/renderer/src/hooks/useAccountConnection.ts",
+  ],
+  [
     "src/main/imageRedactionWorkspaceSessions.ts",
     "src/main/application/redactionWorkspaceService.ts",
   ],

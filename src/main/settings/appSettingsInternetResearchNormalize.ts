@@ -1,3 +1,4 @@
+import { normalizeClaudePreferences } from "./claudePreferences";
 import {
   DEFAULT_RESEARCH_API_CONTEXT_TOKENS,
   DEFAULT_RESEARCH_API_MAX_OUTPUT_TOKENS,
@@ -100,6 +101,7 @@ export function normalizeInternetResearchSettings(
     apiMaxOutputTokens: activeApiProfile.maxOutputTokens,
     apiContextTokens: activeApiProfile.contextTokens,
     apiProfiles,
+    claude: normalizeClaudePreferences(record.claude),
     codexModel: resolveNonEmptyString(record.codexModel, defaults.codexModel),
     codexReasoningEffort: resolveCodexReasoningEffort(
       record.codexReasoningEffort,

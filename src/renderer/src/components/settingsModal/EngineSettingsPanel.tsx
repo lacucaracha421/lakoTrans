@@ -4,6 +4,7 @@ import type { CodexAccountSnapshot } from "../../../../shared/codexAccountTypes"
 import { MODEL_PROVIDER_OPTIONS } from "../settingsOptions";
 import { ApiSettingsFields } from "./ApiSettingsFields";
 import { CodexSettingsFields } from "./CodexSettingsFields";
+import { ClaudeSettingsFields } from "./ClaudeSettingsFields";
 import {
   GenerationLimitsFields,
   TranslationEngineSelector,
@@ -91,6 +92,16 @@ function CodexProviderAndLimits(
 function NonCodexProviderSettingsFields(
   props: EngineSettingsPanelProps,
 ): React.JSX.Element {
+  if (props.modelProvider === "claude-code")
+    return (
+      <ClaudeSettingsFields
+        model={props.claudeModel ?? "default"}
+        effort={props.claudeEffort ?? "high"}
+        disabled={props.controlsBusy}
+        onModel={(value) => props.setClaudeModel?.(value)}
+        onEffort={(value) => props.setClaudeEffort?.(value)}
+      />
+    );
   if (props.modelProvider === "gemma") {
     return <GemmaSettingsFields {...props} />;
   }

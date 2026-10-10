@@ -540,7 +540,8 @@
         "codexAuth": "連接 ChatGPT 帳戶",
         "background": "背景工作",
         "environmentBackup": "匯出備份",
-        "environmentRestore": "匯入備份"
+        "environmentRestore": "匯入備份",
+        "claudeAuth": "Claude 帳戶"
       },
       "source": {
         "files": "檔案",

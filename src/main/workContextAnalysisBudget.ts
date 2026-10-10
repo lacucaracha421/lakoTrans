@@ -15,7 +15,7 @@ type AnalysisBudgetOptions = Pick<
   TranslationOptions,
   "modelProvider" | "maxTokens" | "ctx"
 > &
-  Partial<Pick<TranslationOptions, "apiModel" | "codexModel">>;
+  Partial<Pick<TranslationOptions, "apiModel" | "codexModel" | "claudeModel">>;
 
 export function resolveAnalysisInputBudget({
   options,
@@ -89,10 +89,12 @@ function resolveAnalysisContextTokens(options: AnalysisBudgetOptions): number {
 
 function resolveAnalysisModelLimits(options: AnalysisBudgetOptions) {
   const model =
-    options.modelProvider === "openai-codex"
-      ? options.codexModel
-      : options.modelProvider === "openai-api"
-        ? options.apiModel
-        : null;
+    options.modelProvider === "claude-code"
+      ? options.claudeModel
+      : options.modelProvider === "openai-codex"
+        ? options.codexModel
+        : options.modelProvider === "openai-api"
+          ? options.apiModel
+          : null;
   return resolveRecommendedGenerationLimits(options.modelProvider, model);
 }

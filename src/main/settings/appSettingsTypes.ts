@@ -138,6 +138,8 @@ export type TranslationOptions = {
   mmprojFile?: string;
   localModelPath?: string;
   localMmprojPath?: string;
+  claudeModel?: string;
+  claudeEffort?: import("../../shared/claudeTypes").ClaudeEffort;
   codexModel: string;
   codexReasoningEffort: CodexReasoningEffort;
   apiBaseUrl: string;

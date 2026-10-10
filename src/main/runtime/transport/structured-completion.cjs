@@ -9,7 +9,7 @@
 
 const {
   isOpenAIApiProvider,
-  isOpenAICodexProvider,
+  usesResponsesTransport,
 } = require("../simple-page-model-config.cjs");
 const {
   isGoogleOpenAiCompatibleEndpoint,
@@ -42,7 +42,7 @@ async function requestStructuredCompletion(
   requestSummary,
   requestStartedAt,
 ) {
-  if (isOpenAICodexProvider(options)) {
+  if (usesResponsesTransport(options)) {
     const response = await requestResponsesText(
       server,
       options,

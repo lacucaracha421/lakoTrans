@@ -206,6 +206,31 @@ it("uses native foreground generation without erasure, stores only the reviewed 
     await f.close();
   }
 });
+it("reports Claude verification independently from the Codex image generator", async () => {
+  const f = await soundEffectFixture();
+  try {
+    await writeFile(
+      f.app.appPaths.settingsPath,
+      JSON.stringify({
+        codex: f.settings.codex,
+        imageReview: {
+          provider: "claude",
+          claude: { model: "sonnet", effort: "high" },
+        },
+      }),
+    );
+    const result = await f.query();
+    expect(result.verification).toEqual({
+      provider: "claude",
+      configuredModel: "sonnet",
+      runtimeChecked: false,
+    });
+    expect(result.generation.provider).toBe("codex");
+    expect(f.startClient).not.toHaveBeenCalled();
+  } finally {
+    await f.close();
+  }
+});
 it.each(["auto", "gpt-image-2.5-sunburst"] as const)(
   "passes the configured %s backend with a supported newer controller",
   async (imageGenerationModel) => {

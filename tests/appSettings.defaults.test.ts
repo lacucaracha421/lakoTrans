@@ -89,6 +89,7 @@ describeWindows("app settings helpers: defaults and stored values", () => {
     expect(defaults.codex.model).toBe("gpt-5.6-sol");
     expect(defaults.codex.reasoningEffort).toBe(DEFAULT_CODEX_REASONING_EFFORT);
     expect(defaults.internetResearch).toEqual({
+      claude: { model: "default", effort: "high" },
       tavilyAnalysisProvider: "gemma",
       gemmaPreset: "qat12b",
       gemmaReasoningEffort: "high",
@@ -572,6 +573,8 @@ describeWindows("app settings helpers: defaults and stored values", () => {
         llamaRuntimeProfile: defaults.gemma.llamaRuntimeProfile,
       },
       codex: defaults.codex,
+      claude: defaults.claude,
+      imageReview: defaults.imageReview,
       internetResearch: defaults.internetResearch,
       api: defaults.api,
       ocr: defaults.ocr,
@@ -696,6 +699,8 @@ describeWindows("app settings helpers: defaults and stored values", () => {
       translation: defaults.translation,
       gemma: defaults.gemma,
       codex: defaults.codex,
+      claude: defaults.claude,
+      imageReview: defaults.imageReview,
       internetResearch: defaults.internetResearch,
       api: defaults.api,
       ocr: defaults.ocr,
@@ -718,6 +723,8 @@ describeWindows("app settings helpers: defaults and stored values", () => {
       translation: defaults.translation,
       gemma: defaults.gemma,
       codex: defaults.codex,
+      claude: defaults.claude,
+      imageReview: defaults.imageReview,
       internetResearch: defaults.internetResearch,
       api: defaults.api,
       ocr: defaults.ocr,

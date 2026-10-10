@@ -96,6 +96,10 @@ const bridgeTemplate = `(() => {
     displayName: id.replace("gpt", "GPT"),
     isDefault: false,
   })));
+  let claudeAccount = {authenticated: true, email: "reader@example.com", plan: "pro", version: "2.1.294", models: [
+    {id:"default",displayName:"Default",supportedReasoningEfforts:["low","medium","high","xhigh","max"],defaultReasoningEffort:"high",isDefault:true},
+    {id:"sonnet",displayName:"Sonnet",supportedReasoningEfforts:["low","medium","high","xhigh","max"],defaultReasoningEffort:"high",isDefault:false},
+    {id:"opus",displayName:"Opus",supportedReasoningEfforts:["low","medium","high","xhigh","max"],defaultReasoningEffort:"high",isDefault:false}]};
   const signedInCodexAccount = {
     authenticated: true,
     accountKind: "chatgpt",
@@ -145,6 +149,9 @@ const bridgeTemplate = `(() => {
     exportConditionalBatchYaml: async () =>
       \`schemaVersion: 1\\nschemes: []\\nsequences: []\\n\`,
     getCodexAccount: async () => codexAccount,
+    getClaudeAccount: async () => claudeAccount,
+    loginClaudeAccount: async () => (claudeAccount = {...claudeAccount, authenticated: true}),
+    logoutClaudeAccount: async () => (claudeAccount = {...claudeAccount, authenticated: false}),
     getFontLibrary: async () => fontSnapshot,
     getLibrary: async () => ({ workOrder: [], works: [] }),
     getPageImageDataUrl: async () => pageImageDataUrl,

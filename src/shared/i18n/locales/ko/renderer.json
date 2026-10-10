@@ -540,7 +540,8 @@
         "codexAuth": "ChatGPT 계정 연결",
         "background": "백그라운드 작업",
         "environmentBackup": "백업 내보내기",
-        "environmentRestore": "백업 가져오기"
+        "environmentRestore": "백업 가져오기",
+        "claudeAuth": "Claude 계정 연결"
       },
       "source": {
         "files": "파일",

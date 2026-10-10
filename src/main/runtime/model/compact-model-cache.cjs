@@ -156,7 +156,8 @@ function buildMigrationError(asset, sourcePath, destinationPath, cause) {
 
 /** @param {ModelAssetOptions} options @param {ModelLaunchTarget} target */
 async function ensureCompactCachedHfAssets(options, target) {
-  if (["openai-codex", "openai-api"].includes(target.launchMode)) return;
+  if (["openai-codex", "openai-api", "claude-code"].includes(target.launchMode))
+    return;
   for (const asset of buildCacheAssets(options, target)) {
     await ensureCompactCachedHfAsset(options, asset);
   }

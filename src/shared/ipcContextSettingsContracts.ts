@@ -278,6 +278,7 @@ const modelTestResultSchema = z
       "huggingface",
       "cached-hf",
       "local",
+      "claude-code",
       "openai-codex",
       "openai-api",
     ]),

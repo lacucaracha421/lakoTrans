@@ -217,6 +217,9 @@ export function isSettingsFormSubmittable(
   if (values.modelProvider === "openai-codex") {
     return Boolean(draft.trimmedCodexModel);
   }
+  if (values.modelProvider === "claude-code") {
+    return Boolean(values.claudeModel?.trim());
+  }
   if (values.modelProvider === "openai-api") {
     return isOpenAiApiSettingsReady(values, draft);
   }

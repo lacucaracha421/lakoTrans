@@ -21,10 +21,10 @@ export const chatIpcContracts = {
     args: z.tuple([]),
     result: z.array(ChatSummarySchema),
   }),
-  createChat: defineIpcContract<[], ChatSession>({
+  createChat: defineIpcContract<[ChatSession["runtime"]?], ChatSession>({
     apiKey: "createChat",
     channel: "chat:create",
-    args: z.tuple([]),
+    args: z.tuple([z.enum(["codex", "claude"]).optional()]),
     result: ChatSessionSchema,
   }),
   readChat: defineIpcContract<[string], ChatSession>({

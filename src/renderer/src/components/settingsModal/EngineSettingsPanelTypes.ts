@@ -1,3 +1,4 @@
+import type { AppSettings } from "../../../../shared/settingsTypes";
 import type { CodexImageGenerationModel } from "../../../../shared/codexSettings";
 import type React from "react";
 import type {
@@ -34,6 +35,16 @@ export type EngineSettingsPanelProps = {
   apiExtraBodyJson: string;
   apiCustomHeadersJson: string;
   clearTestState: () => void;
+  imageReview?: AppSettings["imageReview"];
+  setImageReview?: React.Dispatch<
+    React.SetStateAction<NonNullable<AppSettings["imageReview"]>>
+  >;
+  claudeModel?: string;
+  claudeEffort?: import("../../../../shared/claudeTypes").ClaudeEffort;
+  setClaudeModel?: React.Dispatch<React.SetStateAction<string>>;
+  setClaudeEffort?: React.Dispatch<
+    React.SetStateAction<import("../../../../shared/claudeTypes").ClaudeEffort>
+  >;
   codexModel: string;
   codexReasoningEffort: CodexReasoningEffort;
   codexImageReasoningEffort?: CodexReasoningEffort;

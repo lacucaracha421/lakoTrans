@@ -184,6 +184,8 @@ function parseReply(raw: string, blockId: string): string {
 }
 
 function modelName(options: TranslationOptions): string {
+  if (options.modelProvider === "claude-code")
+    return options.claudeModel ?? "default";
   if (options.modelProvider === "gemma") return basename(options.modelFile);
   return options.modelProvider === "openai-codex"
     ? options.codexModel

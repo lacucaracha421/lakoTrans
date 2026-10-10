@@ -13,18 +13,29 @@ export function inpaintingActivityResources(
 ): AppActivityResource[] | undefined {
   if (!settings) return undefined;
   const codex = "engine" in request && request.engine === "codex";
-  const remoteOnly =
+  const remoteOnly = isRemoteOnlyInpainting(settings, request, codex);
+  const resources: AppActivityResource[] = remoteOnly
+    ? []
+    : [{ kind: "model-runtime", scope: "*", access: "write" }];
+  if (codex) resources.push({ kind: "codex-auth", scope: "*", access: "read" });
+  if (codex && settings.imageReview?.provider === "claude")
+    resources.push({ kind: "claude-auth", scope: "*", access: "read" });
+  return resources;
+}
+
+function isRemoteOnlyInpainting(
+  settings: AppSettings,
+  request: StartInpaintingRequest,
+  codex: boolean,
+) {
+  return (
     codex &&
     request.mode === "page-pattern-drawn" &&
     !(
       request.postprocess?.bubbleLayout?.enabled ??
       settings.inpainting?.bubbleLayoutAfterInpainting
-    );
-  const resources: AppActivityResource[] = remoteOnly
-    ? []
-    : [{ kind: "model-runtime", scope: "*", access: "write" }];
-  if (codex) resources.push({ kind: "codex-auth", scope: "*", access: "read" });
-  return resources;
+    )
+  );
 }
 
 /**
@@ -40,6 +51,10 @@ export function translationActivityResources(
 ): AppActivityResource[] {
   return [
     modelRuntimeResource(settings.modelProvider === "gemma" || localInpainting),
+    ...(settings.modelProvider === "claude-code" ||
+    (codexImages && settings.imageReview?.provider === "claude")
+      ? [{ kind: "claude-auth" as const, scope: "*", access: "read" as const }]
+      : []),
     ...(settings.modelProvider === "openai-codex" || codexImages
       ? [{ kind: "codex-auth" as const, scope: "*", access: "read" as const }]
       : []),

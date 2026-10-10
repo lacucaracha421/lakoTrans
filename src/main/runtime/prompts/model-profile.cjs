@@ -27,7 +27,7 @@ function isOpenAICodexProvider(options = {}) {
  * @returns {boolean}
  */
 function shouldUseSmallGemmaDuplicatePromptProfile(options = {}) {
-  if (isOpenAICodexProvider(options)) {
+  if (options.modelProvider && options.modelProvider !== "gemma") {
     return false;
   }
   const modelText = [

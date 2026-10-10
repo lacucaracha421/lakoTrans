@@ -1789,6 +1789,9 @@
         "rateLimited": "Tavily へのリクエストが多すぎます。しばらくしてから再試行してください。",
         "invalidResponse": "Tavily の使用量応答を読み取れませんでした。",
         "networkFailed": "Tavily に接続できませんでした。ネットワークを確認してください。"
+      },
+      "claude": {
+        "description": "Claude のウェブ検索で作品情報と用語を調べます。"
       }
     },
     "options": {
@@ -1840,6 +1843,10 @@
         "api": {
           "label": "API",
           "description": "OpenAI互換APIエンドポイントを使用します。"
+        },
+        "claude": {
+          "label": "Claude Code",
+          "description": "Translate using Claude Code."
         }
       },
       "reasoning": {
@@ -2389,7 +2396,8 @@
     "image": {
       "localErasure": "標準の原文消去",
       "codex": "Codex 画像ツール",
-      "description": "翻訳エンジンとは別に、原文消去と効果音画像に使用します。Astraの使用を強く推奨します。"
+      "description": "翻訳エンジンとは別に、原文消去と効果音画像に使用します。Astraの使用を強く推奨します。",
+      "review": "画像の確認"
     },
     "backup": {
       "title": "バックアップと移行",
@@ -2410,6 +2418,17 @@
       "cancel": "処理をキャンセル",
       "saved": "バックアップを保存しました: {{path}}",
       "restored": "環境を復元しました。APIキー、ログイン、外部フォルダー、カスタムモデルのパスを確認してください。APIのカスタムヘッダーと追加リクエスト本文も再設定してください。"
+    },
+    "claude": {
+      "account": "Claude アカウント",
+      "login": "Claude でログイン",
+      "console": "API アカウントでログイン",
+      "logout": "ログアウト",
+      "refresh": "更新",
+      "model": "モデル",
+      "effort": "推論レベル",
+      "error": "Claude に接続できませんでした。",
+      "testing": "Claude Code の接続とモデルの応答を確認します。"
     }
   },
   "pageBlocks": {
@@ -2486,7 +2505,8 @@
         "environment-restore": "環境の復元",
         "model-test": "モデル確認",
         "codex-auth": "ChatGPTアカウント",
-        "sound-effect-translation": "効果音翻訳"
+        "sound-effect-translation": "効果音翻訳",
+        "claude-auth": "Claude Code"
       },
       "status": {
         "idle": "待機",
@@ -3103,6 +3123,9 @@
       "substitutions": "フォント代替 {{count}}件"
     },
     "redo": "再適用の可否を確認",
-    "redoRequest": "{{tool}} の復元記録と現在のリビジョンを確認し、後から加えた手動編集を上書きせずに再適用できる場合だけ実行してください。結果: {{result}}"
+    "redoRequest": "{{tool}} の復元記録と現在のリビジョンを確認し、後から加えた手動編集を上書きせずに再適用できる場合だけ実行してください。結果: {{result}}",
+    "runtime": "チャットの実行環境",
+    "claudeLoginHint": "Claude アカウントでログインしてください。",
+    "claudeLogin": "Claude でログイン"
   }
 }

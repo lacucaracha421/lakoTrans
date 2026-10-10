@@ -1,3 +1,4 @@
+import { ClaudeSettingsFields } from "./ClaudeSettingsFields";
 import React from "react";
 import { ControlTooltip } from "../ui/ControlTooltip";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,12 @@ export type InternetResearchSettingsPanelProps = EngineSettingsPanelProps & {
   researchApiModel: string;
   researchApiMaxOutputTokens: string;
   researchApiContextTokens: string;
+  researchClaude?: import("../../../../shared/claudeTypes").ClaudePreferences;
+  setResearchClaude?: React.Dispatch<
+    React.SetStateAction<
+      import("../../../../shared/claudeTypes").ClaudePreferences
+    >
+  >;
   researchCodexModel: string;
   researchCodexReasoningEffort: CodexReasoningEffort;
   researchCodexMaxOutputTokens: string;
@@ -84,6 +91,19 @@ export function InternetResearchSettingsPanel(
         <ApiResearchSettings {...props} />
       )}
       <CodexResearchSettings {...props} />
+      <SettingsSection title="Claude Code">
+        <ClaudeSettingsFields
+          model={props.researchClaude?.model ?? "default"}
+          effort={props.researchClaude?.effort ?? "high"}
+          disabled={props.controlsBusy}
+          onModel={(model) =>
+            props.setResearchClaude?.((old) => ({ ...old, model }))
+          }
+          onEffort={(effort) =>
+            props.setResearchClaude?.((old) => ({ ...old, effort }))
+          }
+        />
+      </SettingsSection>
     </div>
   );
 }

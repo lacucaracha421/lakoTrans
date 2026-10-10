@@ -64,6 +64,7 @@ export type GenerationLimitFormValues = {
 export type GenerationLimitProfilesFormValues = {
   gemma: GenerationLimitFormValues;
   codex: GenerationLimitFormValues;
+  claude?: GenerationLimitFormValues;
   api: Partial<Record<ApiProviderPresetId, GenerationLimitFormValues>>;
 };
 
@@ -250,6 +251,9 @@ export function resolveGenerationLimitProfileFormValues(
   return {
     gemma: formatGenerationLimits(
       stored?.gemma ?? resolveGemmaLegacyLimits(settings, legacy),
+    ),
+    claude: formatGenerationLimits(
+      stored?.claude ?? { maxTokens: 32768, contextTokens: 65536 },
     ),
     codex: formatGenerationLimits(
       stored?.codex ?? resolveCodexLegacyLimits(settings, legacy),

@@ -59,19 +59,23 @@ function resolveConfiguredModelSource(
     : "huggingface";
 }
 
-function resolveModelProvider(
-  options = /** @type {ModelConfigOptions} */ ({}),
-) {
+/** @param {ModelConfigOptions} [options] */
+function resolveModelProvider(options = {}) {
   const value = String(options.modelProvider ?? "").trim();
-  if (value === "openai-codex" || value === "openai-api") {
-    return value;
-  }
-  return "gemma";
+  return ["claude-code", "openai-codex", "openai-api"].includes(value)
+    ? value
+    : "gemma";
 }
 
-function isOpenAICodexProvider(
-  options = /** @type {ModelConfigOptions} */ ({}),
-) {
+/** @param {ModelConfigOptions} options */
+function usesResponsesTransport(options) {
+  return ["openai-codex", "claude-code"].includes(
+    resolveModelProvider(options),
+  );
+}
+
+/** @param {ModelConfigOptions} [options] */
+function isOpenAICodexProvider(options = {}) {
   return resolveModelProvider(options) === "openai-codex";
 }
 
@@ -101,16 +105,15 @@ function isOllamaCloudApiModel(
   );
 }
 
-function resolveProviderDisplayName(
-  options = /** @type {ModelConfigOptions} */ ({}),
-) {
-  if (isOpenAICodexProvider(options)) {
-    return "OpenAI Codex";
-  }
-  if (isOpenAIApiProvider(options)) {
-    return "API";
-  }
-  return "Gemma";
+/** @param {ModelConfigOptions} [options] */
+function resolveProviderDisplayName(options = {}) {
+  return (
+    {
+      "claude-code": "Claude Code",
+      "openai-codex": "OpenAI Codex",
+      "openai-api": "API",
+    }[resolveModelProvider(options)] ?? "Gemma"
+  );
 }
 
 function resolveConfiguredCodexModel(
@@ -455,6 +458,7 @@ function shouldUseConfiguredMmproj(
 }
 
 module.exports = {
+  usesResponsesTransport,
   isOfficialOpenAiApiBaseUrl,
   isOllamaCloudApiModel,
   isOllamaOpenAiCompatibleEndpoint,

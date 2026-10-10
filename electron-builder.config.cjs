@@ -24,6 +24,11 @@ const codexRuntime = resolveCodexRuntime(
   isMacBuild ? "darwin" : "win32",
   isMacBuild ? "arm64" : "x64",
 );
+const claudeRuntimeDir = join(
+  __dirname,
+  "node_modules",
+  `@anthropic-ai/claude-agent-sdk-${isMacBuild ? "darwin-arm64" : "win32-x64"}`,
+);
 const requestedBuildChannel = String(
   process.env.MANGA_TRANSLATOR_BUILD_CHANNEL ||
     process.env.MGT_RELEASE_CHANNEL ||
@@ -49,6 +54,11 @@ const onnxRuntimeWebVersion = "1.30.0";
 const onnxWasmModuleFile = "ort-wasm-simd-threaded.mjs";
 const onnxWasmBinaryFile = "ort-wasm-simd-threaded.wasm";
 const extraResources = [
+  {
+    from: claudeRuntimeDir,
+    to: "claude",
+    filter: ["claude", "claude.exe", "package.json", "LICENSE.md", "README.md"],
+  },
   {
     // Keep the official native package layout intact under a short resource
     // root. Codex discovers its sibling runners and bundled rg relative to
@@ -223,6 +233,7 @@ function verifyBuildRuntimeReady(context) {
         `Missing ${importSourceRunnerPath}. Run npm run build:import-source-runner before packaging.`,
       );
     }
+    verifyClaudeRuntimeReady();
     return;
   }
   if (context.electronPlatformName !== "darwin") return;
@@ -232,6 +243,23 @@ function verifyBuildRuntimeReady(context) {
     );
   }
   assertCodexRuntimeReady(codexRuntime);
+  verifyClaudeRuntimeReady();
+}
+
+function verifyClaudeRuntimeReady() {
+  const claudeName = isMacBuild ? "claude" : "claude.exe";
+  if (!existsSync(join(claudeRuntimeDir, claudeName)))
+    throw new Error(`Official Claude Code runtime missing: ${claudeName}`);
+  if (
+    require(join(claudeRuntimeDir, "package.json")).version !==
+    require(
+      join(
+        __dirname,
+        "node_modules/@anthropic-ai/claude-agent-sdk/package.json",
+      ),
+    ).version
+  )
+    throw new Error("Claude SDK and native runtime versions differ.");
 }
 
 /**
@@ -408,6 +436,7 @@ module.exports = {
     // Do not also retain the JS launcher or any optional platform packages in ASAR.
     "!node_modules/@openai/codex{,/**/*}",
     "!node_modules/@openai/codex-*{,/**/*}",
+    "!node_modules/@anthropic-ai/claude-agent-sdk-*{,/**/*}",
   ],
   extraResources,
   asar: true,

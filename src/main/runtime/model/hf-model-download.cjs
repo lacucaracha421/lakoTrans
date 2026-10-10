@@ -98,7 +98,8 @@ async function removeInvalidMetalCachedAssets(options, target) {
 
 /** @param {ModelAssetOptions} options @param {ModelLaunchTarget} target */
 function collectCachedPinnedAssets(options, target) {
-  if (["openai-codex", "openai-api"].includes(target.launchMode)) return [];
+  if (["openai-codex", "openai-api", "claude-code"].includes(target.launchMode))
+    return [];
   const candidates = [];
   if (target.launchMode !== "local") {
     candidates.push({

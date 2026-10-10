@@ -57,6 +57,8 @@ type BuildSettingsFromFormInput = {
   mmprojOffload: boolean;
   llamaRuntimeProfile: LlamaRuntimeProfile;
   allowUnsafeUnifiedMemory: boolean;
+  imageReview: NonNullable<AppSettings["imageReview"]>;
+  claude: NonNullable<AppSettings["claude"]>;
   codexModel: string;
   codexReasoningEffort: CodexReasoningEffort;
   codexImageReasoningEffort: CodexReasoningEffort;
@@ -71,6 +73,7 @@ type BuildSettingsFromFormInput = {
   researchApiMaxOutputTokens: number;
   researchApiContextTokens: number;
   researchApiProfiles: AppSettings["internetResearch"]["apiProfiles"];
+  researchClaude: NonNullable<AppSettings["claude"]>;
   researchCodexModel: string;
   researchCodexReasoningEffort: CodexReasoningEffort;
   researchCodexMaxOutputTokens: number;
@@ -132,6 +135,8 @@ export function buildSettingsFromForm(
       resolveTranslationLanguageSettings(input.initialSettings.translation),
     ),
     gemma: buildGemmaSettings(input),
+    claude: input.claude,
+    imageReview: input.imageReview,
     codex: {
       model: input.codexModel || input.initialSettings.codex.model,
       reasoningEffort: input.codexReasoningEffort,
@@ -141,6 +146,7 @@ export function buildSettingsFromForm(
         input.codexImageGenerationModel ?? "gpt-image-2.5-flare",
     },
     internetResearch: {
+      claude: input.researchClaude,
       tavilyAnalysisProvider: input.researchTavilyAnalysisProvider,
       gemmaPreset: input.researchGemmaPreset,
       gemmaReasoningEffort: input.researchGemmaReasoningEffort,

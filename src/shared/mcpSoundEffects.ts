@@ -235,6 +235,14 @@ export const mcpSoundEffectOutputs = {
         })
         .strict(),
       warnings: z.array(z.string()),
+      verification: z
+        .object({
+          provider: z.enum(["codex", "claude"]),
+          configuredModel: z.string(),
+          runtimeChecked: z.literal(false),
+        })
+        .strict()
+        .optional(),
     })
     .strict(),
   carrot_get_sound_effect_batch:

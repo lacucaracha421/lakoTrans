@@ -1,3 +1,4 @@
+import { ClaudeSettingsFields } from "../settingsModal/ClaudeSettingsFields";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { ResearchEngine } from "../../../../shared/internetResearchTypes";
@@ -35,6 +36,13 @@ export function StyleGuideResearchSetupContent({
           setApiKey={controller.setTavilyApiKey}
           setMaxCreditsPerRun={controller.setTavilyMaxCredits}
         />
+      ) : engine === "claude-web" ? (
+        <ClaudeSettingsFields
+          model="default"
+          effort="high"
+          disabled={controller.busy}
+          accountOnly
+        />
       ) : (
         <CodexAccountField
           controlsBusy={controller.busy}
@@ -60,16 +68,20 @@ function ResearchServiceIntro({
     <div className="style-guide-research-service-intro">
       <strong>
         {t(
-          engine === "tavily"
-            ? "styleGuide.analysis.engines.tavily"
-            : "styleGuide.analysis.engines.codex",
+          engine === "claude-web"
+            ? "settings.options.providers.claude.label"
+            : engine === "tavily"
+              ? "styleGuide.analysis.engines.tavily"
+              : "styleGuide.analysis.engines.codex",
         )}
       </strong>
       <span>
         {t(
-          engine === "tavily"
-            ? "settings.research.tavily.description"
-            : "settings.research.codex.description",
+          engine === "claude-web"
+            ? "settings.research.claude.description"
+            : engine === "tavily"
+              ? "settings.research.tavily.description"
+              : "settings.research.codex.description",
         )}
       </span>
     </div>

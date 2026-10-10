@@ -1,3 +1,4 @@
+import { researchWithClaude } from "./claude/claudeResearch";
 import { app } from "electron";
 import { join } from "node:path";
 import type { AppSettings } from "../shared/settingsTypes";
@@ -67,20 +68,27 @@ async function researchWorkContextWithSettings(
   });
   const context = await loadResearchContext(request, settings, signal);
   signal?.throwIfAborted();
-  const result =
-    request.engine === "codex-web"
-      ? await researchWithCodex(
+  const result: RawResearchResult =
+    request.engine === "claude-web"
+      ? await researchWithClaude(
           context.promptInput,
           settings,
           signal,
           onProgress,
         )
-      : await researchWithTavily(
-          context.promptInput,
-          settings,
-          signal,
-          onProgress,
-        );
+      : request.engine === "codex-web"
+        ? await researchWithCodex(
+            context.promptInput,
+            settings,
+            signal,
+            onProgress,
+          )
+        : await researchWithTavily(
+            context.promptInput,
+            settings,
+            signal,
+            onProgress,
+          );
   signal?.throwIfAborted();
   onProgress?.({
     progressText: "조사 결과 검증 중",
@@ -231,6 +239,8 @@ function resolveResearchLimits(
   engine: ResearchWorkContextRequest["engine"],
   settings: AppSettings,
 ): { contextTokens: number; outputTokens: number } {
+  if (engine === "claude-web")
+    return { contextTokens: 65536, outputTokens: 32768 };
   if (engine === "codex-web") {
     return {
       contextTokens: settings.internetResearch.codexContextTokens,

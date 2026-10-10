@@ -37,6 +37,7 @@ export class McpLocalHost {
     string,
     {
       principal: string;
+      clientName: string;
       observe: (result: McpChatObservation) => Promise<void>;
     }
   >();
@@ -59,11 +60,12 @@ export class McpLocalHost {
   async connect(
     principal: string,
     observe: (result: McpChatObservation) => Promise<void>,
+    clientName = "Codex",
   ) {
     const host = await this.ready();
     this.lifetime.signal.throwIfAborted();
     const token = randomBytes(32).toString("base64url");
-    this.clients.set(`Bearer ${token}`, { principal, observe });
+    this.clients.set(`Bearer ${token}`, { principal, observe, clientName });
     return {
       url: host.server.url,
       token,
@@ -101,6 +103,7 @@ export class McpLocalHost {
         scopeFor: (header) =>
           this.clients.has(header) ? INTERNAL_SCOPES : undefined,
         principalFor: (header) => this.clients.get(header)?.principal,
+        clientNameFor: (header) => this.clients.get(header)?.clientName,
         scopeForPrincipal: (principal) =>
           [...this.clients.values()].some((c) => c.principal === principal)
             ? INTERNAL_SCOPES

@@ -128,7 +128,8 @@ function collectRequiredHfDownloads(
   options = {},
   target = inspectModelLaunch(options),
 ) {
-  if (["openai-codex", "openai-api"].includes(target.launchMode)) return [];
+  if (["openai-codex", "openai-api", "claude-code"].includes(target.launchMode))
+    return [];
   return [
     buildModelDownload(options, target),
     buildMmprojDownload(options, target),

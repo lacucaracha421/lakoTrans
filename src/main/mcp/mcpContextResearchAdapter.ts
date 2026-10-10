@@ -119,17 +119,19 @@ function contextResearchResources(
       libraryStructureResource("chapter", id, "read"),
       { ...pageContentResource(id, "**"), access: "read" as const },
     ]),
-    ...(engine === "codex-web"
-      ? [{ kind: "codex-auth" as const, scope: "*", access: "read" as const }]
-      : remoteAnalysis
-        ? []
-        : [
-            {
-              kind: "model-runtime" as const,
-              scope: "*",
-              access: "write" as const,
-            },
-          ]),
+    ...(engine === "claude-web"
+      ? [{ kind: "claude-auth" as const, scope: "*", access: "read" as const }]
+      : engine === "codex-web"
+        ? [{ kind: "codex-auth" as const, scope: "*", access: "read" as const }]
+        : remoteAnalysis
+          ? []
+          : [
+              {
+                kind: "model-runtime" as const,
+                scope: "*",
+                access: "write" as const,
+              },
+            ]),
   ];
 }
 

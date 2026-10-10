@@ -1789,6 +1789,9 @@
         "rateLimited": "Tavily is receiving too many requests. Try again shortly.",
         "invalidResponse": "Could not read the Tavily usage response.",
         "networkFailed": "Could not connect to Tavily. Check your network connection."
+      },
+      "claude": {
+        "description": "Research work details and terminology with Claude web search."
       }
     },
     "options": {
@@ -1840,6 +1843,10 @@
         "api": {
           "label": "API",
           "description": "Use an OpenAI-compatible API endpoint."
+        },
+        "claude": {
+          "label": "Claude Code",
+          "description": "Translate using Claude Code."
         }
       },
       "reasoning": {
@@ -2389,7 +2396,8 @@
     "image": {
       "localErasure": "Default erasure",
       "codex": "Codex image tools",
-      "description": "Erase text and generate sound effects independently of the translation engine. Astra is strongly recommended."
+      "description": "Erase text and generate sound effects independently of the translation engine. Astra is strongly recommended.",
+      "review": "Image review"
     },
     "backup": {
       "title": "Backup and transfer",
@@ -2410,6 +2418,17 @@
       "cancel": "Cancel operation",
       "saved": "Backup saved: {{path}}",
       "restored": "Environment restored. Check API keys, account sign-in, external folders and custom model paths. Reconfigure custom API headers and extra request bodies."
+    },
+    "claude": {
+      "account": "Claude account",
+      "login": "Sign in",
+      "console": "Connect API account",
+      "logout": "Sign out",
+      "refresh": "Refresh",
+      "model": "Model",
+      "effort": "Reasoning effort",
+      "error": "Check your Claude connection.",
+      "testing": "Checking Claude Code connection and model response."
     }
   },
   "pageBlocks": {
@@ -2486,7 +2505,8 @@
         "environment-restore": "Environment restore",
         "model-test": "Model check",
         "codex-auth": "ChatGPT account",
-        "sound-effect-translation": "Sound effect translation"
+        "sound-effect-translation": "Sound effect translation",
+        "claude-auth": "Claude Code"
       },
       "status": {
         "idle": "Idle",
@@ -3103,6 +3123,9 @@
       "substitutions": "{{count}} font substitutions"
     },
     "redo": "Check reapply",
-    "redoRequest": "Check the retained recovery record and current revision for {{tool}}. Reapply only if still available without overwriting later manual edits. Result: {{result}}"
+    "redoRequest": "Check the retained recovery record and current revision for {{tool}}. Reapply only if still available without overwriting later manual edits. Result: {{result}}",
+    "runtime": "Chat runtime",
+    "claudeLoginHint": "Sign in to Claude to start chatting.",
+    "claudeLogin": "Sign in to Claude"
   }
 }

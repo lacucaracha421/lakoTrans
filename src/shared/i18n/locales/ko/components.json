@@ -1789,6 +1789,9 @@
         "rateLimited": "Tavily 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
         "invalidResponse": "Tavily 사용량 응답을 읽지 못했습니다.",
         "networkFailed": "Tavily 서버에 연결하지 못했습니다. 네트워크를 확인해 주세요."
+      },
+      "claude": {
+        "description": "Claude 웹 검색으로 작품 정보와 용어를 조사합니다."
       }
     },
     "options": {
@@ -1840,6 +1843,10 @@
         "api": {
           "label": "API",
           "description": "OpenAI 호환 API 엔드포인트를 사용합니다."
+        },
+        "claude": {
+          "label": "Claude Code",
+          "description": "Claude 계정으로 번역합니다."
         }
       },
       "reasoning": {
@@ -2389,7 +2396,8 @@
     "image": {
       "localErasure": "기본 원문 제거",
       "codex": "Codex 이미지 도구",
-      "description": "번역 엔진과 별도로 원문 제거와 효과음 이미지에 사용합니다. Astra 사용을 강력히 권장합니다."
+      "description": "번역 엔진과 별도로 원문 제거와 효과음 이미지에 사용합니다. Astra 사용을 강력히 권장합니다.",
+      "review": "이미지 검수"
     },
     "backup": {
       "title": "백업 및 이관",
@@ -2410,6 +2418,17 @@
       "cancel": "작업 취소",
       "saved": "백업을 저장했습니다: {{path}}",
       "restored": "환경을 복원했습니다. API 키·계정 로그인, 외부 폴더 연결과 사용자 지정 모델 경로를 확인해 주세요. API의 사용자 지정 헤더와 추가 요청 본문도 다시 설정해 주세요."
+    },
+    "claude": {
+      "account": "Claude 계정",
+      "login": "로그인",
+      "console": "API 계정 연결",
+      "logout": "로그아웃",
+      "refresh": "새로고침",
+      "model": "모델",
+      "effort": "추론 수준",
+      "error": "Claude 연결을 확인해 주세요.",
+      "testing": "Claude Code 연결과 모델 응답을 확인합니다."
     }
   },
   "pageBlocks": {
@@ -2486,7 +2505,8 @@
         "environment-restore": "환경 복원",
         "model-test": "모델 확인",
         "codex-auth": "ChatGPT 계정",
-        "sound-effect-translation": "효과음 번역"
+        "sound-effect-translation": "효과음 번역",
+        "claude-auth": "Claude Code"
       },
       "status": {
         "idle": "대기",
@@ -3103,6 +3123,9 @@
       "substitutions": "폰트 대체 {{count}}건"
     },
     "redo": "다시 적용 확인",
-    "redoRequest": "{{tool}}의 복구 기록과 현재 revision을 확인하고, 다시 적용할 수 있다면 적용해줘. 이후 수동 편집은 덮어쓰지 마. 결과: {{result}}"
+    "redoRequest": "{{tool}}의 복구 기록과 현재 revision을 확인하고, 다시 적용할 수 있다면 적용해줘. 이후 수동 편집은 덮어쓰지 마. 결과: {{result}}",
+    "runtime": "대화 실행기",
+    "claudeLoginHint": "Claude에 로그인하면 채팅을 시작할 수 있습니다.",
+    "claudeLogin": "Claude 로그인"
   }
 }

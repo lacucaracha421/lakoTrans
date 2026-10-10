@@ -547,10 +547,10 @@ describe("production cleanup coverage floor gate", () => {
     expect(Object.keys(manifest.floors)).toEqual(scope.existing);
     expect(Object.keys(manifest.introducedFloors)).toEqual(scope.added);
     expect(manifest.deletedFiles).toEqual(scope.deleted);
-    expect(scope.existing).toHaveLength(836);
+    expect(scope.existing).toHaveLength(840);
     // Includes global chat, shared actions, OpenCode help, MCP event streams and other-client guidance;
     // inherited floors remain unchanged.
-    expect(scope.added).toHaveLength(1421);
+    expect(scope.added).toHaveLength(1438);
     expect(scope.deleted).toHaveLength(12);
   });
 });

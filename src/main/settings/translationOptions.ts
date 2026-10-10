@@ -36,6 +36,8 @@ export function buildBaseTranslationOptions({
     imagePath: "",
     outputDir: runDir,
     modelProvider: settings.modelProvider,
+    claudeModel: settings.claude?.model ?? "default",
+    claudeEffort: settings.claude?.effort ?? "high",
     ...resolveTranslationLanguageSettings(settings.translation),
     promptMode: "overlay_bbox_lines_multiview",
     ...resolveGemmaTranslationOptions({

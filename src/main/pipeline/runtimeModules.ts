@@ -1,4 +1,8 @@
 import type { TranslationOptions } from "../appSettings";
+import {
+  startClaudeEndpoint,
+  isClaudeEndpoint,
+} from "../claude/claudeEndpoint";
 import { getAppPaths } from "../appPaths";
 import {
   startCodexAppServerEndpoint,
@@ -61,6 +65,7 @@ async function startModelEndpoint(
   runtime: RuntimeModules,
   options: TranslationOptions,
 ): Promise<ModelEndpointHandle> {
+  if (options.modelProvider === "claude-code") return startClaudeEndpoint();
   if (options.modelProvider === "openai-codex") {
     return startCodexAppServerEndpoint(options);
   }
@@ -149,6 +154,10 @@ async function stopModelEndpoint(
   >,
   onCleanupWarning?: (message: string, detail?: unknown) => void,
 ): Promise<void> {
+  if (isClaudeEndpoint(endpoint)) {
+    await endpoint.close();
+    return;
+  }
   if (isCodexAppServerEndpoint(endpoint)) {
     await stopCodexAppServerEndpoint(endpoint);
     return;

@@ -1,7 +1,7 @@
 import type { CodexReasoningEffort } from "./codexSettings";
 import type { ApiProviderPresetId } from "./apiProviderPresets";
 
-export const RESEARCH_ENGINES = ["tavily", "codex-web"] as const;
+export const RESEARCH_ENGINES = ["tavily", "codex-web", "claude-web"] as const;
 export type ResearchEngine = (typeof RESEARCH_ENGINES)[number];
 
 export const TAVILY_ANALYSIS_PROVIDERS = ["gemma", "api"] as const;
@@ -48,6 +48,7 @@ export type ResearchApiProfileSettings = {
 };
 
 export type InternetResearchSettings = {
+  claude?: import("./claudeTypes").ClaudePreferences;
   tavilyAnalysisProvider: TavilyAnalysisProvider;
   gemmaPreset: ResearchGemmaPreset;
   gemmaReasoningEffort: ResearchGemmaReasoningEffort;

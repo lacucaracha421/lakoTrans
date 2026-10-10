@@ -1,5 +1,6 @@
 export type AppActivityResourceKind =
   | "model-runtime"
+  | "claude-auth"
   | "codex-auth"
   | "page-content"
   | "library-structure"
@@ -128,6 +129,7 @@ export function activityConflictReason(
   switch (resource) {
     case "model-runtime":
       return "다른 작업이 모델을 사용 중입니다.";
+    case "claude-auth":
     case "codex-auth":
       return "ChatGPT 계정을 사용하는 작업이 진행 중입니다.";
     case "page-content":

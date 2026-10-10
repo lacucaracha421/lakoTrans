@@ -55,6 +55,7 @@ export function ChatTranscript({
           key={item.id}
           item={item}
           sessionId={session.id}
+          runtime={session.runtime}
           onPage={onPage}
           onUndo={onUndo}
         />
@@ -65,11 +66,13 @@ export function ChatTranscript({
 function ChatMessage({
   item,
   sessionId,
+  runtime,
   onPage,
   onUndo,
 }: {
   item: ChatItem;
   sessionId: string;
+  runtime: ChatSession["runtime"];
   onPage?: (chapter: string, page: string) => void;
   onUndo: (item: ChatItem) => void;
 }) {
@@ -87,7 +90,13 @@ function ChatMessage({
     <article
       className={`${styles.message} ${item.role === "user" ? styles.user : ""}`}
     >
-      <strong className={styles.author}>{t(`chat.roles.${item.role}`)}</strong>
+      <strong className={styles.author}>
+        {item.role === "assistant"
+          ? runtime === "claude"
+            ? "Claude"
+            : "Codex"
+          : t(`chat.roles.${item.role}`)}
+      </strong>
       {item.context?.chapterTitle && (
         <small className={styles.messageContext}>
           {item.context.workTitle} · {item.context.chapterTitle}

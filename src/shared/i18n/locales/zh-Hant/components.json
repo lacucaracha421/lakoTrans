@@ -1789,6 +1789,9 @@
         "rateLimited": "Tavily 請求過多，請稍後重試。",
         "invalidResponse": "無法讀取 Tavily 使用量回應。",
         "networkFailed": "無法連線 Tavily，請檢查網路。"
+      },
+      "claude": {
+        "description": "使用 Claude 網頁搜尋調查作品資訊和術語。"
       }
     },
     "options": {
@@ -1840,6 +1843,10 @@
         "api": {
           "label": "API",
           "description": "使用 OpenAI 相容 API 端點。"
+        },
+        "claude": {
+          "label": "Claude Code",
+          "description": "Translate using Claude Code."
         }
       },
       "reasoning": {
@@ -2389,7 +2396,8 @@
     "image": {
       "localErasure": "預設原文清除",
       "codex": "Codex 圖像工具",
-      "description": "獨立於翻譯引擎，用於清除原文及產生音效圖像。強烈建議使用 Astra。"
+      "description": "獨立於翻譯引擎，用於清除原文及產生音效圖像。強烈建議使用 Astra。",
+      "review": "圖像檢查"
     },
     "backup": {
       "title": "備份與移轉",
@@ -2410,6 +2418,17 @@
       "cancel": "取消操作",
       "saved": "備份已儲存：{{path}}",
       "restored": "環境已還原。請檢查 API 金鑰、登入、外部資料夾、自訂模型路徑，並重新設定 API 自訂標頭與附加請求本文。"
+    },
+    "claude": {
+      "account": "Claude 帳戶",
+      "login": "登入 Claude",
+      "console": "登入 API 帳戶",
+      "logout": "登出",
+      "refresh": "重新整理",
+      "model": "模型",
+      "effort": "推理等級",
+      "error": "無法連線至 Claude。",
+      "testing": "檢查 Claude Code 連線與模型回應。"
     }
   },
   "pageBlocks": {
@@ -2486,7 +2505,8 @@
         "environment-restore": "環境還原",
         "model-test": "模型檢查",
         "codex-auth": "ChatGPT 帳戶",
-        "sound-effect-translation": "音效翻譯"
+        "sound-effect-translation": "音效翻譯",
+        "claude-auth": "Claude Code"
       },
       "status": {
         "idle": "待命",
@@ -3103,6 +3123,9 @@
       "substitutions": "{{count}} 項字型替代"
     },
     "redo": "檢查能否重新套用",
-    "redoRequest": "請檢查 {{tool}} 的復原記錄和目前修訂，只在不會覆蓋後續手動編輯且仍可復原時重新套用。結果：{{result}}"
+    "redoRequest": "請檢查 {{tool}} 的復原記錄和目前修訂，只在不會覆蓋後續手動編輯且仍可復原時重新套用。結果：{{result}}",
+    "runtime": "對話執行器",
+    "claudeLoginHint": "請登入 Claude 帳戶。",
+    "claudeLogin": "登入 Claude"
   }
 }

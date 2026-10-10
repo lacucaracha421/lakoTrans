@@ -33,7 +33,10 @@ export function resolveModelProvider(
   value: unknown,
   fallback: ModelProvider,
 ): ModelProvider {
-  return value === "openai-api" || value === "openai-codex" || value === "gemma"
+  return value === "claude-code" ||
+    value === "openai-api" ||
+    value === "openai-codex" ||
+    value === "gemma"
     ? value
     : fallback;
 }

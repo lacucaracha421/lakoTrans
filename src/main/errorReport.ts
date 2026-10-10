@@ -311,6 +311,9 @@ function renderLogMarkdown(
 }
 
 function safeModelIdentifier(settings: AppSettings): string {
+  if (settings.modelProvider === "claude-code") {
+    return `${settings.claude?.model ?? "default"} / ${settings.claude?.effort ?? "high"}`;
+  }
   if (settings.modelProvider === "openai-codex") {
     return `${settings.codex.model} / ${settings.codex.reasoningEffort}`;
   }

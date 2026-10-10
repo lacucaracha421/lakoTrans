@@ -1,4 +1,9 @@
 import { throwIfAborted } from "../abortSignal";
+import {
+  startClaudeEndpoint,
+  isClaudeEndpoint,
+  type ClaudeEndpoint,
+} from "../claude/claudeEndpoint";
 import type { TranslationOptions } from "../appSettings";
 import {
   startCodexAppServerEndpoint,
@@ -23,6 +28,7 @@ import { reserveFreePort } from "./settingsModelTestPort";
 const MODEL_TEST_PORT_ATTEMPTS = 4;
 
 export type ModelTestServer =
+  | ClaudeEndpoint
   | Awaited<ReturnType<SimplePageRuntime["startServer"]>>
   | CodexAppServerEndpoint
   | OpenAICompatibleApiEndpoint;
@@ -44,6 +50,8 @@ export async function startModelTestServerWithRetry(
   endpointRuntime: ModelTestEndpointRuntime,
 ): Promise<{ server: ModelTestServer; options: TranslationOptions }> {
   throwIfAborted(initialOptions.abortSignal ?? undefined);
+  if (initialOptions.modelProvider === "claude-code")
+    return { server: await startClaudeEndpoint(), options: initialOptions };
   if (initialOptions.modelProvider === "openai-api") {
     return {
       server: createOpenAICompatibleApiEndpoint(initialOptions),
@@ -87,6 +95,10 @@ export async function stopModelTestServer(
   options: TranslationOptions,
   onWarning: ModelLifecycleWarning,
 ): Promise<void> {
+  if (isClaudeEndpoint(server)) {
+    await server.close();
+    return;
+  }
   if (isCodexAppServerEndpoint(server)) {
     await endpointRuntime.stopCodexAppServerEndpoint(server);
     return;

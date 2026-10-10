@@ -36,7 +36,7 @@ export type ChatSession = {
   version: 1;
   id: string;
   title: string;
-  runtime: "codex";
+  runtime: "codex" | "claude";
   nativeThreadId: string | null;
   model: string | null;
   effort: string | null;
@@ -55,7 +55,7 @@ export type ChatSession = {
 };
 export type ChatSummary = Pick<
   ChatSession,
-  "id" | "title" | "state" | "updatedAt" | "model" | "effort"
+  "id" | "title" | "state" | "updatedAt" | "model" | "effort" | "runtime"
 >;
 export type ChatSendRequest = {
   sessionId: string;
@@ -69,7 +69,7 @@ export type ChatSendRequest = {
 export type ChatEvent = { sessionId: string; session: ChatSession };
 export type ChatApi = {
   listChats: () => Promise<ChatSummary[]>;
-  createChat: () => Promise<ChatSession>;
+  createChat: (runtime?: ChatSession["runtime"]) => Promise<ChatSession>;
   readChat: (id: string) => Promise<ChatSession>;
   sendChat: (request: ChatSendRequest) => Promise<ChatSession>;
   stopChat: (id: string) => Promise<ChatSession>;

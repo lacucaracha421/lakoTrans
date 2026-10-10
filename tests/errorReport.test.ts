@@ -28,6 +28,29 @@ afterEach(() => {
 });
 
 describe("error report diagnostics", () => {
+  it.each([undefined, { model: "sonnet", effort: "max" as const }])(
+    "identifies Claude in diagnostics without API credentials",
+    async (claude) => {
+      const paths = makeAppPaths(createTempDir());
+      const environment = makeEnvironment(
+        paths,
+        join(paths.logsDir, "previous.log"),
+      );
+      environment.settings = {
+        ...makeSettings(),
+        modelProvider: "claude-code",
+        claude,
+      };
+      const draft = await buildErrorReportDraft(
+        { source: "job-failure", summary: "failed", message: "request failed" },
+        environment,
+      );
+      expect(draft.systemMarkdown).toContain(
+        claude ? "sonnet / max" : "default / high",
+      );
+      expect(draft.systemMarkdown).not.toContain("sk-private-api-key");
+    },
+  );
   it("redacts secrets, user content, and generic local paths idempotently", () => {
     const paths = makeAppPaths("C:\\Users\\sam\\Downloads\\translator");
     const input = [

@@ -1789,6 +1789,9 @@
         "rateLimited": "Tavily 请求过多，请稍后重试。",
         "invalidResponse": "无法读取 Tavily 使用量响应。",
         "networkFailed": "无法连接 Tavily，请检查网络。"
+      },
+      "claude": {
+        "description": "使用 Claude 网页搜索调查作品信息和术语。"
       }
     },
     "options": {
@@ -1840,6 +1843,10 @@
         "api": {
           "label": "API",
           "description": "使用兼容OpenAI的API端点。"
+        },
+        "claude": {
+          "label": "Claude Code",
+          "description": "Translate using Claude Code."
         }
       },
       "reasoning": {
@@ -2389,7 +2396,8 @@
     "image": {
       "localErasure": "默认原文擦除",
       "codex": "Codex 图像工具",
-      "description": "独立于翻译引擎，用于擦除原文和生成音效图像。强烈推荐使用 Astra。"
+      "description": "独立于翻译引擎，用于擦除原文和生成音效图像。强烈推荐使用 Astra。",
+      "review": "图像检查"
     },
     "backup": {
       "title": "备份与迁移",
@@ -2410,6 +2418,17 @@
       "cancel": "取消操作",
       "saved": "备份已保存：{{path}}",
       "restored": "环境已恢复。请检查 API 密钥、登录、外部文件夹、自定义模型路径，并重新设置 API 自定义请求头和附加请求正文。"
+    },
+    "claude": {
+      "account": "Claude 账户",
+      "login": "登录 Claude",
+      "console": "登录 API 账户",
+      "logout": "退出登录",
+      "refresh": "刷新",
+      "model": "模型",
+      "effort": "推理级别",
+      "error": "无法连接到 Claude。",
+      "testing": "检查 Claude Code 连接和模型响应。"
     }
   },
   "pageBlocks": {
@@ -2486,7 +2505,8 @@
         "environment-restore": "环境恢复",
         "model-test": "模型检查",
         "codex-auth": "ChatGPT 账户",
-        "sound-effect-translation": "音效翻译"
+        "sound-effect-translation": "音效翻译",
+        "claude-auth": "Claude Code"
       },
       "status": {
         "idle": "空闲",
@@ -3103,6 +3123,9 @@
       "substitutions": "{{count}} 项字体替代"
     },
     "redo": "检查能否重新应用",
-    "redoRequest": "请检查 {{tool}} 的恢复记录和当前修订，只在不会覆盖后续手动编辑且仍可恢复时重新应用。结果：{{result}}"
+    "redoRequest": "请检查 {{tool}} 的恢复记录和当前修订，只在不会覆盖后续手动编辑且仍可恢复时重新应用。结果：{{result}}",
+    "runtime": "对话运行器",
+    "claudeLoginHint": "请登录 Claude 账户。",
+    "claudeLogin": "登录 Claude"
   }
 }

@@ -60,7 +60,15 @@ export function resolveDefaultAppSettings(
     translation: resolveDefaultTranslationLanguageSettings(env),
     gemma,
     codex,
-    internetResearch,
+    claude: { model: "default", effort: "high" },
+    imageReview: {
+      provider: "codex",
+      claude: { model: "default", effort: "high" },
+    },
+    internetResearch: {
+      ...internetResearch,
+      claude: { model: "default", effort: "high" },
+    },
     api,
     ocr: resolveDefaultOcrSettings(env, hardwareDefaults),
     ui: resolveDefaultUiSettings(env),

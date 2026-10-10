@@ -371,6 +371,8 @@ function summarizeRecognitionSegments(value) {
  * @returns {string}
  */
 function resolveRequestModelName(options = {}) {
+  if (options.modelProvider === "claude-code")
+    return String(options.claudeModel || "default");
   if (isOpenAICodexProvider(options)) {
     return resolveConfiguredCodexModel(options);
   }

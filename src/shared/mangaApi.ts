@@ -132,6 +132,7 @@ import type {
 } from "./linkedWorkspaceTypes";
 import type { CodexAccountSnapshot } from "./codexAccountTypes";
 import type { ChatApi } from "./chatTypes";
+import type { ClaudeApi } from "./claudeTypes";
 import type {
   FinishPageTimingSessionRequest,
   FinishPageTimingSessionResult,
@@ -195,7 +196,7 @@ type McpApi = {
   copyMcpUrl: () => Promise<{ completed: boolean }>;
 };
 
-export interface MangaApi extends McpApi, ChatApi {
+export interface MangaApi extends McpApi, ChatApi, ClaudeApi {
   discardEnvironmentBackup: (id: string) => Promise<null>;
   getEnvironmentRestoreReceipt: () => Promise<
     import("./environmentBackup").BackupStatus["restored"]

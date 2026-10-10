@@ -36,6 +36,8 @@ export function resolveActiveGenerationLimits(
   modelProvider: AppSettings["modelProvider"],
   api: ResolvedApiSettings,
 ): GenerationLimitSettings {
+  if (modelProvider === "claude-code")
+    return profiles.claude ?? { maxTokens: 32768, contextTokens: 65536 };
   if (modelProvider === "gemma") return profiles.gemma;
   if (modelProvider === "openai-codex") return profiles.codex;
   return profiles.api[api.provider] ?? profiles.codex;
@@ -51,6 +53,7 @@ function createRecommendedProfiles(
   return {
     gemma: toGenerationLimits(gemma),
     codex: toGenerationLimits(codexLimits),
+    claude: { maxTokens: 32768, contextTokens: 65536 },
     api: { [api.provider]: toGenerationLimits(apiLimits) },
   };
 }

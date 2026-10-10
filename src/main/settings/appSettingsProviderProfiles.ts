@@ -174,6 +174,15 @@ export function normalizeGenerationLimitProfiles({
       ),
       resolveCodexGenerationLimitFallback(codex, defaults),
     ),
+    claude: normalizeGenerationLimits(
+      resolveProviderLimitSource(
+        asRecord(record.claude),
+        modelProvider === "claude-code",
+        rawMaxTokens,
+        rawContextTokens,
+      ),
+      { maxTokens: 32768, contextTokens: 65536 },
+    ),
     api: apiProfiles,
   };
 }
@@ -309,6 +318,8 @@ export function resolveActiveGenerationLimits(
   modelProvider: AppSettings["modelProvider"],
   apiProvider: ApiProviderPresetId,
 ): GenerationLimitSettings {
+  if (modelProvider === "claude-code")
+    return profiles.claude ?? { maxTokens: 32768, contextTokens: 65536 };
   if (modelProvider === "gemma") return profiles.gemma;
   if (modelProvider === "openai-codex") return profiles.codex;
   return profiles.api[apiProvider] ?? profiles.codex;

@@ -53,10 +53,14 @@ function resolveAppOperationKindLabel(
   if (activity.kind === "model-test") {
     return t("statusDock.operation.kind.modelTest");
   }
-  if (activity.kind === "codex-auth") {
-    return t("statusDock.operation.kind.codexAuth");
-  }
-  return t("statusDock.operation.kind.background");
+  const authenticationLabels = {
+    "claude-auth": "statusDock.operation.kind.claudeAuth",
+    "codex-auth": "statusDock.operation.kind.codexAuth",
+  } as const;
+  return t(
+    authenticationLabels[activity.kind as keyof typeof authenticationLabels] ??
+      "statusDock.operation.kind.background",
+  );
 }
 
 function resolveAppOperationPhaseLabel(

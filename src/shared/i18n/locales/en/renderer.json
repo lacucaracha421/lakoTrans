@@ -540,7 +540,8 @@
         "codexAuth": "Connect ChatGPT account",
         "background": "Background task",
         "environmentBackup": "Export backup",
-        "environmentRestore": "Import backup"
+        "environmentRestore": "Import backup",
+        "claudeAuth": "Claude account"
       },
       "source": {
         "files": "file",

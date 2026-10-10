@@ -172,6 +172,12 @@ function findSnapshotModelTarget(context) {
 
 /** @param {ModelAssetOptions} [options] @returns {ModelLaunchTarget} */
 function inspectModelLaunch(options = {}) {
+  if (options.modelProvider === "claude-code")
+    return {
+      launchMode: "claude-code",
+      model: String(options.claudeModel || "default"),
+      requiresDownload: false,
+    };
   if (isOpenAICodexProvider(options)) return buildCodexTarget(options);
   if (isOpenAIApiProvider(options)) return buildApiTarget(options);
   if (resolveConfiguredModelSource(options) === "local")
@@ -235,7 +241,8 @@ function buildLocalTarget(options) {
 /** @param {ModelAssetOptions} [options] */
 function isModelCached(options = {}) {
   const target = inspectModelLaunch(options);
-  if (["openai-codex", "openai-api"].includes(target.launchMode)) return true;
+  if (["openai-codex", "openai-api", "claude-code"].includes(target.launchMode))
+    return true;
   if (target.launchMode === "local") {
     return Boolean(
       target.modelPath &&

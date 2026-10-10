@@ -8,6 +8,7 @@
 - Kenney `Interface Sounds`의 `confirmation_002.ogg` 완료 알림음. 원본은 [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds)에서 Creative Commons Zero(CC0)로 배포되며, 번들 파일 `src/renderer/src/assets/audio/completion.ogg`의 SHA-256은 `33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c`입니다.
 - Apache-2.0 `ogkalu/comic-text-and-bubble-detector`의 RT-DETR-v2 ONNX 모델과 MIT `onnxruntime-web`. 앱은 말풍선·말풍선 안 텍스트·자유글 후보를 찾기 위해 고정 revision의 INT8 모델을 SHA-256 검증 후 내려받습니다.
 - Apache-2.0 `@openai/codex` 공식 패키지와 플랫폼별 네이티브 Codex 런타임. 설치판은 고정 버전의 공식 Codex App Server 바이너리를 `resources/c`에 포함하고 패키지 매니페스트와 버전을 검증합니다.
+- Anthropic `@anthropic-ai/claude-agent-sdk`와 공식 Claude Code 네이티브 런타임. 수정하지 않은 공식 실행 파일과 원본 라이선스를 `resources/claude`에 포함합니다. Claude Code 사용에는 Anthropic의 [Legal Agreements](https://code.claude.com/docs/en/legal-and-compliance)가 적용됩니다.
 - ffmpeg
 - llama.cpp, beellama, Lemonade ROCm runtime
 - PaddleOCR, PaddlePaddle, Python runtime

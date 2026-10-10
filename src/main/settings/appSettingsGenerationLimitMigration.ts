@@ -17,6 +17,7 @@ export function migrateLegacyRemoteGenerationLimits(
     !normalized.generationLimits ||
     record.generationLimitsVersion === CURRENT_GENERATION_LIMITS_VERSION ||
     normalized.modelProvider === "gemma" ||
+    normalized.modelProvider === "claude-code" ||
     record.maxTokens !== LEGACY_GEMMA_MAX_TOKENS ||
     record.ctx !== LEGACY_GEMMA_CONTEXT_TOKENS
   ) {

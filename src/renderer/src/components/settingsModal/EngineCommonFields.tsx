@@ -317,7 +317,9 @@ function resolveLimitRecommendation({
     modelLabel:
       modelProvider === "gemma"
         ? "Gemma"
-        : (codexModelLabel ?? preset?.label ?? (model?.trim() || "Custom")),
+        : modelProvider === "claude-code"
+          ? "Claude Code"
+          : (codexModelLabel ?? preset?.label ?? (model?.trim() || "Custom")),
   };
 }
 

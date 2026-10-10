@@ -7,7 +7,7 @@
 
 const {
   isOpenAIApiProvider,
-  isOpenAICodexProvider,
+  usesResponsesTransport,
   resolveConfiguredCodexReasoningEffort,
 } = require("../simple-page-model-config.cjs");
 const { inspectModelLaunch } = require("../simple-page-model-assets.cjs");
@@ -54,7 +54,7 @@ async function testModelReply(server, options) {
   );
   const boundedOptions = { ...options, abortSignal: deadline.signal };
   try {
-    if (isOpenAICodexProvider(boundedOptions)) {
+    if (usesResponsesTransport(boundedOptions)) {
       return await testCodexResponsesReply(server, boundedOptions);
     }
 
@@ -215,7 +215,12 @@ function buildCodexProbeRequest(options) {
         content: [{ type: "input_text", text: "Say 'model test ok'." }],
       },
     ],
-    reasoning: { effort: resolveConfiguredCodexReasoningEffort(options) },
+    reasoning: {
+      effort:
+        options.modelProvider === "claude-code"
+          ? String(options.claudeEffort || "high")
+          : resolveConfiguredCodexReasoningEffort(options),
+    },
     stream: true,
     store: false,
   };

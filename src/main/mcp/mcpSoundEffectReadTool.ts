@@ -79,6 +79,7 @@ export function createMcpSoundEffectReadTool(paths: AppPaths) {
           configuredModel: settings.codex.imageModel,
           runtimeChecked: false as const,
         },
+        verification: describeReader(settings),
         warnings: [
           "stored_candidates_only_no_detection",
           "image_state_is_text_metadata_not_visual_quality",
@@ -87,4 +88,17 @@ export function createMcpSoundEffectReadTool(paths: AppPaths) {
       };
     },
   });
+}
+
+function describeReader(
+  settings: Awaited<ReturnType<typeof readMcpSoundEffectSettings>>,
+) {
+  return {
+    provider: settings.imageReview.provider,
+    configuredModel:
+      settings.imageReview.provider === "claude"
+        ? settings.imageReview.claude.model
+        : settings.codex.imageModel,
+    runtimeChecked: false as const,
+  };
 }

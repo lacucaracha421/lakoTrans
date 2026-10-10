@@ -378,6 +378,8 @@ function researchActivityResources(
   context: WorkContextJobContext,
   request: ResearchWorkContextRequest,
 ): AppActivityResource[] {
+  if (request.engine === "claude-web")
+    return [{ kind: "claude-auth", scope: "*", access: "read" }];
   return request.engine === "codex-web"
     ? [{ kind: "codex-auth", scope: "*", access: "read" }]
     : context.executionSettings?.internetResearch.tavilyAnalysisProvider ===

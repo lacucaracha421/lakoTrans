@@ -540,7 +540,8 @@
         "codexAuth": "ChatGPTアカウント接続",
         "background": "バックグラウンド処理",
         "environmentBackup": "バックアップを書き出す",
-        "environmentRestore": "バックアップを読み込む"
+        "environmentRestore": "バックアップを読み込む",
+        "claudeAuth": "Claude アカウント"
       },
       "source": {
         "files": "ファイル",

@@ -11,6 +11,7 @@ import type { CodexProgressUpdate } from "../shared/codexTypesettingProgress";
 import { getAppPaths } from "./appPaths";
 import { getAppSettings } from "./settingsStore";
 import { startCodexImageSession } from "./codexImageSession";
+import { startImageReviewSession } from "./imageReviewSession";
 import {
   eraseTranslatedPage,
   CodexImageErasureError,
@@ -160,12 +161,11 @@ async function prepareImageReading(input: CodexImageEdit) {
   const directory = join(input.directory, "codex-image", input.page.id);
   await mkdir(directory, { recursive: true });
   const paths = getAppPaths();
-  const planner = await startCodexImageSession(
+  const planner = await startImageReviewSession(
     paths,
     await getAppSettings(paths),
     directory,
     input.signal,
-    "isolated",
   );
   try {
     return await planCodexImageRegions(

@@ -36,6 +36,7 @@ export async function startWorkContextAnalysisWithOwnership(
     const resources: AppActivityResource[] = [
       modelRuntimeResource(exclusiveModel),
       { kind: "codex-auth", scope: "*", access: "read" },
+      { kind: "claude-auth", scope: "*", access: "read" },
       { kind: "work-context", scope: chapter.workId, access: "write" },
       libraryStructureResource("work", chapter.workId, "read"),
       ...chapterIds.flatMap((chapterId): AppActivityResource[] => [

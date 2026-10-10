@@ -244,6 +244,7 @@ function resolveModelTestLaunchMode(
   options: TranslationOptions,
   gemmaLaunchMode: ModelTestResult["launchMode"],
 ): ModelTestResult["launchMode"] {
+  if (options.modelProvider === "claude-code") return "claude-code";
   if (options.modelProvider === "openai-codex") {
     return "openai-codex";
   }
@@ -254,6 +255,7 @@ function resolveModelTestLaunchMode(
 
 function shouldExposeModelTestEndpoint(options: TranslationOptions): boolean {
   return (
+    options.modelProvider === "claude-code" ||
     options.modelProvider === "openai-codex" ||
     options.modelProvider === "openai-api"
   );
@@ -299,6 +301,7 @@ function resolveModelTestId(providedTestId: unknown): string {
 function resolveSettingsLaunchMode(
   settings: AppSettings,
 ): ModelTestResult["launchMode"] {
+  if (settings.modelProvider === "claude-code") return "claude-code";
   if (settings.modelProvider === "openai-codex") {
     return "openai-codex";
   }

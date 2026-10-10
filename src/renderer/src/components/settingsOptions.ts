@@ -161,6 +161,11 @@ export const MODEL_PROVIDER_OPTIONS: ModelProviderOption[] = [
     descriptionKey: "settings.options.providers.codex.description",
   },
   {
+    id: "claude-code",
+    labelKey: "settings.options.providers.claude.label",
+    descriptionKey: "settings.options.providers.claude.description",
+  },
+  {
     id: "openai-api",
     labelKey: "settings.options.providers.api.label",
     descriptionKey: "settings.options.providers.api.description",

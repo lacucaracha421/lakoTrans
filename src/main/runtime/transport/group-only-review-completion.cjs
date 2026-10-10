@@ -3,7 +3,7 @@
 const { buildRequestSummary } = require("../simple-page-request-summary.cjs");
 const {
   isOpenAIApiProvider,
-  isOpenAICodexProvider,
+  usesResponsesTransport,
 } = require("../simple-page-model-config.cjs");
 const {
   GROUP_ONLY_PROMPT_CONTRACT_VERSION,
@@ -123,12 +123,12 @@ function buildRequestBody(
     900,
     Math.max(256, positiveInteger(options.maxTokens) || 4096),
   );
-  if (isOpenAICodexProvider(options)) {
+  if (usesResponsesTransport(options)) {
     body.max_output_tokens = maxOutputTokens;
   } else {
     body.max_tokens = maxOutputTokens;
   }
-  if (!isOpenAIApiProvider(options) && !isOpenAICodexProvider(options)) {
+  if (!isOpenAIApiProvider(options) && !usesResponsesTransport(options)) {
     body.repeat_penalty = 1.05;
   }
   return body;

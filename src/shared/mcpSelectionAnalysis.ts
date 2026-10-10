@@ -51,7 +51,12 @@ export const McpSelectionTranslationSchema = z
     contextMode: z.enum(["none", "saved"]).default("saved"),
     sourceLanguage: language.optional(),
     targetLanguage: language.optional(),
-    expectedEngine: z.enum(["gemma", "openai-api", "openai-codex"]),
+    expectedEngine: z.enum([
+      "gemma",
+      "openai-api",
+      "openai-codex",
+      "claude-code",
+    ]),
     allowExternal: z.boolean().default(false),
     allowAssetDownloads: z.boolean().default(false),
     preserveExistingTranslations: z.boolean().default(true),

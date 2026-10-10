@@ -33,6 +33,7 @@ export function useChat(enabled: boolean) {
         updatedAt: value.updatedAt,
         model: value.model,
         effort: value.effort,
+        runtime: value.runtime,
       },
       ...current.filter((item) => item.id !== value.id),
     ]);
@@ -49,11 +50,11 @@ export function useChat(enabled: boolean) {
     }
   }, []);
   const select = useCallback(
-    async (id?: string) => {
+    async (id?: string, runtime?: ChatSession["runtime"]) => {
       const version = ++requestVersion.current;
       const value = id
         ? await chatGateway.readChat(id)
-        : await chatGateway.createChat();
+        : await chatGateway.createChat(runtime);
       if (version !== requestVersion.current) return;
       selected.current = value.id;
       accept(value);
@@ -81,7 +82,7 @@ function useInitialChat(
   enabled: boolean,
   initialized: React.RefObject<boolean>,
   perform: (run: () => Promise<void>) => Promise<void>,
-  select: (id?: string) => Promise<void>,
+  select: (id?: string, runtime?: ChatSession["runtime"]) => Promise<void>,
   setHistory: (value: ChatSummary[]) => void,
 ) {
   useEffect(() => {
@@ -99,7 +100,7 @@ function useChatActions(
   session: ChatSession | null,
   accept: (value: ChatSession) => void,
   perform: (run: () => Promise<void>) => Promise<void>,
-  select: (id?: string) => Promise<void>,
+  select: (id?: string, runtime?: ChatSession["runtime"]) => Promise<void>,
 ) {
   const send = async (
     text: string,
@@ -123,7 +124,8 @@ function useChatActions(
   };
   return {
     send,
-    select: (id?: string) => perform(() => select(id)),
+    select: (id?: string, runtime?: ChatSession["runtime"]) =>
+      perform(() => select(id, runtime)),
     stop: () =>
       perform(async () => {
         if (session) accept(await chatGateway.stopChat(session.id));

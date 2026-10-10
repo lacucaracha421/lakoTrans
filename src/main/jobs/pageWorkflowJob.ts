@@ -75,6 +75,16 @@ export async function startPageWorkflowJob(
           ? "write"
           : "read",
       },
+      ...(run.request.plan.stages.includes("translate") &&
+      settings.modelProvider === "claude-code"
+        ? [
+            {
+              kind: "claude-auth" as const,
+              scope: "*",
+              access: "read" as const,
+            },
+          ]
+        : []),
       ...((run.request.plan.stages.includes("translate") &&
         settings.modelProvider === "openai-codex") ||
       (run.request.plan.stages.includes("erase") &&

@@ -212,6 +212,7 @@ describe("internet research settings form", () => {
 
     expect(isSettingsFormSubmittable(values, draft)).toBe(true);
     expect(result.internetResearch).toEqual({
+      claude: { model: "default", effort: "high" },
       tavilyAnalysisProvider: "api",
       gemmaPreset: "qat12b",
       gemmaReasoningEffort: "high",
@@ -540,4 +541,27 @@ describe("bubble layout padding settings form", () => {
       bubbleLayoutPaddingRatio: 0.41,
     });
   });
+});
+
+it("saves Claude settings without requiring a configured local Gemma model", () => {
+  const initialSettings = resolveDefaultAppSettings({});
+  const values = {
+    ...createSettingsFormValues(initialSettings),
+    modelProvider: "claude-code" as const,
+    modelSource: "local" as const,
+    localModelPath: "",
+    claudeModel: "sonnet",
+    claudeEffort: "high" as const,
+  };
+  const draft = resolveSettingsDraft(values);
+  expect(isSettingsFormSubmittable(values, draft)).toBe(true);
+  const saved = buildSettingsFromDraft({
+    values,
+    draft,
+    initialSettings,
+    keybindings: {},
+    blockFormatDefaults: DEFAULT_BLOCK_FORMAT_DEFAULTS,
+  });
+  expect(saved.claude).toEqual({ model: "sonnet", effort: "high" });
+  expect(saved.codex).toEqual(initialSettings.codex);
 });

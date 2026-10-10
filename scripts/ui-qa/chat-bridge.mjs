@@ -14,8 +14,8 @@ export const chatBridgeSource = `
   chatSessions.set(chatId, initialChat);
   const publishChat = (session) => { session.updatedAt = Date.now(); for (const listener of chatListeners) listener({ sessionId: session.id, session: structuredClone(session) }); return structuredClone(session); };
   const chatApi = {
-    listChats: async () => [...chatSessions.values()].map(({ id, title, state, updatedAt, model, effort }) => ({ id, title, state, updatedAt, model, effort })),
-    createChat: async () => { const value = { ...initialChat, id: crypto.randomUUID(), title: "새 대화", items: [], updatedAt: Date.now() }; chatSessions.set(value.id, value); return structuredClone(value); },
+    listChats: async () => [...chatSessions.values()].sort((a,b)=>b.updatedAt-a.updatedAt).map(({ id, title, state, updatedAt, model, effort, runtime }) => ({ id, title, state, updatedAt, model, effort, runtime })),
+    createChat: async (runtime = "codex") => { const value = { ...initialChat, runtime, id: crypto.randomUUID(), title: "새 대화", items: [], updatedAt: Date.now() }; chatSessions.set(value.id, value); return structuredClone(value); },
     readChat: async (id) => structuredClone(chatSessions.get(id)),
     sendChat: async (request) => { const value = chatSessions.get(request.sessionId); value.items.push({ id: request.messageId, role: "user", text: request.text, imageIds: request.imageIds, context: request.context, createdAt: Date.now(), state: "completed" }); value.state = "running"; return publishChat(value); },
     stopChat: async (id) => { const value = chatSessions.get(id); value.state = "paused"; return publishChat(value); },

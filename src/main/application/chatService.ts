@@ -53,19 +53,22 @@ export class ChatService {
           updatedAt: current.updatedAt,
           model: current.model,
           effort: current.effort,
+          runtime: current.runtime,
         };
       }),
     );
   }
-  async create(): Promise<ChatSession> {
+  async create(runtime?: ChatSession["runtime"]): Promise<ChatSession> {
     this.assertOpen();
-    const previous = (await this.list())[0];
+    const history = await this.list();
+    runtime ??= history[0]?.runtime ?? "codex";
+    const previous = history.find((entry) => entry.runtime === runtime);
     const now = Date.now();
     const session: ChatSession = {
       version: 1,
       id: randomUUID(),
       title: "새 대화",
-      runtime: "codex",
+      runtime,
       nativeThreadId: null,
       model: previous?.model ?? null,
       effort: previous?.effort ?? null,

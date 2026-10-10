@@ -146,6 +146,7 @@ function resolveModelTestRunningDetail(
   if (modelProvider === "openai-codex") {
     return t("settings.test.status.codexDetail");
   }
+  if (modelProvider === "claude-code") return t("settings.claude.testing");
   return t("settings.test.status.apiDetail");
 }
 

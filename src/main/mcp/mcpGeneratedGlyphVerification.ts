@@ -29,6 +29,7 @@ export async function verifyMcpGeneratedGlyphs(
   const settings = await readMcpSoundEffectSettings(
     paths,
     command.expectedModel,
+    "verify",
   );
   const blocks = selectGeneratedBlocks(page, command.blockIds);
   const glyphEvidenceIds: string[] = [];

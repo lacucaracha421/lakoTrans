@@ -114,6 +114,9 @@ function useSettingsFormSetters(
         setValues,
         "allowUnsafeUnifiedMemory",
       ),
+      setImageReview: createFormFieldDispatch(setValues, "imageReview"),
+      setClaudeModel: createFormFieldDispatch(setValues, "claudeModel"),
+      setClaudeEffort: createFormFieldDispatch(setValues, "claudeEffort"),
       setCodexModel: createFormFieldDispatch(setValues, "codexModel"),
       setCodexImageModel: createFormFieldDispatch(setValues, "codexImageModel"),
       setCodexImageGenerationModel: createFormFieldDispatch(
@@ -189,6 +192,7 @@ function createResearchFormSetters(
       setValues,
       "researchApiContextTokens",
     ),
+    setResearchClaude: createFormFieldDispatch(setValues, "researchClaude"),
     setResearchCodexModel: createFormFieldDispatch(
       setValues,
       "researchCodexModel",
@@ -349,6 +353,8 @@ function snapshotActiveGenerationLimits(
     maxTokens: current.maxTokens,
     contextTokens: current.contextTokens,
   };
+  if (current.modelProvider === "claude-code")
+    return { ...current.generationLimitProfiles, claude: limits };
   if (current.modelProvider === "gemma") {
     return { ...current.generationLimitProfiles, gemma: limits };
   }
@@ -370,6 +376,8 @@ function resolveGenerationLimitsForProvider(
   apiProvider: ApiProviderPresetId,
   current: SettingsFormValues,
 ) {
+  if (provider === "claude-code")
+    return profiles.claude ?? { maxTokens: "32768", contextTokens: "65536" };
   if (provider === "gemma") return profiles.gemma;
   if (provider === "openai-codex") return profiles.codex;
   return (

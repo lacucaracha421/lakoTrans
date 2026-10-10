@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  ClaudePreferencesSchema,
+  ImageReviewSettingsSchema,
+} from "./ipcClaudeContracts";
 import { UiSettingsSchema } from "./ipcUiSettingsSchema";
 import {
   AmdRocmTargetSchema,
@@ -187,7 +191,12 @@ const BlockStylePresetGroupSchema = z
 
 export const AppSettingsSchema = z
   .object({
-    modelProvider: z.enum(["gemma", "openai-codex", "openai-api"]),
+    modelProvider: z.enum([
+      "gemma",
+      "openai-codex",
+      "openai-api",
+      "claude-code",
+    ]),
     translation: z
       .object({
         sourceLanguage: LanguageCodeSchema,
@@ -212,6 +221,8 @@ export const AppSettingsSchema = z
         allowUnsafeUnifiedMemory: z.boolean().optional(),
       })
       .strict(),
+    imageReview: ImageReviewSettingsSchema.optional(),
+    claude: ClaudePreferencesSchema.optional(),
     codex: z
       .object({
         imageReasoningEffort: z.enum(CODEX_REASONING_EFFORTS).optional(),
@@ -223,6 +234,7 @@ export const AppSettingsSchema = z
       .strict(),
     internetResearch: z
       .object({
+        claude: ClaudePreferencesSchema.optional(),
         tavilyAnalysisProvider: z.enum(TAVILY_ANALYSIS_PROVIDERS),
         gemmaPreset: z.enum(RESEARCH_GEMMA_PRESETS),
         gemmaReasoningEffort: z.enum(RESEARCH_GEMMA_REASONING_EFFORTS),
@@ -379,6 +391,7 @@ export const AppSettingsSchema = z
       .object({
         gemma: GenerationLimitSettingsSchema,
         codex: GenerationLimitSettingsSchema,
+        claude: GenerationLimitSettingsSchema.optional(),
         api: apiProviderProfileMapSchema(GenerationLimitSettingsSchema),
       })
       .strict()

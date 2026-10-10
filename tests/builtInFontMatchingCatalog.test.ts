@@ -5,6 +5,7 @@ import {
   readdirSync,
   rmSync,
   statSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -180,7 +181,17 @@ describe("built-in font matching catalog", () => {
     if (!changedPath) {
       throw new Error("Expected long-cang test asset.");
     }
+    const previousStat = statSync(changedPath);
     writeFileSync(changedPath, Buffer.from("long-cang-font-changed"));
+    // Same-size writes can share a filesystem timestamp. Make the changed
+    // mtime explicit so this test exercises the cache invalidation contract.
+    utimesSync(
+      changedPath,
+      previousStat.atime,
+      new Date(previousStat.mtimeMs + 2_000),
+    );
+    expect(statSync(changedPath).size).toBe(previousStat.size);
+    expect(statSync(changedPath).mtimeMs).toBeGreaterThan(previousStat.mtimeMs);
     loadBuiltInFontMatchingCandidatesWith("zh-Hans", dependencies);
 
     expect(dependencies.inspectFontBuffer).toHaveBeenCalledTimes(7);

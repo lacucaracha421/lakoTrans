@@ -33,7 +33,8 @@ export function buildFluxRuntimeExitError(
   stderr: string,
   backend: FluxWorkerBackend,
 ): Error {
-  const detail = formatFluxRuntimeDetail(stderr);
+  const detail =
+    `exitCode=${code ?? "unknown"} ${formatFluxRuntimeDetail(stderr)}`.trim();
   return (
     buildMetalRuntimeExitError(stderr, detail, code, backend) ??
     buildZludaRuntimeExitError(stderr, detail, code, backend) ??
@@ -187,17 +188,8 @@ function buildPythonRocmRuntimeExitError(
       `Flux stable-diffusion.cpp ROCm 런타임 패키지를 불러오지 못했습니다. Flux 런타임 설치를 다시 실행하세요. ${detail}`,
     );
   }
-  if (
-    /ROCm|HIP|hipError|HSA|gfx|hipblas|rocblas|amdgpu|GPU_TARGETS|AMDGPU_TARGETS/i.test(
-      stderr,
-    )
-  ) {
-    return new Error(
-      `Flux stable-diffusion.cpp ROCm/HIP 런타임이 AMD GPU를 사용할 수 없습니다. AMD 드라이버, ROCm/HIP 지원 아키텍처, GPU target 설정을 확인하세요. ${detail}`,
-    );
-  }
   return new Error(
-    `Flux stable-diffusion.cpp ROCm 인페인팅 런타임이 종료되었습니다 (${code}). ${detail}`,
+    `Flux ROCm/HIP 인페인팅 런타임이 종료되었습니다 (${code}). 원본 오류를 확인하세요. ${detail}`,
   );
 }
 
@@ -331,9 +323,20 @@ function isFluxCudaKernelSymbolError(stderr: string): boolean {
 }
 
 export function formatFluxRuntimeDetail(stderr: string): string {
-  const detail = sanitizeFluxRuntimeStderr(stderr)
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(-1600);
+  const sanitized = sanitizeFluxRuntimeStderr(stderr);
+  let detail = sanitized.replace(/\s+/g, " ").trim();
+  if (detail.length > 1600) {
+    const failure = (findFluxRuntimeFailure(sanitized) || sanitized)
+      .replace(/\s+/g, " ")
+      .trim();
+    detail = `${failure.slice(0, 1000)} … ${detail.slice(-600)}`;
+  }
   return detail ? `detail=${detail}` : "";
+}
+
+export function findFluxRuntimeFailure(stderr: string): string {
+  const index = stderr.search(
+    /^.*(?:\b(?:error|fatal|failed|failure|panic(?:ked)?|abort(?:ed)?|assertion)\b|GGML_ASSERT|hipError[A-Za-z]+|out of memory)/im,
+  );
+  return index < 0 ? "" : stderr.slice(index, index + 1200);
 }

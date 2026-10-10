@@ -3,6 +3,7 @@ import { buildFluxWorkerEnv } from "./fluxWorkerEnv";
 import {
   buildFluxRuntimeExitError,
   buildFluxWorkerResponseError,
+  findFluxRuntimeFailure,
   formatFluxRuntimeDetail,
   sanitizeFluxRuntimeStderr,
 } from "./fluxWorkerErrors";
@@ -60,6 +61,8 @@ type FluxWorkerCommand = {
 export class FluxWorker {
   private readonly client: JsonLinesWorkerClient<FluxWorkerCommand>;
   private readonly diagnostics: FluxWorkerDiagnostics;
+  private runtimeFailure = "";
+  private stderrLookbehind = "";
 
   constructor(
     private readonly launch: FluxWorkerLaunchSpec,
@@ -73,12 +76,12 @@ export class FluxWorker {
       workerName: "Flux 인페인팅 런타임",
       requestTimeoutMs: options.requestTimeoutMs,
       buildExitError: (code, stderr) =>
-        buildFluxRuntimeExitError(code, stderr, launch.backend),
+        this.buildRuntimeExitError(code, stderr),
       buildNotRunningError: (stderr) =>
         new Error(
-          `Flux 인페인팅 런타임이 실행 중이 아닙니다. ${formatFluxRuntimeDetail(stderr)}`,
+          `Flux 인페인팅 런타임이 실행 중이 아닙니다. ${formatFluxRuntimeDetail(this.withRuntimeFailure(stderr))}`,
         ),
-      sanitizeStderr: sanitizeFluxRuntimeStderr,
+      sanitizeStderr: (text) => this.rememberRuntimeFailure(text),
       onStderr: (text) => logFluxRuntimeStderr(text, launch, this.diagnostics),
       onSpawn: (pid) => this.logProcessStarting(pid),
       onTerminationError: (error) =>
@@ -88,6 +91,39 @@ export class FluxWorker {
           error,
         }),
     });
+  }
+
+  private rememberRuntimeFailure(text: string): string {
+    const sanitized = sanitizeFluxRuntimeStderr(text);
+    if (this.runtimeFailure) {
+      this.runtimeFailure = (this.runtimeFailure + sanitized).slice(0, 1200);
+    } else {
+      const candidate = this.stderrLookbehind + sanitized;
+      this.runtimeFailure = findFluxRuntimeFailure(candidate);
+      this.stderrLookbehind = candidate.slice(-4096);
+    }
+    return sanitized;
+  }
+
+  private withRuntimeFailure(stderr: string): string {
+    return this.runtimeFailure && !stderr.includes(this.runtimeFailure)
+      ? `${this.runtimeFailure}\n${stderr}`
+      : stderr;
+  }
+
+  private buildRuntimeExitError(code: number | null, stderr: string): Error {
+    const error = buildFluxRuntimeExitError(
+      code,
+      this.withRuntimeFailure(stderr),
+      this.launch.backend,
+    );
+    this.diagnostics.warn("Flux runtime exited", {
+      backend: this.launch.backend,
+      label: this.launch.label,
+      exitCode: code,
+      error: error.message,
+    });
+    return error;
   }
 
   private logProcessStarting(pid: number | null): void {
@@ -132,7 +168,12 @@ export class FluxWorker {
       ...requestSummary,
     });
     const result = await response;
-    this.handleResponse(result, requestSummary);
+    try {
+      this.handleResponse(result, requestSummary);
+    } finally {
+      this.runtimeFailure = "";
+      this.stderrLookbehind = "";
+    }
   }
 
   async dispose(): Promise<void> {
@@ -167,7 +208,7 @@ export class FluxWorker {
     });
     throw buildFluxWorkerResponseError(
       response.error ?? "알 수 없는 오류",
-      this.client.getStderr(),
+      this.withRuntimeFailure(this.client.getStderr()),
       this.launch.backend,
     );
   }

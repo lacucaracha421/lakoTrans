@@ -113,7 +113,17 @@ describe("web import download fixture", () => {
     async (stallAt) => {
       vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
       let stalledSignal: AbortSignal | null | undefined;
-      const progress = vi.fn();
+      let completedBeforeStall!: () => void;
+      const progressReady = new Promise<void>((resolve) => {
+        completedBeforeStall = resolve;
+      });
+      let enteredStall!: () => void;
+      const stallReady = new Promise<void>((resolve) => {
+        enteredStall = resolve;
+      });
+      const progress = vi.fn((completed: number, _total: number) => {
+        if (completed === 11) completedBeforeStall();
+      });
       const requested: number[] = [];
       const session: WebImportFetchSession = {
         fetch: async (url, init) => {
@@ -121,14 +131,26 @@ describe("web import download fixture", () => {
           requested.push(index);
           if (index === 6) {
             stalledSignal = init?.signal;
-            if (stallAt === "headers")
+            if (stallAt === "headers") {
+              enteredStall();
               return new Promise<Response>(() => undefined);
+            }
+            let firstChunk = true;
             return new Response(
-              new ReadableStream<Uint8Array>({
-                start(controller) {
-                  controller.enqueue(makePngHeader(26, 30));
+              new ReadableStream<Uint8Array>(
+                {
+                  pull(controller) {
+                    if (firstChunk) {
+                      firstChunk = false;
+                      controller.enqueue(makePngHeader(26, 30));
+                      return;
+                    }
+                    enteredStall();
+                    return new Promise<void>(() => undefined);
+                  },
                 },
-              }),
+                { highWaterMark: 0 },
+              ),
             );
           }
           return new Response(new Uint8Array(makePngHeader(20 + index, 30)));
@@ -146,11 +168,12 @@ describe("web import download fixture", () => {
         signal: new AbortController().signal,
         onProgress: progress,
       });
-      await allowDownloadCleanup(download);
+      // Advance network time only after real disk writes have completed and
+      // the intended header/body read is actually waiting.
+      await Promise.race([download, Promise.all([progressReady, stallReady])]);
       const progressBeforeTimeout = progress.mock.lastCall;
       const requestsBeforeTimeout = [...requested];
       await vi.advanceTimersByTimeAsync(15_000);
-      await allowDownloadCleanup(download);
       const abortedAfterIdle = stalledSignal?.aborted;
       // Release the old implementation at its total deadline before asserting.
       if (!abortedAfterIdle) await vi.advanceTimersByTimeAsync(75_000);
@@ -181,12 +204,22 @@ describe("web import download fixture", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     let bodyController!: ReadableStreamDefaultController<Uint8Array>;
     let fetchSignal: AbortSignal | null | undefined;
-    const body = new ReadableStream<Uint8Array>({
-      start(controller) {
-        bodyController = controller;
-        controller.enqueue(makePngHeader(20, 30));
-      },
+    let readyForChunk!: () => void;
+    let nextRead = new Promise<void>((resolve) => {
+      readyForChunk = resolve;
     });
+    const body = new ReadableStream<Uint8Array>(
+      {
+        start(controller) {
+          bodyController = controller;
+          controller.enqueue(makePngHeader(20, 30));
+        },
+        pull() {
+          readyForChunk();
+        },
+      },
+      { highWaterMark: 0 },
+    );
     const download = downloadDiscoveredWebImages({
       candidates: [discovered("https://cdn.example/slow.png", 0)],
       deadlineAt: Date.now() + 90_000,
@@ -202,11 +235,14 @@ describe("web import download fixture", () => {
       signal: new AbortController().signal,
       onProgress: vi.fn(),
     });
-    await allowDownloadCleanup(download);
+    await nextRead;
     for (let chunk = 0; chunk < 3; chunk += 1) {
       await vi.advanceTimersByTimeAsync(10_000);
+      nextRead = new Promise<void>((resolve) => {
+        readyForChunk = resolve;
+      });
       bodyController.enqueue(new Uint8Array([chunk]));
-      await allowDownloadCleanup(download);
+      await nextRead;
     }
     bodyController.close();
     const result = await download;
@@ -325,7 +361,10 @@ async function allowDownloadCleanup(download: Promise<unknown>): Promise<void> {
     await Promise.race([
       download,
       new Promise<void>((resolve) => {
-        timer = realSetTimeout(resolve, 500);
+        // Normal cleanup awaits the actual download promise. This real-time
+        // fallback only releases a broken implementation before the test's
+        // outer timeout, while still staying below the 15-second idle limit.
+        timer = realSetTimeout(resolve, 10_000);
       }),
     ]);
   } finally {

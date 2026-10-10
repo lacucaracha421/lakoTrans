@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 import { selectionHttpFixture } from "./mcpSelectionHttp.fixture";
 import {
   McpSelectionBatchPreviewSchema,
@@ -10,21 +10,13 @@ import { mcpSelectionAnalysisOutputs } from "../src/shared/mcpSelectionAnalysis"
 
 async function fixture() {
   const f = await selectionHttpFixture(true);
+  const waitForEdit = f.session.waitForEdit;
+  if (!waitForEdit) throw new Error("Missing selection edit lifecycle");
   const inspect = async (batchId: string) =>
     mcpSelectionBatchOutputs.carrot_get_selection_batch.parse(
       (await f.call("carrot_get_selection_batch", { batchId })).body.result
         .structuredContent,
     );
-  const done = async (batchId: string) => {
-    await vi.waitFor(
-      async () => {
-        if ((await inspect(batchId)).status === "running")
-          throw new Error("Pending selection action");
-      },
-      { timeout: 5000 },
-    );
-    return inspect(batchId);
-  };
   const analyze = async () => {
     const accepted = (
       await f.call(
@@ -59,7 +51,7 @@ async function fixture() {
       }),
     });
   };
-  return { ...f, inspect, done, analyze };
+  return { ...f, inspect, waitForEdit, analyze };
 }
 
 it("runs preview apply undo redo through real scoped HTTP and publishes only validated public results", async () => {
@@ -86,7 +78,13 @@ it("runs preview apply undo redo through real scoped HTTP and publishes only val
       ).body.result;
       expect(accepted.isError).toBe(false);
       expect(accepted.structuredContent.status).toBe("accepted");
-      expect((await f.done(batchId)).status).toBe("completed");
+      await f.waitForEdit(
+        f.principal,
+        batchId,
+        accepted.structuredContent.requestId,
+        new AbortController().signal,
+      );
+      expect((await f.inspect(batchId)).status).toBe("completed");
       if (direction === "undo")
         expect(
           (await f.library.openChapter("chapter")).pages.map(
@@ -170,17 +168,24 @@ it("rechecks revocation before the next native page save and retains the first c
     f.editing.notifySaved.mockImplementationOnce(() => {
       f.provider.revokeConnection(f.principal);
     });
+    const requestId = randomUUID();
     expect(
       (
         await f.call("carrot_apply_selection_batch", {
           batchId: plan.batchId,
-          requestId: randomUUID(),
+          requestId,
         })
       ).body.result.isError,
     ).toBe(false);
-    await vi.waitFor(() =>
-      expect(f.editing.notifySaved).toHaveBeenCalledOnce(),
+    // Revoked HTTP access cannot inspect the plan; wait only for the already
+    // admitted action to finish enforcing revocation at its next save boundary.
+    await f.waitForEdit(
+      f.principal,
+      plan.batchId,
+      requestId,
+      new AbortController().signal,
     );
+    expect(f.editing.notifySaved).toHaveBeenCalledOnce();
     await f.session.close();
     const after = await f.library.openChapter("chapter");
     expect(after.pages[0].blocks[0].translatedText).not.toBe(

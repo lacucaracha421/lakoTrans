@@ -153,13 +153,16 @@ it("retains undo history after evidence expiry but refuses expired redo", async 
     const { input } = await f.prepare("translation");
     const plan = await f.preview(input);
     vi.setSystemTime(Date.now() + 29 * 60000);
+    const applyTime = Date.now();
     expect((await f.action(plan.batchId, "apply")).result.status).toBe(
       "completed",
     );
-    vi.setSystemTime(Date.now() + 2 * 60000);
+    expect(Date.now()).toBe(applyTime);
+    vi.setSystemTime(applyTime + 2 * 60000);
     expect((await f.action(plan.batchId, "undo")).result.status).toBe(
       "completed",
     );
+    expect(Date.now()).toBe(applyTime + 2 * 60000);
     expect((await f.snapshot()).pages.map((page) => page.blocks)).toEqual(
       before.pages.map((page) => page.blocks),
     );

@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
-import { vi } from "vitest";
 import { selectionAppFixture } from "./mcpSelectionApp.fixture";
 import {
   McpSelectionBatchPreviewSchema,
@@ -15,13 +14,19 @@ export async function selectionEditingFixture() {
       await f.invoke("carrot_get_selection_batch", { batchId }),
     );
   const done = async (batchId: string) => {
-    await vi.waitFor(
-      async () => {
-        if ((await inspect(batchId)).status === "running")
-          throw new Error("Batch pending");
-      },
-      { timeout: 5000 },
-    );
+    const current = await inspect(batchId);
+    if (current.activeRequestId) {
+      const wait = f.session.waitForEdit;
+      if (!wait) throw new Error("Missing selection edit lifecycle");
+      // Await the admitted save, including cleanup, without a second polling
+      // deadline or advancing the evidence-expiry test's mocked clock.
+      await wait(
+        f.owner,
+        batchId,
+        current.activeRequestId,
+        new AbortController().signal,
+      );
+    }
     return inspect(batchId);
   };
   const action = async (
